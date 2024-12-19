@@ -1,7 +1,16 @@
-import { Plus, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Plus, User, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { useState } from "react";
 
 // Temporary mock data - replace with real data when backend is integrated
 const mockUsers = [
@@ -10,7 +19,28 @@ const mockUsers = [
   { id: 3, name: "Alex Johnson", lastMessage: "Thanks for your help!", timestamp: "1d ago" },
 ];
 
+// Temporary mock friends data - replace with real data when backend is integrated
+const mockFriends = [
+  { id: 4, name: "Sarah Wilson", department: "Computer Engineering" },
+  { id: 5, name: "Mike Brown", department: "Information Technology" },
+  { id: 6, name: "Emily Davis", department: "Mechanical Engineering" },
+  { id: 7, name: "Chris Lee", department: "Electronics Engineering" },
+];
+
 const Messages = () => {
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const filteredFriends = mockFriends.filter((friend) =>
+    friend.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleFriendSelect = (friendId: number) => {
+    setIsOpen(false);
+    navigate(`/messages/${friendId}`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -18,10 +48,47 @@ const Messages = () => {
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow">
           <div className="p-4 border-b flex justify-between items-center">
             <h1 className="text-xl font-semibold">Messages</h1>
-            <Button size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              New Message
-            </Button>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Message
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>New Message</DialogTitle>
+                </DialogHeader>
+                <div className="mt-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search friends..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto">
+                    {filteredFriends.map((friend) => (
+                      <button
+                        key={friend.id}
+                        onClick={() => handleFriendSelect(friend.id)}
+                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                          <User className="h-5 w-5 text-gray-500" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-sm">{friend.name}</p>
+                          <p className="text-xs text-gray-500">{friend.department}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
           
           <div className="divide-y">
