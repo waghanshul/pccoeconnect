@@ -20,10 +20,11 @@ const mockMessages: Message[] = [
 
 interface ChatWindowProps {
   userId: string;
-  currentUserId?: number; // The logged-in user's ID
+  currentUserId?: number;
+  userName?: string; // Add userName prop
 }
 
-const ChatWindow = ({ userId, currentUserId = 1 }: ChatWindowProps) => {
+const ChatWindow = ({ userId, currentUserId = 1, userName = "" }: ChatWindowProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState(mockMessages);
 
@@ -54,7 +55,7 @@ const ChatWindow = ({ userId, currentUserId = 1 }: ChatWindowProps) => {
           <User className="h-5 w-5 text-gray-500" />
         </div>
         <div>
-          <h2 className="font-semibold">User {userId}</h2>
+          <h2 className="font-semibold">{userName}</h2>
           <p className="text-sm text-gray-500">Online</p>
         </div>
       </div>

@@ -43,6 +43,11 @@ const Messages = () => {
     navigate(`/messages/${friendId}`);
   };
 
+  // Find the current user's name based on userId
+  const currentUser = [...mockUsers, ...mockFriends].find(
+    (user) => user.id === Number(userId)
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
@@ -124,7 +129,10 @@ const Messages = () => {
           
           <div className="md:col-span-2">
             {userId ? (
-              <ChatWindow userId={userId} />
+              <ChatWindow 
+                userId={userId} 
+                userName={currentUser?.name}
+              />
             ) : (
               <div className="h-[calc(100vh-8rem)] bg-white rounded-lg shadow flex items-center justify-center">
                 <p className="text-gray-500">Select a conversation to start messaging</p>
