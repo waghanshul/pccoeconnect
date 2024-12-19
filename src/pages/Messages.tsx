@@ -1,5 +1,5 @@
 import { Plus, User, Search } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/Navigation";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import ChatWindow from "@/components/ChatWindow";
 
 // Temporary mock data - replace with real data when backend is integrated
 const mockUsers = [
@@ -29,6 +30,7 @@ const mockFriends = [
 
 const Messages = () => {
   const navigate = useNavigate();
+  const { userId } = useParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -45,75 +47,89 @@ const Messages = () => {
     <div className="min-h-screen bg-gray-50">
       <Navigation />
       <main className="container mx-auto px-4 pt-20">
-        <div className="max-w-2xl mx-auto bg-white rounded-lg shadow">
-          <div className="p-4 border-b flex justify-between items-center">
-            <h1 className="text-xl font-semibold">Messages</h1>
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  New Message
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>New Message</DialogTitle>
-                </DialogHeader>
-                <div className="mt-4">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Search friends..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
-                  <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto">
-                    {filteredFriends.map((friend) => (
-                      <button
-                        key={friend.id}
-                        onClick={() => handleFriendSelect(friend.id)}
-                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                          <User className="h-5 w-5 text-gray-500" />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium text-sm">{friend.name}</p>
-                          <p className="text-xs text-gray-500">{friend.department}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-1">
+            <div className="bg-white rounded-lg shadow">
+              <div className="p-4 border-b flex justify-between items-center">
+                <h1 className="text-xl font-semibold">Messages</h1>
+                <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                      <Plus className="mr-2 h-4 w-4" />
+                      New Message
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>New Message</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search friends..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                      <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto">
+                        {filteredFriends.map((friend) => (
+                          <button
+                            key={friend.id}
+                            onClick={() => handleFriendSelect(friend.id)}
+                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                          >
+                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                              <User className="h-5 w-5 text-gray-500" />
+                            </div>
+                            <div className="text-left">
+                              <p className="font-medium text-sm">{friend.name}</p>
+                              <p className="text-xs text-gray-500">{friend.department}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              <div className="divide-y">
+                {mockUsers.map((user) => (
+                  <Link
+                    key={user.id}
+                    to={`/messages/${user.id}`}
+                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
+                        <User className="h-6 w-6 text-gray-500" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline">
+                        <h2 className="text-sm font-medium text-gray-900 truncate">
+                          {user.name}
+                        </h2>
+                        <span className="text-xs text-gray-500">{user.timestamp}</span>
+                      </div>
+                      <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
           
-          <div className="divide-y">
-            {mockUsers.map((user) => (
-              <Link
-                key={user.id}
-                to={`/messages/${user.id}`}
-                className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex-shrink-0">
-                  <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                    <User className="h-6 w-6 text-gray-500" />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-baseline">
-                    <h2 className="text-sm font-medium text-gray-900 truncate">
-                      {user.name}
-                    </h2>
-                    <span className="text-xs text-gray-500">{user.timestamp}</span>
-                  </div>
-                  <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
-                </div>
-              </Link>
-            ))}
+          <div className="md:col-span-2">
+            {userId ? (
+              <ChatWindow userId={userId} />
+            ) : (
+              <div className="h-[calc(100vh-8rem)] bg-white rounded-lg shadow flex items-center justify-center">
+                <p className="text-gray-500">Select a conversation to start messaging</p>
+              </div>
+            )}
           </div>
         </div>
       </main>
