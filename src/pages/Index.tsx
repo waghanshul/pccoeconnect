@@ -8,12 +8,14 @@ const Index = () => {
       content: "Just submitted my final project for Advanced Algorithms! #PCCOE #ComputerScience",
       timestamp: "2 hours ago",
       avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      authorId: "john-doe",
     },
     {
       author: "Jane Smith",
-      content: "Looking for team members for the upcoming hackathon! DM if interested 🚀",
+      content: "Looking for team members for the upcoming hackathon! DM if interested 🚀 #Hackathon #TeamBuilding",
       timestamp: "5 hours ago",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+      authorId: "jane-smith",
     },
   ];
 

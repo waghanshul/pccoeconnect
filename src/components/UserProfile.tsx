@@ -1,6 +1,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, BookOpen, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { GraduationCap, BookOpen, Heart, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface UserProfileProps {
   user: {
@@ -15,6 +18,13 @@ interface UserProfileProps {
 }
 
 export const UserProfile = ({ user }: UserProfileProps) => {
+  const navigate = useNavigate();
+
+  const handleMessage = () => {
+    navigate("/messages");
+    toast.success("Redirecting to messages with " + user.name);
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader className="flex flex-col items-center space-y-4">
@@ -22,9 +32,17 @@ export const UserProfile = ({ user }: UserProfileProps) => {
           <AvatarImage src={user.avatar} alt={user.name} />
           <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <CardTitle className="text-2xl font-bold">{user.name}</CardTitle>
           <p className="text-muted-foreground">{user.role}</p>
+          <Button 
+            variant="outline" 
+            className="gap-2"
+            onClick={handleMessage}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Message
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -55,7 +73,7 @@ export const UserProfile = ({ user }: UserProfileProps) => {
                 {user.interests.map((interest, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 text-sm bg-secondary rounded-full"
+                    className="px-3 py-1 text-sm bg-secondary/10 text-secondary-foreground rounded-full"
                   >
                     {interest}
                   </span>
