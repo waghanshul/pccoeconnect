@@ -13,10 +13,13 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Navigation />
       <main className="container mx-auto px-4 pt-20">
-        <UserProfile user={user} />
+        <div className="relative">
+          <div className="absolute inset-0 h-48 bg-gradient-to-r from-primary to-blue-600 rounded-b-3xl -z-10" />
+          <UserProfile user={user} />
+        </div>
       </main>
     </div>
   );
