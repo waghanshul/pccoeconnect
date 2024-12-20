@@ -3,8 +3,8 @@ import { UserProfile } from "@/components/UserProfile";
 
 const Profile = () => {
   const user = {
-    name: "John Doe",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
+    name: "Arjun Patel",
+    avatar: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
     role: "Student",
     department: "Computer Engineering",
     year: "Third",
