@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
+import Notifications from "./pages/Notifications";
 
 const queryClient = new QueryClient();
 
@@ -19,7 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/messages" element={<Messages />} />
           <Route path="/messages/:userId" element={<Messages />} />
-          <Route path="/notifications" element={<Index />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </BrowserRouter>
