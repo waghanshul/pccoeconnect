@@ -49,14 +49,14 @@ const ChatWindow = ({ userId, currentUserId = 1, userName = "" }: ChatWindowProp
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white rounded-lg shadow">
-      <div className="p-4 border-b flex items-center gap-3">
-        <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-          <User className="h-5 w-5 text-gray-500" />
+    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow">
+      <div className="p-4 border-b dark:border-gray-700 flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </div>
         <div>
-          <h2 className="font-semibold">{userName}</h2>
-          <p className="text-sm text-gray-500">Online</p>
+          <h2 className="font-semibold dark:text-white">{userName}</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">Online</p>
         </div>
       </div>
 
@@ -70,7 +70,7 @@ const ChatWindow = ({ userId, currentUserId = 1, userName = "" }: ChatWindowProp
               className={`max-w-[70%] rounded-lg p-3 ${
                 message.senderId === currentUserId
                   ? "bg-primary text-white"
-                  : "bg-gray-100"
+                  : "bg-gray-100 dark:bg-gray-700 dark:text-gray-200"
               }`}
             >
               <p className="text-sm">{message.text}</p>
@@ -82,14 +82,14 @@ const ChatWindow = ({ userId, currentUserId = 1, userName = "" }: ChatWindowProp
         ))}
       </div>
 
-      <div className="p-4 border-t">
+      <div className="p-4 border-t dark:border-gray-700">
         <div className="flex gap-2">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="flex-1"
+            className="flex-1 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600"
           />
           <Button onClick={handleSendMessage} size="icon">
             <Send className="h-4 w-4" />

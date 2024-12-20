@@ -20,14 +20,14 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <Navigation />
       <main className="container mx-auto px-4 pt-20">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 transition-all duration-200 hover:shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-6 transition-all duration-200 hover:shadow-md">
             <textarea
               placeholder="What's on your mind?"
-              className="w-full h-24 p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none transition-all duration-200"
+              className="w-full h-24 p-3 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none transition-all duration-200 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
             />
             <div className="flex justify-end mt-3">
               <button className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-all duration-200 transform hover:-translate-y-0.5">
