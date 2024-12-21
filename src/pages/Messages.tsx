@@ -1,7 +1,7 @@
+import { Navigation } from "@/components/Navigation";
 import { Plus, User, Search } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Navigation } from "@/components/Navigation";
 import {
   Dialog,
   DialogContent,
@@ -43,20 +43,19 @@ const Messages = () => {
     navigate(`/messages/${friendId}`);
   };
 
-  // Find the current user's name based on userId
   const currentUser = [...mockUsers, ...mockFriends].find(
     (user) => user.id === Number(userId)
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Navigation />
       <main className="container mx-auto px-4 pt-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1">
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h1 className="text-xl font-semibold">Messages</h1>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow transition-colors duration-200">
+              <div className="p-4 border-b dark:border-gray-700 flex justify-between items-center">
+                <h1 className="text-xl font-semibold dark:text-white">Messages</h1>
                 <Dialog open={isOpen} onOpenChange={setIsOpen}>
                   <DialogTrigger asChild>
                     <Button size="sm">
@@ -64,9 +63,9 @@ const Messages = () => {
                       New Message
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
+                  <DialogContent className="dark:bg-gray-800">
                     <DialogHeader>
-                      <DialogTitle>New Message</DialogTitle>
+                      <DialogTitle className="dark:text-white">New Message</DialogTitle>
                     </DialogHeader>
                     <div className="mt-4">
                       <div className="relative">
@@ -75,7 +74,7 @@ const Messages = () => {
                           placeholder="Search friends..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="pl-9"
+                          className="pl-9 dark:bg-gray-700 dark:text-white dark:border-gray-600"
                         />
                       </div>
                       <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto">
@@ -83,14 +82,14 @@ const Messages = () => {
                           <button
                             key={friend.id}
                             onClick={() => handleFriendSelect(friend.id)}
-                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors dark:text-white"
                           >
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                              <User className="h-5 w-5 text-gray-500" />
+                            <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+                              <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                             </div>
                             <div className="text-left">
                               <p className="font-medium text-sm">{friend.name}</p>
-                              <p className="text-xs text-gray-500">{friend.department}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{friend.department}</p>
                             </div>
                           </button>
                         ))}
@@ -100,26 +99,26 @@ const Messages = () => {
                 </Dialog>
               </div>
               
-              <div className="divide-y">
+              <div className="divide-y dark:divide-gray-700">
                 {mockUsers.map((user) => (
                   <Link
                     key={user.id}
                     to={`/messages/${user.id}`}
-                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <div className="flex-shrink-0">
-                      <div className="h-12 w-12 rounded-full bg-gray-200 flex items-center justify-center">
-                        <User className="h-6 w-6 text-gray-500" />
+                      <div className="h-12 w-12 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                        <User className="h-6 w-6 text-gray-500 dark:text-gray-400" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-baseline">
-                        <h2 className="text-sm font-medium text-gray-900 truncate">
+                        <h2 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                           {user.name}
                         </h2>
-                        <span className="text-xs text-gray-500">{user.timestamp}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{user.timestamp}</span>
                       </div>
-                      <p className="text-sm text-gray-500 truncate">{user.lastMessage}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user.lastMessage}</p>
                     </div>
                   </Link>
                 ))}
@@ -134,8 +133,8 @@ const Messages = () => {
                 userName={currentUser?.name}
               />
             ) : (
-              <div className="h-[calc(100vh-8rem)] bg-white rounded-lg shadow flex items-center justify-center">
-                <p className="text-gray-500">Select a conversation to start messaging</p>
+              <div className="h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow flex items-center justify-center">
+                <p className="text-gray-500 dark:text-gray-400">Select a conversation to start messaging</p>
               </div>
             )}
           </div>
