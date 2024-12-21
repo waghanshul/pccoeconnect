@@ -130,7 +130,6 @@ const Messages = () => {
             {userId ? (
               <ChatWindow 
                 userId={userId} 
-                userName={currentUser?.name}
               />
             ) : (
               <div className="h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow flex items-center justify-center">
