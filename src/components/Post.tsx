@@ -42,9 +42,11 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
   };
 
   const handleShare = (friendId: number, friendName: string) => {
-    // In a real application, this would send the shared content to the friend's messages
-    toast.success(`Shared with ${friendName}`, {
-      onClick: () => navigate(`/messages/${friendId}`),
+    toast(`Shared with ${friendName}`, {
+      action: {
+        label: 'View chat',
+        onClick: () => navigate(`/messages/${friendId}`)
+      },
       className: "cursor-pointer hover:opacity-90"
     });
   };
