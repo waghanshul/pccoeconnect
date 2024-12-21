@@ -20,6 +20,8 @@ interface PostProps {
 export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps) => {
   const [showComments, setShowComments] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
 
   const hashtags = content.match(/#[a-zA-Z0-9]+/g) || [];
   
@@ -29,6 +31,11 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
     }
     return word + " ";
   });
+
+  const handleLike = () => {
+    setIsLiked(!isLiked);
+    setLikeCount(prevCount => isLiked ? prevCount - 1 : prevCount + 1);
+  };
 
   const comments: Comment[] = [
     {
@@ -61,9 +68,17 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
         </div>
       )}
       <div className="flex items-center space-x-4 text-gray-500 dark:text-gray-400">
-        <button className="flex items-center space-x-2 hover:text-primary transition-colors">
-          <Heart size={20} />
-          <span>Like</span>
+        <button 
+          className="flex items-center space-x-2 hover:text-primary transition-colors group"
+          onClick={handleLike}
+        >
+          <Heart 
+            size={20} 
+            className={`${isLiked ? 'fill-[#D946EF] text-[#D946EF]' : 'group-hover:text-primary'} transition-colors`}
+          />
+          <span className={`${isLiked ? 'text-[#D946EF]' : ''}`}>
+            {likeCount > 0 ? `${likeCount} ${likeCount === 1 ? 'Like' : 'Likes'}` : 'Like'}
+          </span>
         </button>
         <button 
           className="flex items-center space-x-2 hover:text-primary transition-colors"
