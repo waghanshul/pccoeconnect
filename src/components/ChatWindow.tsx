@@ -1,7 +1,7 @@
 import { User, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Message {
   id: number;
@@ -18,15 +18,34 @@ const mockMessages: Message[] = [
   { id: 4, senderId: 2, text: "Yes, just finished it yesterday.", timestamp: "10:33 AM" },
 ];
 
+// Mock friends data to get receiver's name - replace with real data when backend is integrated
+const mockFriends = [
+  { id: 1, name: "John Doe" },
+  { id: 2, name: "Jane Smith" },
+  { id: 3, name: "Alex Johnson" },
+  { id: 4, name: "Sarah Wilson" },
+  { id: 5, name: "Mike Brown" },
+  { id: 6, name: "Emily Davis" },
+  { id: 7, name: "Chris Lee" },
+];
+
 interface ChatWindowProps {
   userId: string;
   currentUserId?: number;
-  userName?: string; // Add userName prop
 }
 
-const ChatWindow = ({ userId, currentUserId = 1, userName = "" }: ChatWindowProps) => {
+const ChatWindow = ({ userId, currentUserId = 1 }: ChatWindowProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState(mockMessages);
+  const [receiverName, setReceiverName] = useState("");
+
+  useEffect(() => {
+    // Find the receiver's name from mockFriends
+    const receiver = mockFriends.find(friend => friend.id === Number(userId));
+    if (receiver) {
+      setReceiverName(receiver.name);
+    }
+  }, [userId]);
 
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
@@ -55,7 +74,7 @@ const ChatWindow = ({ userId, currentUserId = 1, userName = "" }: ChatWindowProp
           <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
         </div>
         <div>
-          <h2 className="font-semibold dark:text-white">{userName}</h2>
+          <h2 className="font-semibold dark:text-white">{receiverName}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">Online</p>
         </div>
       </div>
