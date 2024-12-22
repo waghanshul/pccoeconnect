@@ -1,12 +1,16 @@
-import { Bell, Home, MessageSquare, Search, User, Moon, Sun } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Bell, Home, MessageSquare, Search, User, Moon, Sun, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
 import { Toggle } from "./ui/toggle";
+import { Button } from "./ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 export const Navigation = () => {
   const [darkMode, setDarkMode] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -21,6 +25,14 @@ export const Navigation = () => {
     setDarkMode(newDarkMode);
     localStorage.setItem("darkMode", String(newDarkMode));
     document.documentElement.classList.toggle("dark");
+  };
+
+  const handleLogout = () => {
+    toast({
+      title: "Logged out successfully",
+      description: "See you soon!",
+    });
+    navigate("/");
   };
 
   const getActiveStyles = (path: string) => {
@@ -93,6 +105,14 @@ export const Navigation = () => {
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-gray-600 dark:text-gray-300 hover:text-primary"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
             <Toggle
               variant="outline"
               size="sm"
