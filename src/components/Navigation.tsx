@@ -1,14 +1,14 @@
 import { Bell, Home, MessageSquare, Search, User, Moon, Sun } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
 import { Toggle } from "./ui/toggle";
 
 export const Navigation = () => {
   const [darkMode, setDarkMode] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
-    // Check if user previously enabled dark mode
     const isDark = localStorage.getItem("darkMode") === "true";
     setDarkMode(isDark);
     if (isDark) {
@@ -23,6 +23,28 @@ export const Navigation = () => {
     document.documentElement.classList.toggle("dark");
   };
 
+  const getActiveStyles = (path: string) => {
+    const isActive = location.pathname === path;
+    return isActive
+      ? "text-primary border-b-2 border-primary"
+      : "text-gray-600 dark:text-gray-300 hover:text-primary";
+  };
+
+  const getTabName = () => {
+    switch (location.pathname) {
+      case "/":
+        return "Home";
+      case "/messages":
+        return "Messages";
+      case "/notifications":
+        return "Notifications";
+      case "/profile":
+        return "Profile";
+      default:
+        return "";
+    }
+  };
+
   return (
     <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50">
       <div className="container mx-auto px-4">
@@ -32,19 +54,31 @@ export const Navigation = () => {
           </Link>
           
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-primary flex items-center gap-2 transition-colors duration-200">
+            <Link 
+              to="/" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/')}`}
+            >
               <Home size={20} />
               <span>Home</span>
             </Link>
-            <Link to="/messages" className="text-gray-600 dark:text-gray-300 hover:text-primary flex items-center gap-2 transition-colors duration-200">
+            <Link 
+              to="/messages" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/messages')}`}
+            >
               <MessageSquare size={20} />
               <span>Messages</span>
             </Link>
-            <Link to="/notifications" className="text-gray-600 dark:text-gray-300 hover:text-primary flex items-center gap-2 transition-colors duration-200">
+            <Link 
+              to="/notifications" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/notifications')}`}
+            >
               <Bell size={20} />
               <span>Notifications</span>
             </Link>
-            <Link to="/profile" className="text-gray-600 dark:text-gray-300 hover:text-primary flex items-center gap-2 transition-colors duration-200">
+            <Link 
+              to="/profile" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/profile')}`}
+            >
               <User size={20} />
               <span>Profile</span>
             </Link>
@@ -74,6 +108,9 @@ export const Navigation = () => {
               )}
             </Toggle>
           </div>
+        </div>
+        <div className="text-center py-2 font-semibold text-primary">
+          {getTabName()}
         </div>
       </div>
     </nav>
