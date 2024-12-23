@@ -44,7 +44,7 @@ export const Navigation = () => {
 
   const getTabName = () => {
     switch (location.pathname) {
-      case "/":
+      case "/home":
         return "Home";
       case "/messages":
         return "Messages";
@@ -61,14 +61,14 @@ export const Navigation = () => {
     <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center">
+          <Link to="/home" className="flex items-center">
             <Logo />
           </Link>
           
           <div className="hidden md:flex items-center space-x-8">
             <Link 
-              to="/" 
-              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/')}`}
+              to="/home" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/home')}`}
             >
               <Home size={20} />
               <span>Home</span>
