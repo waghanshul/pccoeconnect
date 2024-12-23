@@ -42,21 +42,6 @@ export const Navigation = () => {
       : "text-gray-600 dark:text-gray-300 hover:text-primary";
   };
 
-  const getTabName = () => {
-    switch (location.pathname) {
-      case "/home":
-        return "Home";
-      case "/messages":
-        return "Messages";
-      case "/notifications":
-        return "Notifications";
-      case "/profile":
-        return "Profile";
-      default:
-        return "";
-    }
-  };
-
   return (
     <nav className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 z-50">
       <div className="container mx-auto px-4">
@@ -128,9 +113,6 @@ export const Navigation = () => {
               )}
             </Toggle>
           </div>
-        </div>
-        <div className="text-center py-2 font-semibold text-primary">
-          {getTabName()}
         </div>
       </div>
     </nav>
