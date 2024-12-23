@@ -20,11 +20,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
+
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   prn: z.string().min(8, "PRN must be at least 8 characters"),
   branch: z.string().min(2, "Branch is required"),
   year: z.string(),
+  password: passwordSchema,
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 export function RegisterForm() {
@@ -36,6 +49,8 @@ export function RegisterForm() {
       prn: "",
       branch: "",
       year: "1st",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -111,6 +126,34 @@ export function RegisterForm() {
                   <SelectItem value="4th">4th Year</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="Enter your password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="confirmPassword"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <Input type="password" placeholder="Confirm your password" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
