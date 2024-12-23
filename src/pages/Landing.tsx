@@ -5,6 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
 import { useToast } from "@/components/ui/use-toast";
 import { ArrowRight, GraduationCap, Shield } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { RegisterForm } from "@/components/RegisterForm";
 
 const Landing = () => {
   const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
@@ -143,6 +152,29 @@ const Landing = () => {
                   Sign In
                 </Button>
               </form>
+              
+              {role === "student" && (
+                <div className="mt-4 text-center">
+                  <Sheet>
+                    <SheetTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        Create an account
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent className="overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle>Create your account</SheetTitle>
+                        <SheetDescription>
+                          Fill in your details to register for PCCOE Connect
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="mt-6">
+                        <RegisterForm />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </div>
+              )}
             </div>
           </div>
         )}
