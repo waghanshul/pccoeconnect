@@ -77,9 +77,9 @@ export function RegisterForm() {
         return;
       }
 
-      // Proceed with registration using PRN as username
+      // Proceed with registration using PRN as email
       const { data, error } = await supabase.auth.signUp({
-        email: values.prn,
+        email: `${values.prn}@pccoe.org`,  // Append domain to make it a valid email
         password: values.password,
         options: {
           data: {
