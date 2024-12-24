@@ -77,9 +77,12 @@ export function RegisterForm() {
         return;
       }
 
+      // Ensure PRN is uppercase before creating email
+      const email = `${values.prn.toUpperCase()}@pccoe.org`;
+
       // Proceed with registration using PRN as email
       const { data, error } = await supabase.auth.signUp({
-        email: `${values.prn}@pccoe.org`,  // Append domain to make it a valid email
+        email,
         password: values.password,
         options: {
           data: {
