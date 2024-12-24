@@ -68,19 +68,16 @@ export function RegisterForm() {
         .from('profiles')
         .select('prn')
         .eq('prn', values.prn)
-        .maybeSingle(); // Changed from single() to maybeSingle()
+        .maybeSingle();
 
       if (existingUser) {
         toast.error("A user with this PRN already exists");
         return;
       }
 
-      // Format email properly
-      const email = `${values.prn.toLowerCase()}@pccoe.org`;
-
-      // Proceed with registration
+      // Proceed with registration using PRN as username
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: values.prn,
         password: values.password,
         options: {
           data: {
@@ -94,7 +91,7 @@ export function RegisterForm() {
       });
 
       if (error) {
-        if (error.message.includes("Email rate limit exceeded")) {
+        if (error.message.includes("rate limit")) {
           toast.error("Too many attempts. Please try again later.");
         } else if (error.message.includes("invalid")) {
           toast.error("Invalid PRN format. Please check and try again.");
