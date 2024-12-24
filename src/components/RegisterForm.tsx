@@ -29,9 +29,16 @@ const passwordSchema = z
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
+// Add PRN validation
+const prnSchema = z
+  .string()
+  .min(8, "PRN must be at least 8 characters")
+  .regex(/^[A-Za-z0-9]+$/, "PRN must contain only letters and numbers")
+  .transform(val => val.toUpperCase()); // Convert to uppercase
+
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  prn: z.string().min(8, "PRN must be at least 8 characters"),
+  prn: prnSchema,
   branch: z.string().min(2, "Branch is required"),
   year: z.string(),
   password: passwordSchema,
@@ -61,16 +68,19 @@ export function RegisterForm() {
         .from('profiles')
         .select('prn')
         .eq('prn', values.prn)
-        .single();
+        .maybeSingle(); // Changed from single() to maybeSingle()
 
       if (existingUser) {
         toast.error("A user with this PRN already exists");
         return;
       }
 
+      // Format email properly
+      const email = `${values.prn.toLowerCase()}@pccoe.org`;
+
       // Proceed with registration
       const { data, error } = await supabase.auth.signUp({
-        email: `${values.prn}@pccoe.org`,
+        email,
         password: values.password,
         options: {
           data: {
@@ -86,6 +96,8 @@ export function RegisterForm() {
       if (error) {
         if (error.message.includes("Email rate limit exceeded")) {
           toast.error("Too many attempts. Please try again later.");
+        } else if (error.message.includes("invalid")) {
+          toast.error("Invalid PRN format. Please check and try again.");
         } else {
           toast.error(error.message);
         }
