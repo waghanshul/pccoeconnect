@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { FormData, formSchema } from "@/utils/validation";
 import {
   Form,
   FormControl,
@@ -19,39 +19,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-
-const passwordSchema = z
-  .string()
-  .min(8, "Password must be at least 8 characters")
-  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[0-9]/, "Password must contain at least one number")
-  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
-
-// Updated PRN validation to accept lowercase letters
-const prnSchema = z
-  .string()
-  .regex(
-    /^\d{3}[A-Za-z]\d[A-Za-z]\d{3}$/,
-    "PRN must be in the format '122B1D066' (3 digits, letter, digit, letter, 3 digits)"
-  )
-  .transform(val => val.toUpperCase());
-
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  prn: prnSchema,
-  branch: z.string().min(2, "Branch is required"),
-  year: z.string(),
-  password: passwordSchema,
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { checkExistingUser, registerUser } from "@/services/auth";
 
 export function RegisterForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -63,37 +34,18 @@ export function RegisterForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: FormData) {
     try {
       // First check if user already exists
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('prn')
-        .eq('prn', values.prn)
-        .maybeSingle();
+      const { existingUser, checkError } = await checkExistingUser(values.prn);
 
       if (existingUser) {
         toast.error("A user with this PRN already exists");
         return;
       }
 
-      // Ensure PRN is uppercase before creating email
-      const email = `${values.prn.toUpperCase()}@pccoe.org`;
-
-      // Proceed with registration using PRN as email
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password: values.password,
-        options: {
-          data: {
-            name: values.name,
-            prn: values.prn,
-            branch: values.branch,
-            year: values.year,
-          },
-          emailRedirectTo: window.location.origin,
-        },
-      });
+      // Proceed with registration
+      const { data, error } = await registerUser(values);
 
       if (error) {
         if (error.message.includes("rate limit")) {
