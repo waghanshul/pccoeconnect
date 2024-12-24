@@ -18,7 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const passwordSchema = z
   .string()
@@ -41,7 +43,8 @@ const formSchema = z.object({
 });
 
 export function RegisterForm() {
-  const { toast } = useToast();
+  const navigate = useNavigate();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,12 +57,43 @@ export function RegisterForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    toast({
-      title: "Registration Successful!",
-      description: "Your account has been created.",
-    });
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const { data: existingUser, error: checkError } = await supabase
+        .from('profiles')
+        .select('prn')
+        .eq('prn', values.prn)
+        .single();
+
+      if (existingUser) {
+        toast.error("A user with this PRN already exists");
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email: `${values.prn}@pccoe.org`,
+        password: values.password,
+        options: {
+          data: {
+            name: values.name,
+            prn: values.prn,
+            branch: values.branch,
+            year: values.year,
+          },
+        },
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Registration successful! Please check your email to verify your account.");
+      navigate("/home");
+    } catch (error) {
+      toast.error("An error occurred during registration");
+      console.error("Registration error:", error);
+    }
   }
 
   return (

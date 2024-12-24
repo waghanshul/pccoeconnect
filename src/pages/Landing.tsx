@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { ArrowRight, GraduationCap, Shield } from "lucide-react";
 import {
   Sheet,
@@ -14,21 +14,43 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { RegisterForm } from "@/components/RegisterForm";
+import { supabase } from "@/integrations/supabase/client";
 
 const Landing = () => {
   const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
   const [role, setRole] = useState<"student" | "admin" | null>(null);
   const [credentials, setCredentials] = useState({ prn: "", password: "" });
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Welcome to PCCOE Connect!",
-      description: "Login successful",
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/home");
+      }
     });
-    navigate("/home");
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: `${credentials.prn}@pccoe.org`,
+        password: credentials.password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      toast.success("Welcome to PCCOE Connect!");
+      navigate("/home");
+    } catch (error) {
+      toast.error("An error occurred during login");
+      console.error("Login error:", error);
+    }
   };
 
   const features = [
@@ -39,10 +61,10 @@ const Landing = () => {
     "Build your academic network",
   ];
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
-      <div className="container mx-auto px-4 py-8 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-8">
-        {step === "initial" && (
+  if (step === "initial") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
+        <div className="container mx-auto px-4 py-8 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-8">
           <div className="w-full lg:w-1/2 space-y-8 animate-fade-in">
             <Logo />
             <div className="space-y-6">
@@ -74,8 +96,28 @@ const Landing = () => {
               </Button>
             </div>
           </div>
-        )}
+          <div className="w-full lg:w-1/2 flex justify-center">
+            <div className="relative w-full max-w-lg">
+              <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+              <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+              <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+              <div className="relative">
+                <img
+                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
+                  alt="Students"
+                  className="rounded-2xl shadow-xl"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
+      <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
         {step === "role" && (
           <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
             <h2 className="text-3xl font-semibold text-center">Select Your Role</h2>
@@ -175,23 +217,6 @@ const Landing = () => {
                   </Sheet>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {step === "initial" && (
-          <div className="w-full lg:w-1/2 flex justify-center">
-            <div className="relative w-full max-w-lg">
-              <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
-              <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-              <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
-              <div className="relative">
-                <img
-                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
-                  alt="Students"
-                  className="rounded-2xl shadow-xl"
-                />
-              </div>
             </div>
           </div>
         )}
