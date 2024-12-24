@@ -29,11 +29,11 @@ const passwordSchema = z
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
-// Updated PRN validation
+// Updated PRN validation to accept lowercase letters
 const prnSchema = z
   .string()
   .regex(
-    /^\d{3}[A-Z]\d[A-Z]\d{3}$/,
+    /^\d{3}[A-Za-z]\d[A-Za-z]\d{3}$/,
     "PRN must be in the format '122B1D066' (3 digits, letter, digit, letter, 3 digits)"
   )
   .transform(val => val.toUpperCase());
