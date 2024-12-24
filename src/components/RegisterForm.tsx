@@ -20,7 +20,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 
 const passwordSchema = z
   .string()
@@ -43,8 +42,6 @@ const formSchema = z.object({
 });
 
 export function RegisterForm() {
-  const navigate = useNavigate();
-  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,6 +56,7 @@ export function RegisterForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      // First check if user already exists
       const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('prn')
@@ -70,6 +68,7 @@ export function RegisterForm() {
         return;
       }
 
+      // Proceed with registration
       const { data, error } = await supabase.auth.signUp({
         email: `${values.prn}@pccoe.org`,
         password: values.password,
@@ -80,16 +79,29 @@ export function RegisterForm() {
             branch: values.branch,
             year: values.year,
           },
+          emailRedirectTo: window.location.origin,
         },
       });
 
       if (error) {
-        toast.error(error.message);
+        if (error.message.includes("Email rate limit exceeded")) {
+          toast.error("Too many attempts. Please try again later.");
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
 
-      toast.success("Registration successful! Please check your email to verify your account.");
-      navigate("/home");
+      toast.success(
+        "Registration successful! Please check your email to verify your account.",
+        {
+          duration: 6000,
+        }
+      );
+      
+      // Clear the form
+      form.reset();
+      
     } catch (error) {
       toast.error("An error occurred during registration");
       console.error("Registration error:", error);

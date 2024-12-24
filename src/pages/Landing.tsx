@@ -41,12 +41,20 @@ const Landing = () => {
       });
 
       if (error) {
-        toast.error(error.message);
+        if (error.message.includes("Email not confirmed")) {
+          toast.error("Please verify your email before logging in");
+        } else if (error.message.includes("Invalid login credentials")) {
+          toast.error("Invalid PRN or password");
+        } else {
+          toast.error(error.message);
+        }
         return;
       }
 
-      toast.success("Welcome to PCCOE Connect!");
-      navigate("/home");
+      if (data.user) {
+        toast.success("Welcome to PCCOE Connect!");
+        navigate("/home");
+      }
     } catch (error) {
       toast.error("An error occurred during login");
       console.error("Login error:", error);
