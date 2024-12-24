@@ -29,12 +29,14 @@ const passwordSchema = z
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
-// Add PRN validation
+// Updated PRN validation
 const prnSchema = z
   .string()
-  .min(8, "PRN must be at least 8 characters")
-  .regex(/^[A-Za-z0-9]+$/, "PRN must contain only letters and numbers")
-  .transform(val => val.toUpperCase()); // Convert to uppercase
+  .regex(
+    /^\d{3}[A-Z]\d[A-Z]\d{3}$/,
+    "PRN must be in the format '122B1D066' (3 digits, letter, digit, letter, 3 digits)"
+  )
+  .transform(val => val.toUpperCase());
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -141,7 +143,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>PRN Number</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your PRN" {...field} />
+                <Input placeholder="122B1D066" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
