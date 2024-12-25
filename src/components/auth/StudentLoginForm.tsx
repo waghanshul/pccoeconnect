@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 export const StudentLoginForm = () => {
   const [credentials, setCredentials] = useState({ prn: "", password: "" });
@@ -11,35 +10,13 @@ export const StudentLoginForm = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const formattedPrn = credentials.prn.toUpperCase();
-      // Create email format for Supabase auth
-      const email = `${formattedPrn.toLowerCase()}@pccoe.edu.in`;
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: credentials.password,
-      });
-
-      if (error) {
-        if (error.message.includes("Email not confirmed")) {
-          toast.error("Please verify your PRN before logging in");
-        } else if (error.message.includes("Invalid login credentials")) {
-          toast.error("Invalid PRN or password");
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-
-      if (data.user) {
-        toast.success("Welcome to PCCOE Connect!");
-        navigate("/home");
-      }
-    } catch (error) {
-      toast.error("An error occurred during login");
-      console.error("Login error:", error);
-    }
+    
+    // Log the login attempt (for development purposes)
+    console.log("Login attempt with PRN:", credentials.prn);
+    
+    // Show success message
+    toast.success("Welcome to PCCOE Connect!");
+    navigate("/home");
   };
 
   return (
