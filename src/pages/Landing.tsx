@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { ArrowRight, GraduationCap, Shield } from "lucide-react";
@@ -12,24 +11,12 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { RegisterForm } from "@/components/RegisterForm";
-import { supabase } from "@/integrations/supabase/client";
 import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
 import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 
 const Landing = () => {
   const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
   const [role, setRole] = useState<"student" | "admin" | null>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/home");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
 
   const features = [
     "Connect with fellow students",
