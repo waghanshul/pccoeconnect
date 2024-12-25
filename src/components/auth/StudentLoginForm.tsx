@@ -12,18 +12,16 @@ export const StudentLoginForm = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // Format PRN to uppercase and create email for Supabase auth
       const formattedPrn = credentials.prn.toUpperCase();
-      const email = `${formattedPrn}@pccoe.org`;
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: formattedPrn, // Use PRN directly as the identifier
         password: credentials.password,
       });
 
       if (error) {
         if (error.message.includes("Email not confirmed")) {
-          toast.error("Please verify your email before logging in");
+          toast.error("Please verify your PRN before logging in");
         } else if (error.message.includes("Invalid login credentials")) {
           toast.error("Invalid PRN or password");
         } else {

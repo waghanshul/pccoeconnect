@@ -13,12 +13,10 @@ export async function checkExistingUser(prn: string) {
 }
 
 export async function registerUser(values: FormData) {
-  // Format PRN to uppercase and create email
   const formattedPrn = values.prn.toUpperCase();
-  const email = `${formattedPrn}@pccoe.org`.toLowerCase(); // Ensure email is lowercase
 
   const { data, error } = await supabase.auth.signUp({
-    email,
+    email: formattedPrn, // Use PRN directly as the identifier
     password: values.password,
     options: {
       data: {
