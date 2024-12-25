@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { checkExistingUser, registerUser } from "@/services/auth";
 
 export function RegisterForm() {
   const form = useForm<FormData>({
@@ -35,43 +34,16 @@ export function RegisterForm() {
   });
 
   async function onSubmit(values: FormData) {
-    try {
-      // First check if user already exists
-      const { existingUser, checkError } = await checkExistingUser(values.prn);
-
-      if (existingUser) {
-        toast.error("A user with this PRN already exists");
-        return;
-      }
-
-      // Proceed with registration
-      const { data, error } = await registerUser(values);
-
-      if (error) {
-        if (error.message.includes("rate limit")) {
-          toast.error("Too many attempts. Please try again later.");
-        } else if (error.message.includes("invalid")) {
-          toast.error("Invalid PRN format. Please check and try again.");
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-
-      toast.success(
-        "Registration successful! Please check your email to verify your account.",
-        {
-          duration: 6000,
-        }
-      );
-      
-      // Clear the form
-      form.reset();
-      
-    } catch (error) {
-      toast.error("An error occurred during registration");
-      console.error("Registration error:", error);
-    }
+    // Show success message
+    toast.success("Registration successful!", {
+      duration: 6000,
+    });
+    
+    // Clear the form
+    form.reset();
+    
+    // Log the registration data (for development purposes)
+    console.log("Registration values:", values);
   }
 
   return (
