@@ -13,9 +13,11 @@ export const StudentLoginForm = () => {
     e.preventDefault();
     try {
       const formattedPrn = credentials.prn.toUpperCase();
+      // Create email format for Supabase auth
+      const email = `${formattedPrn.toLowerCase()}@pccoe.edu.in`;
 
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: formattedPrn, // Use PRN directly as the identifier
+        email,
         password: credentials.password,
       });
 
