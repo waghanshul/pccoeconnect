@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/Logo";
-import { toast } from "sonner";
 import { ArrowRight, GraduationCap, Shield } from "lucide-react";
 import {
   Sheet,
@@ -15,11 +13,12 @@ import {
 } from "@/components/ui/sheet";
 import { RegisterForm } from "@/components/RegisterForm";
 import { supabase } from "@/integrations/supabase/client";
+import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
+import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 
 const Landing = () => {
   const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
   const [role, setRole] = useState<"student" | "admin" | null>(null);
-  const [credentials, setCredentials] = useState({ prn: "", password: "" });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,35 +30,6 @@ const Landing = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: `${credentials.prn}@pccoe.org`,
-        password: credentials.password,
-      });
-
-      if (error) {
-        if (error.message.includes("Email not confirmed")) {
-          toast.error("Please verify your email before logging in");
-        } else if (error.message.includes("Invalid login credentials")) {
-          toast.error("Invalid PRN or password");
-        } else {
-          toast.error(error.message);
-        }
-        return;
-      }
-
-      if (data.user) {
-        toast.success("Welcome to PCCOE Connect!");
-        navigate("/home");
-      }
-    } catch (error) {
-      toast.error("An error occurred during login");
-      console.error("Login error:", error);
-    }
-  };
 
   const features = [
     "Connect with fellow students",
@@ -169,39 +139,7 @@ const Landing = () => {
               </p>
             </div>
             <div className="bg-white/50 dark:bg-gray-800/50 p-8 rounded-xl shadow-sm">
-              <form onSubmit={handleLogin} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    {role === "student" ? "PRN Number" : "Username"}
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder={role === "student" ? "Enter PRN Number" : "Enter Username"}
-                    value={credentials.prn}
-                    onChange={(e) =>
-                      setCredentials({ ...credentials, prn: e.target.value })
-                    }
-                    required
-                    className="bg-white dark:bg-gray-900"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Password</label>
-                  <Input
-                    type="password"
-                    placeholder="Enter Password"
-                    value={credentials.password}
-                    onChange={(e) =>
-                      setCredentials({ ...credentials, password: e.target.value })
-                    }
-                    required
-                    className="bg-white dark:bg-gray-900"
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Sign In
-                </Button>
-              </form>
+              {role === "student" ? <StudentLoginForm /> : <AdminLoginForm />}
               
               {role === "student" && (
                 <div className="mt-4 text-center">
