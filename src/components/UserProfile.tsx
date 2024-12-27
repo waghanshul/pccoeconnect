@@ -1,7 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, BookOpen, Heart, MessageSquare, Cpu } from "lucide-react";
+import { GraduationCap, BookOpen, Heart, MessageSquare, Cpu, Mail, Phone, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -14,6 +14,9 @@ interface UserProfileProps {
     year: string;
     bio: string;
     interests: string[];
+    isPublic: boolean;
+    email: string;
+    phone: string;
   };
 }
 
@@ -82,6 +85,36 @@ export const UserProfile = ({ user }: UserProfileProps) => {
                   </span>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {user.email && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50/50 dark:bg-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+              <Mail className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-medium dark:text-gray-200">Email</p>
+                <p className="text-sm text-muted-foreground dark:text-gray-400">{user.email}</p>
+              </div>
+            </div>
+          )}
+
+          {user.phone && (
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50/50 dark:bg-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+              <Phone className="w-5 h-5 text-primary" />
+              <div>
+                <p className="font-medium dark:text-gray-200">Phone</p>
+                <p className="text-sm text-muted-foreground dark:text-gray-400">{user.phone}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-50/50 dark:bg-gray-700/50 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+            <Globe className="w-5 h-5 text-primary" />
+            <div>
+              <p className="font-medium dark:text-gray-200">Profile Visibility</p>
+              <p className="text-sm text-muted-foreground dark:text-gray-400">
+                {user.isPublic ? 'Public Profile' : 'Private Profile'}
+              </p>
             </div>
           </div>
         </div>

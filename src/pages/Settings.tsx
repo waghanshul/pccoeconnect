@@ -14,14 +14,14 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserStore } from "@/services/user";
+import { Badge } from "@/components/ui/badge";
+import { X } from "lucide-react";
 
 const Settings = () => {
   const { userData, updateUserData } = useUserStore();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(
-    document.documentElement.classList.contains("dark")
-  );
+  const [newInterest, setNewInterest] = useState("");
 
   const handleSaveChanges = () => {
     toast.success("Settings saved successfully!");
@@ -41,6 +41,21 @@ const Settings = () => {
 
   const handleInputChange = (field: string, value: string) => {
     updateUserData({ [field]: value });
+  };
+
+  const handleAddInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && newInterest.trim()) {
+      const updatedInterests = [...userData.interests, newInterest.trim()];
+      updateUserData({ interests: updatedInterests });
+      setNewInterest("");
+    }
+  };
+
+  const handleRemoveInterest = (interestToRemove: string) => {
+    const updatedInterests = userData.interests.filter(
+      interest => interest !== interestToRemove
+    );
+    updateUserData({ interests: updatedInterests });
   };
 
   return (
@@ -88,6 +103,26 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input 
+                    id="email" 
+                    type="email"
+                    value={userData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input 
+                    id="phone" 
+                    type="tel"
+                    value={userData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
                   <Input 
                     id="bio" 
@@ -102,6 +137,50 @@ const Settings = () => {
                     id="year" 
                     value={userData.year}
                     onChange={(e) => handleInputChange('year', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Interests</Label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {userData.interests.map((interest, index) => (
+                      <Badge key={index} variant="secondary" className="gap-1">
+                        {interest}
+                        <button
+                          onClick={() => handleRemoveInterest(interest)}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                  <Input
+                    placeholder="Add new interest (press Enter)"
+                    value={newInterest}
+                    onChange={(e) => setNewInterest(e.target.value)}
+                    onKeyPress={handleAddInterest}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Privacy Settings</CardTitle>
+                <CardDescription>Manage your profile visibility</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Public Profile</Label>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Make your profile visible to everyone
+                    </p>
+                  </div>
+                  <Switch
+                    checked={userData.isPublic}
+                    onCheckedChange={(checked) => updateUserData({ isPublic: checked })}
                   />
                 </div>
               </CardContent>

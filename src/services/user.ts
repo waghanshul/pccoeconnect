@@ -8,6 +8,9 @@ interface UserData {
   year: string;
   bio: string;
   interests: string[];
+  isPublic: boolean;
+  email: string;
+  phone: string;
 }
 
 interface UserStore {
@@ -24,6 +27,9 @@ export const useUserStore = create<UserStore>((set) => ({
     year: "Third",
     bio: "Passionate about software development and artificial intelligence. Always eager to learn new technologies and collaborate on innovative projects.",
     interests: ["Web Development", "AI/ML", "Competitive Programming", "Open Source"],
+    isPublic: true,
+    email: "",
+    phone: "",
   },
   updateUserData: (data) =>
     set((state) => ({
