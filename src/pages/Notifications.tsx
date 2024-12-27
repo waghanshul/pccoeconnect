@@ -1,13 +1,11 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
-import { HomeSidebar } from "@/components/HomeSidebar";
 
 const Notifications = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Navigation />
-      <HomeSidebar />
-      <div className="ml-16 container mx-auto px-4 py-8 pt-20">
+      <div className="container mx-auto px-4 py-8 pt-20">
         <h1 className="text-2xl font-bold mb-6 dark:text-white">Notifications</h1>
         
         <Tabs defaultValue="sports" className="w-full">

@@ -1,6 +1,5 @@
 import { Navigation } from "@/components/Navigation";
 import { Post } from "@/components/Post";
-import { HomeSidebar } from "@/components/HomeSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,56 +30,57 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <HomeSidebar />
-      
-      <div className="ml-16 flex">
-        {/* Main Content */}
-        <div className="flex-1 max-w-2xl mx-auto px-4 py-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
-            <div className="flex gap-4">
-              <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-              <Input 
-                placeholder="What's on your mind?" 
-                className="bg-gray-50 dark:bg-gray-700"
-              />
+      <Navigation />
+      <div className="container mx-auto px-4 pt-20">
+        <div className="flex">
+          {/* Main Content */}
+          <div className="flex-1 max-w-2xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
+              <div className="flex gap-4">
+                <Avatar>
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <Input 
+                  placeholder="What's on your mind?" 
+                  className="bg-gray-50 dark:bg-gray-700"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              {posts.map((post, index) => (
+                <Post key={index} {...post} />
+              ))}
             </div>
           </div>
 
-          <div className="space-y-6">
-            {posts.map((post, index) => (
-              <Post key={index} {...post} />
-            ))}
-          </div>
-        </div>
-
-        {/* Right Sidebar */}
-        <div className="hidden lg:block w-80 p-6 border-l border-gray-200 dark:border-gray-800">
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-semibold mb-4">People to follow</h3>
-              <div className="space-y-4">
-                {suggestedUsers.map((user) => (
-                  <div key={user.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={user.avatar} />
-                        <AvatarFallback>{user.name[0]}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-medium">{user.name}</p>
+          {/* Right Sidebar */}
+          <div className="hidden lg:block w-80 pl-6">
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold mb-4 dark:text-white">People to follow</h3>
+                <div className="space-y-4">
+                  {suggestedUsers.map((user) => (
+                    <div key={user.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={user.avatar} />
+                          <AvatarFallback>{user.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium dark:text-white">{user.name}</p>
+                        </div>
                       </div>
+                      <Button 
+                        variant={user.followed ? "outline" : "default"}
+                        size="sm"
+                      >
+                        {user.followed ? "Following" : "Follow"}
+                      </Button>
                     </div>
-                    <Button 
-                      variant={user.followed ? "outline" : "default"}
-                      size="sm"
-                    >
-                      {user.followed ? "Following" : "Follow"}
-                    </Button>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { Bell, Home, MessageSquare, Search, User, Moon, Sun, LogOut } from "lucide-react";
+import { Bell, Home, MessageSquare, Search, User, Moon, Sun, LogOut, Settings } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
 import { useEffect, useState } from "react";
@@ -78,6 +78,13 @@ export const Navigation = () => {
             >
               <User size={20} />
               <span>Profile</span>
+            </Link>
+            <Link 
+              to="/settings" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/settings')}`}
+            >
+              <Settings size={20} />
+              <span>Settings</span>
             </Link>
           </div>
 

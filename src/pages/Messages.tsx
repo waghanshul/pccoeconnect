@@ -2,7 +2,6 @@ import { Navigation } from "@/components/Navigation";
 import { Plus, User, Search } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { HomeSidebar } from "@/components/HomeSidebar";
 import {
   Dialog,
   DialogContent,
@@ -51,8 +50,7 @@ const Messages = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Navigation />
-      <HomeSidebar />
-      <main className="ml-16 container mx-auto px-4 pt-20">
+      <main className="container mx-auto px-4 pt-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-1">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow transition-colors duration-200">
