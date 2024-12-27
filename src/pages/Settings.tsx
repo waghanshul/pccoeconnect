@@ -1,5 +1,4 @@
 import { Navigation } from "@/components/Navigation";
-import { HomeSidebar } from "@/components/HomeSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,8 +13,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUserStore } from "@/services/user";
 
 const Settings = () => {
+  const { userData, updateUserData } = useUserStore();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(
@@ -29,20 +30,27 @@ const Settings = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      toast.success("Profile photo updated successfully!");
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateUserData({ avatar: reader.result as string });
+        toast.success("Profile photo updated successfully!");
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    updateUserData({ [field]: value });
   };
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <Navigation />
-      <HomeSidebar />
-      <main className="ml-16 p-4 pt-20">
+      <main className="p-4 pt-20">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl font-bold mb-6 dark:text-white">Settings</h1>
           
           <div className="space-y-6">
-            {/* Profile Section */}
             <Card>
               <CardHeader>
                 <CardTitle>Profile Information</CardTitle>
@@ -51,8 +59,8 @@ const Settings = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center space-x-4">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarImage src={userData.avatar} />
+                    <AvatarFallback>{userData.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
                     <Label htmlFor="photo" className="cursor-pointer">
@@ -72,22 +80,33 @@ const Settings = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" defaultValue="John Doe" />
+                  <Input 
+                    id="name" 
+                    value={userData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Input id="bio" defaultValue="Computer Engineering Student" />
+                  <Input 
+                    id="bio" 
+                    value={userData.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                  />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="year">Year</Label>
-                  <Input id="year" defaultValue="Third Year" />
+                  <Input 
+                    id="year" 
+                    value={userData.year}
+                    onChange={(e) => handleInputChange('year', e.target.value)}
+                  />
                 </div>
               </CardContent>
             </Card>
 
-            {/* Notification Preferences */}
             <Card>
               <CardHeader>
                 <CardTitle>Notification Preferences</CardTitle>
