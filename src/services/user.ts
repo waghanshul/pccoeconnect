@@ -11,6 +11,7 @@ interface UserData {
   isPublic: boolean;
   email: string;
   phone: string;
+  availability: 'available' | 'busy' | 'away' | 'inactive';
 }
 
 interface UserStore {
@@ -30,6 +31,7 @@ export const useUserStore = create<UserStore>((set) => ({
     isPublic: true,
     email: "",
     phone: "",
+    availability: "available",
   },
   updateUserData: (data) =>
     set((state) => ({
