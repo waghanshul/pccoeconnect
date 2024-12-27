@@ -1,4 +1,4 @@
-import { Home, MessageSquare, User, Bookmark, Settings } from "lucide-react";
+import { Home, MessageSquare, User, Settings } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 
 export const HomeSidebar = () => {
@@ -8,7 +8,6 @@ export const HomeSidebar = () => {
     { icon: Home, path: "/home", label: "Home" },
     { icon: MessageSquare, path: "/messages", label: "Messages" },
     { icon: User, path: "/profile", label: "Profile" },
-    { icon: Bookmark, path: "/saved", label: "Saved" },
     { icon: Settings, path: "/settings", label: "Settings" },
   ];
 
