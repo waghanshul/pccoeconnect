@@ -43,16 +43,9 @@ const Landing = () => {
 
   if (step === "initial") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5 relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 w-full h-full z-0">
-          <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
-          <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
-        </div>
-
-        <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-12 relative z-10">
-          <div className="w-full lg:w-1/2 space-y-8 animate-fadeIn">
+      <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
+        <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-12">
+          <div className="w-full lg:w-1/2 space-y-8">
             <Logo />
             <div className="space-y-6">
               <h1 className="text-5xl lg:text-6xl font-bold tracking-tight">
@@ -98,7 +91,7 @@ const Landing = () => {
               <img
                 src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
                 alt="Students"
-                className="rounded-2xl shadow-2xl transform hover:scale-105 transition-transform duration-300"
+                className="rounded-2xl shadow-2xl"
               />
             </div>
           </div>
@@ -111,39 +104,82 @@ const Landing = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
       <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
         {step === "role" && (
-          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
-            <h2 className="text-3xl font-semibold text-center">Select Your Role</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Button
-                size="lg"
-                variant={role === "student" ? "default" : "outline"}
-                className="h-32 flex flex-col items-center justify-center gap-2"
-                onClick={() => {
-                  setRole("student");
-                  setStep("auth");
-                }}
-              >
-                <GraduationCap className="h-8 w-8" />
-                <span>Student</span>
-              </Button>
-              <Button
-                size="lg"
-                variant={role === "admin" ? "default" : "outline"}
-                className="h-32 flex flex-col items-center justify-center gap-2"
-                onClick={() => {
-                  setRole("admin");
-                  setStep("auth");
-                }}
-              >
-                <Shield className="h-8 w-8" />
-                <span>Admin</span>
-              </Button>
+          <div className="w-full max-w-4xl mx-auto space-y-8">
+            <div className="text-center space-y-4 mb-12">
+              <h2 className="text-4xl font-bold">Choose Your Role</h2>
+              <p className="text-xl text-muted-foreground">
+                Select your role to access personalized features and content
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <Button
+                  size="lg"
+                  variant={role === "student" ? "default" : "outline"}
+                  className="w-full h-48 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-transform duration-300"
+                  onClick={() => {
+                    setRole("student");
+                    setStep("auth");
+                  }}
+                >
+                  <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
+                    <GraduationCap className="h-12 w-12" />
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <h3 className="text-xl font-semibold">Student</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Access study materials, connect with peers, and join academic discussions
+                    </p>
+                  </div>
+                </Button>
+                <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl">
+                  <h4 className="font-semibold mb-2">Student Features:</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Access to academic resources</li>
+                    <li>• Connect with classmates</li>
+                    <li>• Join study groups</li>
+                    <li>• Track academic events</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <Button
+                  size="lg"
+                  variant={role === "admin" ? "default" : "outline"}
+                  className="w-full h-48 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-transform duration-300"
+                  onClick={() => {
+                    setRole("admin");
+                    setStep("auth");
+                  }}
+                >
+                  <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
+                    <Shield className="h-12 w-12" />
+                  </div>
+                  <div className="space-y-2 text-center">
+                    <h3 className="text-xl font-semibold">Admin</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Manage platform content and oversee student activities
+                    </p>
+                  </div>
+                </Button>
+                <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl">
+                  <h4 className="font-semibold mb-2">Admin Features:</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li>• Content moderation</li>
+                    <li>• User management</li>
+                    <li>• Analytics dashboard</li>
+                    <li>• System configuration</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {step === "auth" && (
-          <div className="w-full max-w-md mx-auto space-y-8 animate-fade-in">
+          <div className="w-full max-w-md mx-auto space-y-8">
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-semibold">
                 Sign in as {role?.charAt(0).toUpperCase() + role?.slice(1)}
