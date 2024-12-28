@@ -5,13 +5,16 @@ interface PostHeaderProps {
   timestamp: string;
   avatar: string;
   content: string;
+  authorId?: string;
 }
 
-export const PostHeader = ({ author, timestamp, avatar, content }: PostHeaderProps) => {
+export const PostHeader = ({ author, timestamp, avatar, content, authorId }: PostHeaderProps) => {
   const navigate = useNavigate();
 
   const handleProfileClick = () => {
-    navigate("/profile");
+    if (authorId) {
+      navigate(`/profile/${authorId}`);
+    }
   };
 
   return (

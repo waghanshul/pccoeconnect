@@ -14,25 +14,25 @@ const Index = () => {
       content: "Just submitted my final project for Advanced Algorithms! #PCCOE #ComputerScience",
       timestamp: "2 hours ago",
       avatar: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4",
-      authorId: "arjun-patel",
+      authorId: "1",
     },
     {
       author: "Priya Sharma",
       content: "Looking for team members for the upcoming hackathon! DM if interested 🚀 #Hackathon #TeamBuilding",
       timestamp: "5 hours ago",
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      authorId: "priya-sharma",
+      authorId: "2",
     },
   ];
 
   const suggestedUsers = [
-    { name: "Rahul Kumar", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e", followed: false },
-    { name: "Anita Desai", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330", followed: true },
-    { name: "Vikram Singh", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e", followed: false },
+    { id: 3, name: "Rahul Kumar", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e", followed: false },
+    { id: 4, name: "Anita Desai", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330", followed: true },
+    { id: 5, name: "Vikram Singh", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e", followed: false },
   ];
 
-  const handleProfileClick = () => {
-    navigate("/profile");
+  const handleProfileClick = (userId: string | number) => {
+    navigate(`/profile/${userId}`);
   };
 
   return (
@@ -44,7 +44,7 @@ const Index = () => {
           <div className="flex-1 max-w-2xl mx-auto">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
               <div className="flex gap-4">
-                <Avatar className="cursor-pointer" onClick={handleProfileClick}>
+                <Avatar className="cursor-pointer" onClick={() => navigate("/profile")}>
                   <AvatarImage src="https://github.com/shadcn.png" />
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
@@ -71,14 +71,17 @@ const Index = () => {
                   {suggestedUsers.map((user) => (
                     <div key={user.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar className="cursor-pointer" onClick={handleProfileClick}>
+                        <Avatar 
+                          className="cursor-pointer hover:opacity-90 transition-opacity" 
+                          onClick={() => handleProfileClick(user.id)}
+                        >
                           <AvatarImage src={user.avatar} />
                           <AvatarFallback>{user.name[0]}</AvatarFallback>
                         </Avatar>
                         <div>
                           <p 
                             className="text-sm font-medium dark:text-white cursor-pointer hover:text-primary transition-colors"
-                            onClick={handleProfileClick}
+                            onClick={() => handleProfileClick(user.id)}
                           >
                             {user.name}
                           </p>

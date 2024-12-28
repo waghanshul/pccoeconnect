@@ -32,6 +32,7 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
         timestamp={timestamp}
         avatar={avatar}
         content={content}
+        authorId={authorId}
       />
       
       <PostActions 
