@@ -3,8 +3,11 @@ import { Post } from "@/components/Post";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+  
   const posts = [
     {
       author: "Arjun Patel",
@@ -28,6 +31,10 @@ const Index = () => {
     { name: "Vikram Singh", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e", followed: false },
   ];
 
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
@@ -37,7 +44,7 @@ const Index = () => {
           <div className="flex-1 max-w-2xl mx-auto">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
               <div className="flex gap-4">
-                <Avatar>
+                <Avatar className="cursor-pointer" onClick={handleProfileClick}>
                   <AvatarImage src="https://github.com/shadcn.png" />
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
@@ -64,12 +71,17 @@ const Index = () => {
                   {suggestedUsers.map((user) => (
                     <div key={user.name} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar>
+                        <Avatar className="cursor-pointer" onClick={handleProfileClick}>
                           <AvatarImage src={user.avatar} />
                           <AvatarFallback>{user.name[0]}</AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium dark:text-white">{user.name}</p>
+                          <p 
+                            className="text-sm font-medium dark:text-white cursor-pointer hover:text-primary transition-colors"
+                            onClick={handleProfileClick}
+                          >
+                            {user.name}
+                          </p>
                         </div>
                       </div>
                       <Button 

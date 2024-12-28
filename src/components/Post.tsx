@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Share2, Send } from "lucide-react";
+import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -51,6 +51,10 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
     });
   };
 
+  const handleProfileClick = () => {
+    navigate("/profile");
+  };
+
   const comments: Comment[] = [
     { author: "John Doe", content: "Great post!", timestamp: "1m ago" },
     { author: "Jane Smith", content: "Thanks for sharing!", timestamp: "2m ago" },
@@ -59,9 +63,19 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4 transition-all duration-200">
       <div className="flex items-start">
-        <img src={avatar} alt={author} className="w-10 h-10 rounded-full mr-3" />
+        <img 
+          src={avatar} 
+          alt={author} 
+          className="w-10 h-10 rounded-full mr-3 cursor-pointer hover:opacity-90 transition-opacity" 
+          onClick={handleProfileClick}
+        />
         <div>
-          <h3 className="font-semibold">{author}</h3>
+          <h3 
+            className="font-semibold cursor-pointer hover:text-primary transition-colors"
+            onClick={handleProfileClick}
+          >
+            {author}
+          </h3>
           <p className="text-sm text-gray-500">{timestamp}</p>
           <p className="mt-2">{content}</p>
         </div>
@@ -111,9 +125,19 @@ export const Post = ({ author, content, timestamp, avatar, authorId }: PostProps
         <div className="mt-4">
           {comments.map((comment, index) => (
             <div key={index} className="flex items-start mt-2">
-              <img src="https://via.placeholder.com/40" alt={comment.author} className="w-8 h-8 rounded-full mr-2" />
+              <img 
+                src="https://via.placeholder.com/40" 
+                alt={comment.author} 
+                className="w-8 h-8 rounded-full mr-2 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={handleProfileClick}
+              />
               <div>
-                <h4 className="font-semibold">{comment.author}</h4>
+                <h4 
+                  className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                  onClick={handleProfileClick}
+                >
+                  {comment.author}
+                </h4>
                 <p className="text-sm text-gray-500">{comment.content}</p>
                 <p className="text-xs text-gray-400">{comment.timestamp}</p>
               </div>
