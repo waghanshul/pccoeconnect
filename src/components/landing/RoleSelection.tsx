@@ -11,7 +11,7 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
       <div className="text-center space-y-4 mb-12">
-        <h2 className="text-4xl font-bold">Choose Your Role</h2>
+        <h2 className="text-4xl font-bold text-primary">Choose Your Role</h2>
         <p className="text-xl text-muted-foreground">
           Select your role to access personalized features and content
         </p>
@@ -29,17 +29,17 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
             }}
           >
             <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
-              <GraduationCap className="h-12 w-12" />
+              <GraduationCap className="h-12 w-12 text-primary" />
             </div>
-            <div className="space-y-2 text-center max-w-[200px]">
+            <div className="space-y-2 text-center max-w-[200px] mx-auto">
               <h3 className="text-xl font-semibold">Student</h3>
               <p className="text-sm text-muted-foreground">
                 Access study materials and connect with peers
               </p>
             </div>
           </Button>
-          <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl">
-            <h4 className="font-semibold mb-2">Student Features:</h4>
+          <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl border border-primary/20">
+            <h4 className="font-semibold mb-2 text-primary">Student Features:</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Access to academic resources</li>
               <li>• Connect with classmates</li>
@@ -60,17 +60,17 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
             }}
           >
             <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
-              <Shield className="h-12 w-12" />
+              <Shield className="h-12 w-12 text-primary" />
             </div>
-            <div className="space-y-2 text-center max-w-[200px]">
+            <div className="space-y-2 text-center max-w-[200px] mx-auto">
               <h3 className="text-xl font-semibold">Admin</h3>
               <p className="text-sm text-muted-foreground">
                 Manage platform content and oversee activities
               </p>
             </div>
           </Button>
-          <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl">
-            <h4 className="font-semibold mb-2">Admin Features:</h4>
+          <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl border border-primary/20">
+            <h4 className="font-semibold mb-2 text-primary">Admin Features:</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Content moderation</li>
               <li>• User management</li>
