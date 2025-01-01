@@ -31,9 +31,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
             <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
               <GraduationCap className="h-12 w-12 text-primary" />
             </div>
-            <div className="space-y-2 text-center w-full">
+            <div className="space-y-2 text-center">
               <h3 className="text-xl font-semibold">Student</h3>
-              <p className="text-sm text-muted-foreground mx-auto w-[200px]">
+              <p className="text-sm text-muted-foreground">
                 Access study materials and connect with peers
               </p>
             </div>
@@ -62,9 +62,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
             <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
               <Shield className="h-12 w-12 text-primary" />
             </div>
-            <div className="space-y-2 text-center w-full">
+            <div className="space-y-2 text-center">
               <h3 className="text-xl font-semibold">Admin</h3>
-              <p className="text-sm text-muted-foreground mx-auto w-[200px]">
+              <p className="text-sm text-muted-foreground">
                 Manage platform content and oversee activities
               </p>
             </div>
