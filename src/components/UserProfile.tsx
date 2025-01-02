@@ -13,7 +13,8 @@ import {
   CircleCheck,
   CircleSlash,
   CircleAlert,
-  CircleX
+  CircleX,
+  Users
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ interface UserProfileProps {
     email: string;
     phone: string;
     availability: 'available' | 'busy' | 'away' | 'inactive';
+    connections?: number;
   };
 }
 
@@ -87,6 +89,10 @@ export const UserProfile = ({ user }: UserProfileProps) => {
           <div className="flex items-center justify-center gap-2 text-primary">
             <Cpu className="w-4 h-4" />
             <p className="text-muted-foreground dark:text-gray-400">{user.role}</p>
+          </div>
+          <div className="flex items-center justify-center gap-2 text-primary">
+            <Users className="w-4 h-4" />
+            <p className="text-muted-foreground dark:text-gray-400">{user.connections || 0} Connections</p>
           </div>
           <Button 
             variant="outline" 

@@ -23,6 +23,7 @@ const Index = () => {
   const [showTextPost, setShowTextPost] = useState(false);
   const [showPollPost, setShowPollPost] = useState(false);
   const [showMediaPost, setShowMediaPost] = useState(false);
+  const [followedUsers, setFollowedUsers] = useState<number[]>([]);
   
   const posts = [
     {
@@ -63,11 +64,11 @@ const Index = () => {
   ];
 
   const suggestedUsers = [
-    { id: 3, name: "Rahul Kumar", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e", followed: false, department: "Computer Science" },
-    { id: 4, name: "Anita Desai", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330", followed: true, department: "Information Technology" },
-    { id: 5, name: "Vikram Singh", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e", followed: false, department: "Mechanical Engineering" },
-    { id: 6, name: "Meera Patel", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9", followed: false, department: "Electronics" },
-    { id: 7, name: "Karan Shah", avatar: "https://images.unsplash.com/photo-1463453091185-61582044d556", followed: false, department: "Civil Engineering" },
+    { id: 3, name: "Rahul Kumar", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e", department: "Computer Science" },
+    { id: 4, name: "Anita Desai", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330", department: "Information Technology" },
+    { id: 5, name: "Vikram Singh", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e", department: "Mechanical Engineering" },
+    { id: 6, name: "Meera Patel", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9", department: "Electronics" },
+    { id: 7, name: "Karan Shah", avatar: "https://images.unsplash.com/photo-1463453091185-61582044d556", department: "Civil Engineering" },
   ];
 
   const interests = [
@@ -140,6 +141,20 @@ const Index = () => {
     toast.success("Media post created!");
     console.log("New media post:", { file, description });
   };
+
+  const handleFollowToggle = (userId: number) => {
+    setFollowedUsers(prev => {
+      const isFollowed = prev.includes(userId);
+      const newFollowedUsers = isFollowed
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId];
+      
+      toast.success(isFollowed ? "Unfollowed successfully" : "Followed successfully");
+      return newFollowedUsers;
+    });
+  };
+
+  const isUserFollowed = (userId: number) => followedUsers.includes(userId);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -235,10 +250,11 @@ const Index = () => {
                       </div>
                     </div>
                     <Button 
-                      variant={user.followed ? "outline" : "default"}
+                      variant={isUserFollowed(user.id) ? "outline" : "default"}
                       size="sm"
+                      onClick={() => handleFollowToggle(user.id)}
                     >
-                      {user.followed ? "Following" : "Follow"}
+                      {isUserFollowed(user.id) ? "Following" : "Follow"}
                     </Button>
                   </div>
                 ))}
