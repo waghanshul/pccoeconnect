@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Post } from "@/components/Post";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -12,9 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, FileText, BarChart2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { CreateTextPost } from "@/components/post/CreateTextPost";
+import { CreatePollPost } from "@/components/post/CreatePollPost";
+import { CreateMediaPost } from "@/components/post/CreateMediaPost";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [showTextPost, setShowTextPost] = useState(false);
+  const [showPollPost, setShowPollPost] = useState(false);
+  const [showMediaPost, setShowMediaPost] = useState(false);
   
   const posts = [
     {
@@ -44,8 +51,35 @@ const Index = () => {
   };
 
   const handleCreatePost = (type: string) => {
-    // This is a placeholder for future implementation
-    toast(`Creating new ${type} post...`);
+    switch (type) {
+      case 'text':
+        setShowTextPost(true);
+        break;
+      case 'poll':
+        setShowPollPost(true);
+        break;
+      case 'media':
+        setShowMediaPost(true);
+        break;
+    }
+  };
+
+  const handleTextPost = (content: string) => {
+    // This is a placeholder - in a real app, this would send the post to a backend
+    toast.success("Text post created!");
+    console.log("New text post:", content);
+  };
+
+  const handlePollPost = (question: string, options: string[]) => {
+    // This is a placeholder - in a real app, this would send the poll to a backend
+    toast.success("Poll created!");
+    console.log("New poll:", { question, options });
+  };
+
+  const handleMediaPost = (file: File, description: string) => {
+    // This is a placeholder - in a real app, this would upload the file and create a post
+    toast.success("Media post created!");
+    console.log("New media post:", { file, description });
   };
 
   return (
@@ -64,6 +98,7 @@ const Index = () => {
                 <Input 
                   placeholder="What's on your mind?" 
                   className="bg-gray-50 dark:bg-gray-700"
+                  onClick={() => setShowTextPost(true)}
                 />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -88,6 +123,22 @@ const Index = () => {
                 </DropdownMenu>
               </div>
             </div>
+
+            <CreateTextPost 
+              isOpen={showTextPost}
+              onClose={() => setShowTextPost(false)}
+              onPost={handleTextPost}
+            />
+            <CreatePollPost 
+              isOpen={showPollPost}
+              onClose={() => setShowPollPost(false)}
+              onPost={handlePollPost}
+            />
+            <CreateMediaPost 
+              isOpen={showMediaPost}
+              onClose={() => setShowMediaPost(false)}
+              onPost={handleMediaPost}
+            />
 
             <div className="space-y-6">
               {posts.map((post, index) => (
