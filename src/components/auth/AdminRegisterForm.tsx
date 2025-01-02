@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { FormData, formSchema } from "@/utils/validation";
+import * as z from "zod";
 import {
   Form,
   FormControl,
@@ -10,36 +10,49 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 
-export function RegisterForm() {
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+const adminFormSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email().refine((email) => email.endsWith("@pccoepune.org"), {
+    message: "Must be a valid PCCOE email address",
+  }),
+  branch: z.string().min(2, "Branch is required"),
+  birthDate: z.string().min(1, "Birth date is required"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type AdminFormData = z.infer<typeof adminFormSchema>;
+
+export function AdminRegisterForm() {
+  const form = useForm<AdminFormData>({
+    resolver: zodResolver(adminFormSchema),
     defaultValues: {
       name: "",
-      prn: "",
+      email: "",
       branch: "",
-      year: "1st",
+      birthDate: "",
       password: "",
       confirmPassword: "",
     },
   });
 
-  async function onSubmit(values: FormData) {
-    toast.success("Registration successful!", {
-      duration: 6000,
-    });
+  async function onSubmit(values: AdminFormData) {
+    console.log("Admin registration values:", values);
+    toast.success("Admin registration successful!");
     form.reset();
-    console.log("Registration values:", values);
   }
 
   return (
@@ -61,12 +74,16 @@ export function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="prn"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PRN Number</FormLabel>
+              <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="122B1D066" {...field} />
+                <Input
+                  type="email"
+                  placeholder="john.doe@pccoepune.org"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,23 +106,13 @@ export function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="year"
+          name="birthDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Year</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your year" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1st">1st Year</SelectItem>
-                  <SelectItem value="2nd">2nd Year</SelectItem>
-                  <SelectItem value="3rd">3rd Year</SelectItem>
-                  <SelectItem value="4th">4th Year</SelectItem>
-                </SelectContent>
-              </Select>
+              <FormLabel>Birth Date</FormLabel>
+              <FormControl>
+                <Input type="date" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -133,14 +140,20 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Confirm your password" {...field} />
+                <Input
+                  type="password"
+                  placeholder="Confirm your password"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full">Register</Button>
+        <Button type="submit" className="w-full">
+          Register
+        </Button>
       </form>
     </Form>
   );
