@@ -4,6 +4,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, FileText, BarChart2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -35,6 +43,11 @@ const Index = () => {
     navigate(`/profile/${userId}`);
   };
 
+  const handleCreatePost = (type: string) => {
+    // This is a placeholder for future implementation
+    toast(`Creating new ${type} post...`);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
@@ -43,7 +56,7 @@ const Index = () => {
           {/* Main Content */}
           <div className="flex-1 max-w-2xl mx-auto">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
-              <div className="flex gap-4">
+              <div className="flex gap-4 items-center">
                 <Avatar className="cursor-pointer" onClick={() => navigate("/profile")}>
                   <AvatarImage src="https://github.com/shadcn.png" />
                   <AvatarFallback>CN</AvatarFallback>
@@ -52,6 +65,27 @@ const Index = () => {
                   placeholder="What's on your mind?" 
                   className="bg-gray-50 dark:bg-gray-700"
                 />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" className="rounded-full">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleCreatePost('text')} className="cursor-pointer">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Text Post</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCreatePost('poll')} className="cursor-pointer">
+                      <BarChart2 className="mr-2 h-4 w-4" />
+                      <span>Create Poll</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCreatePost('media')} className="cursor-pointer">
+                      <Upload className="mr-2 h-4 w-4" />
+                      <span>Upload Media</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
