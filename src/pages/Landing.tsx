@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Sheet,
@@ -13,10 +14,18 @@ import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 import { Button } from "@/components/ui/button";
 import { Hero } from "@/components/landing/Hero";
 import { RoleSelection } from "@/components/landing/RoleSelection";
+import { useAuth } from "@/contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const Landing = () => {
   const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
   const [role, setRole] = useState<"student" | "admin" | null>(null);
+  const { user } = useAuth();
+
+  // Redirect if already authenticated
+  if (user) {
+    return <Navigate to="/home" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
