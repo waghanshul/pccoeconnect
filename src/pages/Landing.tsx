@@ -1,84 +1,94 @@
 
 import { useState } from "react";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { RegisterForm } from "@/components/RegisterForm";
-import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
-import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
-import { Button } from "@/components/ui/button";
 import { Hero } from "@/components/landing/Hero";
 import { RoleSelection } from "@/components/landing/RoleSelection";
-import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
+import { AdminRegisterForm } from "@/components/auth/AdminRegisterForm";
+import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
+import { Button } from "./components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 
-const Landing = () => {
-  const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
-  const [role, setRole] = useState<"student" | "admin" | null>(null);
-  const { user } = useAuth();
+type Step = "hero" | "role" | "auth";
+type Role = "student" | "admin" | null;
+type AuthTab = "login" | "register";
 
-  // Redirect if already authenticated
-  if (user) {
-    return <Navigate to="/home" replace />;
-  }
+export default function Landing() {
+  const [step, setStep] = useState<Step>("hero");
+  const [role, setRole] = useState<Role>(null);
+  const [authTab, setAuthTab] = useState<AuthTab>("login");
+
+  // Reset to home
+  const goToHome = () => {
+    setStep("hero");
+    setRole(null);
+  };
+
+  // Go back one step
+  const goBack = () => {
+    if (step === "auth") {
+      setStep("role");
+    } else if (step === "role") {
+      setStep("hero");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
-      {step === "initial" && <Hero setStep={setStep} />}
+    <div className="min-h-screen bg-background">
+      {/* Header navigation for back/home when not on hero */}
+      {step !== "hero" && (
+        <header className="p-4 flex items-center justify-between">
+          <Button variant="ghost" onClick={goBack}>
+            Back
+          </Button>
+          <Button variant="ghost" onClick={goToHome}>
+            Home
+          </Button>
+        </header>
+      )}
 
-      {step === "role" && (
-        <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
+      <main className="container mx-auto px-4 py-8">
+        {step === "hero" && <Hero setStep={setStep} />}
+
+        {step === "role" && (
           <RoleSelection role={role} setRole={setRole} setStep={setStep} />
-        </div>
-      )}
+        )}
 
-      {step === "auth" && (
-        <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
-          <div className="w-full max-w-md mx-auto space-y-8">
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-semibold">
-                Sign in as {role?.charAt(0).toUpperCase() + role?.slice(1)}
-              </h2>
-              <p className="text-muted-foreground">
-                Enter your credentials to continue
-              </p>
-            </div>
-            <div className="bg-white/50 dark:bg-gray-800/50 p-8 rounded-xl shadow-sm">
-              {role === "student" ? <StudentLoginForm /> : <AdminLoginForm />}
-              
-              {role === "student" && (
-                <div className="mt-4 text-center">
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        Create an account
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent className="overflow-y-auto">
-                      <SheetHeader>
-                        <SheetTitle>Create your account</SheetTitle>
-                        <SheetDescription>
-                          Fill in your details to register for PCCOE Connect
-                        </SheetDescription>
-                      </SheetHeader>
-                      <div className="mt-6">
-                        <RegisterForm />
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
-              )}
-            </div>
+        {step === "auth" && (
+          <div className="max-w-md mx-auto mt-8">
+            <Tabs
+              defaultValue={authTab}
+              onValueChange={(value) => setAuthTab(value as AuthTab)}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="register">Create Account</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="login" className="mt-6">
+                {role === "student" ? (
+                  <StudentLoginForm googleDisabled={true} />
+                ) : (
+                  <AdminLoginForm />
+                )}
+              </TabsContent>
+
+              <TabsContent value="register" className="mt-6">
+                {role === "student" ? (
+                  <div className="space-y-6">
+                    <form className="space-y-4">
+                      {/* Student Registration Form */}
+                      {/* This will be handled by StudentRegisterForm component */}
+                    </form>
+                  </div>
+                ) : (
+                  <AdminRegisterForm />
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
-};
-
-export default Landing;
+}
