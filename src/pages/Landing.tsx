@@ -5,6 +5,7 @@ import { RoleSelection } from "@/components/landing/RoleSelection";
 import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 import { AdminRegisterForm } from "@/components/auth/AdminRegisterForm";
 import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
+import { StudentRegisterForm } from "@/components/auth/StudentRegisterForm";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -103,63 +104,7 @@ export default function Landing() {
                 </SheetHeader>
                 <div className="mt-6">
                   {role === "student" ? (
-                    <div className="space-y-6">
-                      <form className="space-y-4">
-                        <div className="space-y-2">
-                          <label htmlFor="fullName" className="text-sm font-medium">Full Name</label>
-                          <input 
-                            id="fullName" 
-                            type="text" 
-                            className="w-full p-2 border rounded-md"
-                            placeholder="Enter your full name"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label htmlFor="email" className="text-sm font-medium">Email</label>
-                          <input 
-                            id="email" 
-                            type="email" 
-                            className="w-full p-2 border rounded-md"
-                            placeholder="your.email@example.com"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label htmlFor="studentId" className="text-sm font-medium">Student ID</label>
-                          <input 
-                            id="studentId" 
-                            type="text" 
-                            className="w-full p-2 border rounded-md"
-                            placeholder="Enter your student ID"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label htmlFor="password" className="text-sm font-medium">Password</label>
-                          <input 
-                            id="password" 
-                            type="password" 
-                            className="w-full p-2 border rounded-md"
-                            placeholder="Create a secure password"
-                          />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password</label>
-                          <input 
-                            id="confirmPassword" 
-                            type="password" 
-                            className="w-full p-2 border rounded-md"
-                            placeholder="Confirm your password"
-                          />
-                        </div>
-                        
-                        <Button type="submit" className="w-full mt-4">
-                          Create Student Account
-                        </Button>
-                      </form>
-                    </div>
+                    <StudentRegisterForm />
                   ) : (
                     <AdminRegisterForm />
                   )}
