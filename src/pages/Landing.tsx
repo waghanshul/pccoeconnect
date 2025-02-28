@@ -5,8 +5,8 @@ import { RoleSelection } from "@/components/landing/RoleSelection";
 import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 import { AdminRegisterForm } from "@/components/auth/AdminRegisterForm";
 import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
-import { Button } from "./components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Step = "hero" | "role" | "auth";
 type Role = "student" | "admin" | null;
