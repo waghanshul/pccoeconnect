@@ -7,6 +7,7 @@ import { AdminRegisterForm } from "@/components/auth/AdminRegisterForm";
 import { StudentLoginForm } from "@/components/auth/StudentLoginForm";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 type Step = "hero" | "role" | "auth";
 type Role = "student" | "admin" | null;
@@ -16,6 +17,7 @@ export default function Landing() {
   const [step, setStep] = useState<Step>("hero");
   const [role, setRole] = useState<Role>(null);
   const [authTab, setAuthTab] = useState<AuthTab>("login");
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // Reset to home
   const goToHome = () => {
@@ -62,7 +64,30 @@ export default function Landing() {
             >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="register">Create Account</TabsTrigger>
+                <TabsTrigger value="register">
+                  <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" className="font-medium">Create Account</Button>
+                    </SheetTrigger>
+                    <SheetContent className="overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle>Create Your Account</SheetTitle>
+                      </SheetHeader>
+                      <div className="mt-6">
+                        {role === "student" ? (
+                          <div className="space-y-6">
+                            <form className="space-y-4">
+                              {/* Student Registration Form */}
+                              {/* This will be handled by StudentRegisterForm component */}
+                            </form>
+                          </div>
+                        ) : (
+                          <AdminRegisterForm />
+                        )}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="login" className="mt-6">
@@ -74,16 +99,11 @@ export default function Landing() {
               </TabsContent>
 
               <TabsContent value="register" className="mt-6">
-                {role === "student" ? (
-                  <div className="space-y-6">
-                    <form className="space-y-4">
-                      {/* Student Registration Form */}
-                      {/* This will be handled by StudentRegisterForm component */}
-                    </form>
-                  </div>
-                ) : (
-                  <AdminRegisterForm />
-                )}
+                <div className="text-center p-8">
+                  <p className="text-muted-foreground">
+                    Click "Create Account" above to register
+                  </p>
+                </div>
               </TabsContent>
             </Tabs>
           </div>
