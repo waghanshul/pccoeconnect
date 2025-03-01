@@ -1,15 +1,49 @@
 
-import { FormData } from "@/utils/validation";
-import { authService } from "@/api/authService";
+import { supabase } from "@/integrations/supabase/client";
+import { Provider } from "@supabase/supabase-js";
 
-export async function checkExistingUser(prn: string) {
-  const response = await authService.checkExistingUser(prn);
-  return response.data || { existingUser: null, checkError: null };
+export async function signInWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (error) throw error;
+  return data;
 }
 
-export async function registerUser(values: FormData) {
-  const response = await authService.registerUser(values);
-  return response.data 
-    ? { data: response.data, error: null } 
-    : { data: null, error: response.error };
+export async function signUpWithEmail(
+  email: string, 
+  password: string, 
+  metadata: {
+    name: string;
+    prn: string;
+    branch: string;
+    year: string;
+  }
+) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: metadata,
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function signInWithProvider(provider: Provider) {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
 }
