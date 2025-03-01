@@ -1,29 +1,27 @@
-
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "./contexts/AuthContext";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
-import { ThemeProvider } from "./components/theme-provider";
-import Profile from "./pages/Profile";
 import Messages from "./pages/Messages";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
+import UserProfile from "./pages/UserProfile";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/home" element={<Index />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/notifications" element={<Notifications />} />
-          </Routes>
-          <Toaster />
-        </AuthProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/home" element={<Index />} />
+        <Route path="/messages" element={<Messages />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/user/:id" element={<UserProfile />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+      </Routes>
+    </Router>
   );
 }
 

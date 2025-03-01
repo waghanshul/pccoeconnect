@@ -1,151 +1,291 @@
-
-import Landing from "./Landing";
-import { Navigation } from "@/components/Navigation";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { PlusCircle, BookOpen, CalendarDays, Users, MessageSquare } from "lucide-react";
 import { useState } from "react";
-import { CreatePostDialog } from "@/components/CreatePostDialog";
+import { Navigation } from "@/components/Navigation";
 import { Post } from "@/components/Post";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Plus, FileText, BarChart2, Upload } from "lucide-react";
+import { toast } from "sonner";
+import { CreateTextPost } from "@/components/post/CreateTextPost";
+import { CreatePollPost } from "@/components/post/CreatePollPost";
+import { CreateMediaPost } from "@/components/post/CreateMediaPost";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-export default function Index() {
-  const { user } = useAuth();
-  const [openCreatePost, setOpenCreatePost] = useState(false);
+const Index = () => {
+  const navigate = useNavigate();
+  const [showTextPost, setShowTextPost] = useState(false);
+  const [showPollPost, setShowPollPost] = useState(false);
+  const [showMediaPost, setShowMediaPost] = useState(false);
+  const [followedUsers, setFollowedUsers] = useState<number[]>([]);
+  
+  const posts = [
+    {
+      author: "Arjun Patel",
+      content: "Just submitted my final project for Advanced Algorithms! #PCCOE #ComputerScience",
+      timestamp: "2 hours ago",
+      avatar: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4",
+      authorId: "1",
+    },
+    {
+      author: "Priya Sharma",
+      content: "Looking for team members for the upcoming hackathon! DM if interested 🚀 #Hackathon #TeamBuilding",
+      timestamp: "5 hours ago",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
+      authorId: "2",
+    },
+    {
+      author: "Rahul Kumar",
+      content: "Great session on AI/ML today at the tech symposium. Thanks to all who attended! 🤖 #PCCOE #AI #MachineLearning",
+      timestamp: "8 hours ago",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e",
+      authorId: "3",
+    },
+    {
+      author: "Neha Gupta",
+      content: "📢 Reminder: IEEE Student Branch meeting tomorrow at 4 PM in Seminar Hall. Don't forget to bring your project proposals!",
+      timestamp: "12 hours ago",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9",
+      authorId: "4",
+    },
+    {
+      author: "Vikram Singh",
+      content: "Just published my research paper on Quantum Computing! Check it out on the department website. 🎉 #Research #QuantumComputing",
+      timestamp: "1 day ago",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e",
+      authorId: "5",
+    },
+  ];
 
-  if (!user) {
-    return <Landing />;
-  }
+  const suggestedUsers = [
+    { id: 3, name: "Rahul Kumar", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e", department: "Computer Science" },
+    { id: 4, name: "Anita Desai", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330", department: "Information Technology" },
+    { id: 5, name: "Vikram Singh", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e", department: "Mechanical Engineering" },
+    { id: 6, name: "Meera Patel", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9", department: "Electronics" },
+    { id: 7, name: "Karan Shah", avatar: "https://images.unsplash.com/photo-1463453091185-61582044d556", department: "Civil Engineering" },
+  ];
+
+  const interests = [
+    {
+      title: "PCCOE News",
+      items: [
+        "College ranked in top 100 engineering institutes",
+        "New AI Research Center inauguration next week",
+        "MoU signed with leading tech companies"
+      ]
+    },
+    {
+      title: "Internship Opportunities",
+      items: [
+        "Google Summer Internship 2024 - Apply by March 30",
+        "TCS CodeVita Registration Open",
+        "Microsoft Engage Program Starting Soon"
+      ]
+    },
+    {
+      title: "PCCOE Events",
+      items: [
+        "Annual Tech Fest 'Impulse 2024' - April 15-17",
+        "Cultural Week - March 25-30",
+        "Sports Tournament - Starting April 1"
+      ]
+    },
+    {
+      title: "Important Dates",
+      items: [
+        "Mid-sem Exams: March 20-25",
+        "Project Submission Deadline: April 10",
+        "End Semester Registration: April 1-5"
+      ]
+    }
+  ];
+
+  const handleProfileClick = (userId: string | number) => {
+    navigate(`/profile/${userId}`);
+  };
+
+  const handleCreatePost = (type: string) => {
+    switch (type) {
+      case 'text':
+        setShowTextPost(true);
+        break;
+      case 'poll':
+        setShowPollPost(true);
+        break;
+      case 'media':
+        setShowMediaPost(true);
+        break;
+    }
+  };
+
+  const handleTextPost = (content: string) => {
+    // This is a placeholder - in a real app, this would send the post to a backend
+    toast.success("Text post created!");
+    console.log("New text post:", content);
+  };
+
+  const handlePollPost = (question: string, options: string[]) => {
+    // This is a placeholder - in a real app, this would send the poll to a backend
+    toast.success("Poll created!");
+    console.log("New poll:", { question, options });
+  };
+
+  const handleMediaPost = (file: File, description: string) => {
+    // This is a placeholder - in a real app, this would upload the file and create a post
+    toast.success("Media post created!");
+    console.log("New media post:", { file, description });
+  };
+
+  const handleFollowToggle = (userId: number) => {
+    setFollowedUsers(prev => {
+      const isFollowed = prev.includes(userId);
+      const newFollowedUsers = isFollowed
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId];
+      
+      toast.success(isFollowed ? "Unfollowed successfully" : "Followed successfully");
+      return newFollowedUsers;
+    });
+  };
+
+  const isUserFollowed = (userId: number) => followedUsers.includes(userId);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
-      <main className="container mx-auto px-4 pt-20 pb-10">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Home Feed</h1>
-          <Button className="flex items-center gap-2" onClick={() => setOpenCreatePost(true)}>
-            <PlusCircle size={18} />
-            <span>Create Post</span>
-          </Button>
-        </div>
+      <div className="container mx-auto px-4 pt-20">
+        <div className="flex">
+          {/* Main Content */}
+          <div className="flex-1 max-w-2xl mx-auto">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 mb-6">
+              <div className="flex gap-4 items-center">
+                <Avatar className="cursor-pointer" onClick={() => navigate("/profile")}>
+                  <AvatarImage src="https://github.com/shadcn.png" />
+                  <AvatarFallback>CN</AvatarFallback>
+                </Avatar>
+                <Input 
+                  placeholder="What's on your mind?" 
+                  className="bg-gray-50 dark:bg-gray-700"
+                  onClick={() => setShowTextPost(true)}
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" className="rounded-full">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => handleCreatePost('text')} className="cursor-pointer">
+                      <FileText className="mr-2 h-4 w-4" />
+                      <span>Text Post</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCreatePost('poll')} className="cursor-pointer">
+                      <BarChart2 className="mr-2 h-4 w-4" />
+                      <span>Create Poll</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCreatePost('media')} className="cursor-pointer">
+                      <Upload className="mr-2 h-4 w-4" />
+                      <span>Upload Media</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2 space-y-6">
-            {/* Feed Content */}
-            <Post
-              author={{
-                name: "Aditya Sharma",
-                avatar: "https://images.unsplash.com/photo-1501854140801-50d01698950b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-                branch: "Computer Science",
-                year: "3rd Year"
-              }}
-              content="Just finished my project on machine learning! 🎉 It was challenging but rewarding. Looking forward to presenting it next week."
-              timestamp="2 hours ago"
-              likes={24}
-              comments={8}
-              shares={3}
+            <CreateTextPost 
+              isOpen={showTextPost}
+              onClose={() => setShowTextPost(false)}
+              onPost={handleTextPost}
             />
-            
-            <Post
-              author={{
-                name: "Priya Patel",
-                avatar: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80",
-                branch: "Electronics Engineering",
-                year: "4th Year"
-              }}
-              content="The campus fest is coming up! Anyone interested in joining the organizing committee? We need volunteers for various events. Comment below if you're interested!"
-              timestamp="5 hours ago"
-              likes={42}
-              comments={15}
-              shares={7}
+            <CreatePollPost 
+              isOpen={showPollPost}
+              onClose={() => setShowPollPost(false)}
+              onPost={handlePollPost}
             />
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Events</CardTitle>
-                <CardDescription>Upcoming events at your college</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="p-3 rounded-lg bg-muted flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">Tech Symposium 2023</p>
-                      <p className="text-sm text-muted-foreground">Nov 15, 2023 • Engineering Block</p>
-                    </div>
-                    <Button variant="outline" size="sm">RSVP</Button>
-                  </li>
-                  <li className="p-3 rounded-lg bg-muted flex justify-between items-center">
-                    <div>
-                      <p className="font-medium">Cultural Fest</p>
-                      <p className="text-sm text-muted-foreground">Dec 5, 2023 • Main Auditorium</p>
-                    </div>
-                    <Button variant="outline" size="sm">RSVP</Button>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            <CreateMediaPost 
+              isOpen={showMediaPost}
+              onClose={() => setShowMediaPost(false)}
+              onPost={handleMediaPost}
+            />
+
+            <div className="space-y-6">
+              {posts.map((post, index) => (
+                <Post key={index} {...post} />
+              ))}
+            </div>
           </div>
-          
-          <div className="space-y-6">
-            {/* Sidebar Content */}
+
+          {/* Right Sidebar */}
+          <div className="hidden lg:block w-80 pl-6 space-y-6">
+            {/* People to Follow */}
             <Card>
               <CardHeader>
-                <CardTitle>My Groups</CardTitle>
+                <CardTitle className="text-lg font-semibold">People to Follow</CardTitle>
               </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  <li className="p-2 rounded-lg bg-muted text-sm">Computer Science Study Group</li>
-                  <li className="p-2 rounded-lg bg-muted text-sm">Coding Club</li>
-                  <li className="p-2 rounded-lg bg-muted text-sm">Campus Photography</li>
-                </ul>
-                <Button variant="ghost" size="sm" className="w-full mt-3">View All Groups</Button>
+              <CardContent className="space-y-4">
+                {suggestedUsers.map((user) => (
+                  <div key={user.name} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Avatar 
+                        className="cursor-pointer hover:opacity-90 transition-opacity" 
+                        onClick={() => handleProfileClick(user.id)}
+                      >
+                        <AvatarImage src={user.avatar} />
+                        <AvatarFallback>{user.name[0]}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p 
+                          className="text-sm font-medium dark:text-white cursor-pointer hover:text-primary transition-colors"
+                          onClick={() => handleProfileClick(user.id)}
+                        >
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-gray-500">{user.department}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant={isUserFollowed(user.id) ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => handleFollowToggle(user.id)}
+                    >
+                      {isUserFollowed(user.id) ? "Following" : "Follow"}
+                    </Button>
+                  </div>
+                ))}
               </CardContent>
             </Card>
-            
+
+            {/* Your Interests */}
             <Card>
               <CardHeader>
-                <CardTitle>Trending Topics</CardTitle>
+                <CardTitle className="text-lg font-semibold">Your Interests</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm">#Exams</Button>
-                  <Button variant="outline" size="sm">#CampusFest</Button>
-                  <Button variant="outline" size="sm">#Placements</Button>
-                  <Button variant="outline" size="sm">#Projects</Button>
-                  <Button variant="outline" size="sm">#Sports</Button>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Links</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <a href="#" className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors">
-                    <BookOpen size={16} />
-                    <span className="text-sm">Academic Resources</span>
-                  </a>
-                  <a href="#" className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors">
-                    <CalendarDays size={16} />
-                    <span className="text-sm">Event Calendar</span>
-                  </a>
-                  <a href="#" className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors">
-                    <Users size={16} />
-                    <span className="text-sm">Clubs & Societies</span>
-                  </a>
-                  <a href="#" className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors">
-                    <MessageSquare size={16} />
-                    <span className="text-sm">Forum Discussions</span>
-                  </a>
-                </div>
+              <CardContent className="space-y-6">
+                {interests.map((category) => (
+                  <div key={category.title} className="space-y-2">
+                    <h4 className="font-medium text-sm text-primary">{category.title}</h4>
+                    <ul className="space-y-2">
+                      {category.items.map((item, index) => (
+                        <li key={index} className="text-sm text-gray-600 dark:text-gray-300 hover:text-primary cursor-pointer transition-colors">
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           </div>
         </div>
-      </main>
-      <CreatePostDialog open={openCreatePost} onOpenChange={setOpenCreatePost} />
+      </div>
     </div>
   );
-}
+};
+
+export default Index;

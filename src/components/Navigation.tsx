@@ -5,15 +5,12 @@ import { useEffect, useState } from "react";
 import { Toggle } from "./ui/toggle";
 import { Button } from "./ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { signOut } from "@/services/auth";
-import { useAuth } from "@/contexts/AuthContext";
 
 export const Navigation = () => {
   const [darkMode, setDarkMode] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
 
   useEffect(() => {
     const isDark = localStorage.getItem("darkMode") === "true";
@@ -30,21 +27,12 @@ export const Navigation = () => {
     document.documentElement.classList.toggle("dark");
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      toast({
-        title: "Logged out successfully",
-        description: "See you soon!",
-      });
-      navigate("/");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+  const handleLogout = () => {
+    toast({
+      title: "Logged out successfully",
+      description: "See you soon!",
+    });
+    navigate("/");
   };
 
   const getActiveStyles = (path: string) => {
