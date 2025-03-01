@@ -4,7 +4,7 @@ import { apiClient, handleApiError, ApiResponse } from "./apiClient";
 export interface UserProfile {
   id: string;
   name: string;
-  avatar?: string;
+  avatar_url?: string;
   role?: string;
   department?: string;
   year?: string;
@@ -15,6 +15,7 @@ export interface UserProfile {
   availability?: 'available' | 'busy' | 'away' | 'inactive';
   prn?: string;
   branch?: string;
+  is_public?: boolean;
 }
 
 export const userService = {
@@ -67,7 +68,7 @@ export const userService = {
         .single();
 
       if (error) throw error;
-      return { data: data?.availability, error: null };
+      return { data: data?.availability || 'available', error: null };
     } catch (error) {
       return { data: null, error: handleApiError(error, "Failed to get user availability") as Error };
     }

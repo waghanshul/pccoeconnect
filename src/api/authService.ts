@@ -24,7 +24,7 @@ export const authService = {
 
       return { 
         data: data ? { existingUser: data } : { existingUser: null }, 
-        error: error ? { checkError: error } : null 
+        error: error ? handleApiError(error, "Error checking user") : null 
       };
     } catch (error) {
       return { data: { existingUser: null }, error: handleApiError(error, "Error checking user") as Error };
@@ -38,8 +38,8 @@ export const authService = {
     try {
       // First create the auth user
       const { data: authData, error: authError } = await apiClient.supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
+        email: values.email || `${values.prn}@example.com`, // Use default email if not provided
+        password: values.password || '',
         options: {
           data: {
             name: values.name,
@@ -69,7 +69,17 @@ export const authService = {
       });
 
       if (error) throw error;
-      return { data, error: null };
+      
+      // Format the response to match AuthSession interface
+      const authSession: AuthSession = {
+        user: data.user ? {
+          id: data.user.id,
+          email: data.user.email || '',
+        } : null,
+        session: data.session
+      };
+      
+      return { data: authSession, error: null };
     } catch (error) {
       return { data: null, error: handleApiError(error, "Login failed") as Error };
     }
@@ -95,7 +105,17 @@ export const authService = {
     try {
       const { data, error } = await apiClient.supabase.auth.getSession();
       if (error) throw error;
-      return { data, error: null };
+      
+      // Format the response to match AuthSession interface
+      const authSession: AuthSession = {
+        user: data.session?.user ? {
+          id: data.session.user.id,
+          email: data.session.user.email || '',
+        } : null,
+        session: data.session
+      };
+      
+      return { data: authSession, error: null };
     } catch (error) {
       return { data: null, error: handleApiError(error, "Failed to get current session") as Error };
     }
