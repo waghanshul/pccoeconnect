@@ -1,14 +1,15 @@
+
 import { FormData } from "@/utils/validation";
+import { authService } from "@/api/authService";
 
 export async function checkExistingUser(prn: string) {
-  // Removed Supabase check, always return no existing user
-  return { existingUser: null, checkError: null };
+  const response = await authService.checkExistingUser(prn);
+  return response.data || { existingUser: null, checkError: null };
 }
 
 export async function registerUser(values: FormData) {
-  // Removed Supabase registration, just return success
-  return { 
-    data: { user: values }, 
-    error: null 
-  };
+  const response = await authService.registerUser(values);
+  return response.data 
+    ? { data: response.data, error: null } 
+    : { data: null, error: response.error };
 }
