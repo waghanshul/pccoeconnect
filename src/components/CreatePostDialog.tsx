@@ -28,6 +28,22 @@ export function CreatePostDialog({ open, onOpenChange }: CreatePostDialogProps) 
     }, 1000);
   };
 
+  // These handlers will be passed to individual post type components
+  const handleTextPost = (content: string) => {
+    console.log("Text post content:", content);
+    handleCreatePost();
+  };
+
+  const handleMediaPost = (file: File, description: string) => {
+    console.log("Media post:", file.name, description);
+    handleCreatePost();
+  };
+
+  const handlePollPost = (question: string, options: string[]) => {
+    console.log("Poll post:", question, options);
+    handleCreatePost();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -46,15 +62,27 @@ export function CreatePostDialog({ open, onOpenChange }: CreatePostDialogProps) 
           </TabsList>
           
           <TabsContent value="text">
-            <CreateTextPost />
+            <CreateTextPost 
+              isOpen={postType === "text"} 
+              onClose={() => onOpenChange(false)} 
+              onPost={handleTextPost} 
+            />
           </TabsContent>
           
           <TabsContent value="media">
-            <CreateMediaPost />
+            <CreateMediaPost 
+              isOpen={postType === "media"} 
+              onClose={() => onOpenChange(false)} 
+              onPost={handleMediaPost} 
+            />
           </TabsContent>
           
           <TabsContent value="poll">
-            <CreatePollPost />
+            <CreatePollPost 
+              isOpen={postType === "poll"} 
+              onClose={() => onOpenChange(false)} 
+              onPost={handlePollPost} 
+            />
           </TabsContent>
         </Tabs>
         
