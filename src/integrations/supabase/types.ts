@@ -431,34 +431,49 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability: string | null
           avatar_url: string | null
           bio: string | null
           branch: string
           created_at: string | null
+          email: string | null
           id: string
+          interests: string[] | null
+          is_public: boolean | null
           name: string
+          phone: string | null
           prn: string
           updated_at: string | null
           year: string
         }
         Insert: {
+          availability?: string | null
           avatar_url?: string | null
           bio?: string | null
           branch: string
           created_at?: string | null
+          email?: string | null
           id: string
+          interests?: string[] | null
+          is_public?: boolean | null
           name: string
+          phone?: string | null
           prn: string
           updated_at?: string | null
           year: string
         }
         Update: {
+          availability?: string | null
           avatar_url?: string | null
           bio?: string | null
           branch?: string
           created_at?: string | null
+          email?: string | null
           id?: string
+          interests?: string[] | null
+          is_public?: boolean | null
           name?: string
+          phone?: string | null
           prn?: string
           updated_at?: string | null
           year?: string

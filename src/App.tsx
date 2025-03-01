@@ -1,4 +1,6 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
 import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Messages from "./pages/Messages";
@@ -9,6 +11,12 @@ import UserProfile from "./pages/UserProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
+  useEffect(() => {
+    // Force dark mode
+    document.documentElement.classList.add("dark");
+    localStorage.setItem("darkMode", "true");
+  }, []);
+
   return (
     <Router>
       <Routes>

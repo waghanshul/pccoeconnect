@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import {
   Sheet,
@@ -13,13 +14,14 @@ import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 import { Button } from "@/components/ui/button";
 import { Hero } from "@/components/landing/Hero";
 import { RoleSelection } from "@/components/landing/RoleSelection";
+import { ArrowLeft } from "lucide-react";
 
 const Landing = () => {
   const [step, setStep] = useState<"initial" | "role" | "auth">("initial");
   const [role, setRole] = useState<"student" | "admin" | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {step === "initial" && <Hero setStep={setStep} />}
 
       {step === "role" && (
@@ -31,6 +33,18 @@ const Landing = () => {
       {step === "auth" && (
         <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
           <div className="w-full max-w-md mx-auto space-y-8">
+            <div className="flex items-center mb-8">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                onClick={() => setStep("role")}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+            </div>
+            
             <div className="text-center space-y-4">
               <h2 className="text-3xl font-semibold">
                 Sign in as {role?.charAt(0).toUpperCase() + role?.slice(1)}
@@ -39,7 +53,7 @@ const Landing = () => {
                 Enter your credentials to continue
               </p>
             </div>
-            <div className="bg-white/50 dark:bg-gray-800/50 p-8 rounded-xl shadow-sm">
+            <div className="bg-gray-800/50 p-8 rounded-xl shadow-sm">
               {role === "student" ? <StudentLoginForm /> : <AdminLoginForm />}
               
               {role === "student" && (

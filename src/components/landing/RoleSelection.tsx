@@ -1,15 +1,28 @@
+
 import { Button } from "@/components/ui/button";
-import { GraduationCap, Shield } from "lucide-react";
+import { GraduationCap, Shield, ArrowLeft } from "lucide-react";
 
 interface RoleSelectionProps {
   role: "student" | "admin" | null;
   setRole: (role: "student" | "admin") => void;
-  setStep: (step: "auth") => void;
+  setStep: (step: "auth" | "initial") => void;
 }
 
 export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) => {
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8">
+      <div className="flex items-center mb-8">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-2 text-gray-400 hover:text-white"
+          onClick={() => setStep("initial")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
+      </div>
+      
       <div className="text-center space-y-4 mb-12">
         <h2 className="text-4xl font-bold text-primary">Choose Your Role</h2>
         <p className="text-xl text-muted-foreground">
@@ -38,7 +51,7 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
               </p>
             </div>
           </Button>
-          <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl border border-primary/20">
+          <div className="bg-gray-800/50 p-6 rounded-xl border border-primary/20">
             <h4 className="font-semibold mb-2 text-primary">Student Features:</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Access to academic resources</li>
@@ -69,7 +82,7 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
               </p>
             </div>
           </Button>
-          <div className="bg-white/50 dark:bg-gray-800/50 p-6 rounded-xl border border-primary/20">
+          <div className="bg-gray-800/50 p-6 rounded-xl border border-primary/20">
             <h4 className="font-semibold mb-2 text-primary">Admin Features:</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>• Content moderation</li>

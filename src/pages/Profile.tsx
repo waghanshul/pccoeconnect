@@ -1,3 +1,4 @@
+
 import { Navigation } from "@/components/Navigation";
 import { UserProfile } from "@/components/UserProfile";
 import { useUserStore } from "@/services/user";
@@ -6,7 +7,7 @@ const Profile = () => {
   const { userData } = useUserStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-200">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 transition-colors duration-200">
       <Navigation />
       <main className="container mx-auto px-4 pt-20">
         <div className="relative">
