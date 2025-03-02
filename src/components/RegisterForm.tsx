@@ -33,6 +33,7 @@ export function RegisterForm() {
     defaultValues: {
       name: "",
       email: "",
+      prn: "",
       branch: "",
       year: "1st",
       password: "",
@@ -48,6 +49,7 @@ export function RegisterForm() {
         values.password,
         {
           name: values.name,
+          prn: values.prn,
           branch: values.branch,
           year: values.year,
         }
@@ -97,6 +99,24 @@ export function RegisterForm() {
                 <Input 
                   type="email" 
                   placeholder="student@pccoepune.org" 
+                  {...field} 
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="prn"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>PRN (Permanent Registration Number)</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="e.g., 12345678900" 
                   {...field} 
                   disabled={isLoading}
                 />

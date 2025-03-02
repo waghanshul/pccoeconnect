@@ -20,6 +20,7 @@ export const emailSchema = z
 export const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: emailSchema,
+  prn: z.string().min(7, "PRN must be at least 7 characters").max(20, "PRN is too long"),
   branch: z.string().min(2, "Branch is required"),
   year: z.string(),
   password: passwordSchema,

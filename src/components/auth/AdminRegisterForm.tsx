@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -19,6 +20,7 @@ const adminFormSchema = z.object({
   email: z.string().email().refine((email) => email.endsWith("@pccoepune.org"), {
     message: "Must be a valid PCCOE email address",
   }),
+  prn: z.string().min(7, "PRN must be at least 7 characters").max(20, "PRN is too long"),
   branch: z.string().min(2, "Branch is required"),
   birthDate: z.string().min(1, "Birth date is required"),
   password: z
@@ -42,6 +44,7 @@ export function AdminRegisterForm() {
     defaultValues: {
       name: "",
       email: "",
+      prn: "",
       branch: "",
       birthDate: "",
       password: "",
@@ -84,6 +87,20 @@ export function AdminRegisterForm() {
                   placeholder="john.doe@pccoepune.org"
                   {...field}
                 />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="prn"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>PRN (Permanent Registration Number)</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., 12345678900" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
