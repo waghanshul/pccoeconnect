@@ -5,10 +5,11 @@ import { useAuth } from "@/context/AuthContext";
 
 interface ProtectedRouteProps {
   children: ReactNode;
+  requiredRole?: string;
 }
 
-export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { user, isLoading } = useAuth();
+export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) => {
+  const { user, isLoading, userRole } = useAuth();
 
   // Show loading state
   if (isLoading) {
@@ -24,6 +25,11 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/" />;
   }
 
-  // Render children if authenticated
+  // Check user role if a specific role is required
+  if (requiredRole && userRole !== requiredRole) {
+    return <Navigate to="/home" />;
+  }
+
+  // Render children if authenticated and authorized
   return <>{children}</>;
 };
