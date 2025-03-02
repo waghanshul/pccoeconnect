@@ -21,8 +21,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 export function RegisterForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
+  
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,11 +41,33 @@ export function RegisterForm() {
   });
 
   async function onSubmit(values: FormData) {
-    toast.success("Registration successful!", {
-      duration: 6000,
-    });
-    form.reset();
-    console.log("Registration values:", values);
+    setIsLoading(true);
+    try {
+      const { error } = await signUp(
+        values.email,
+        values.password,
+        {
+          name: values.name,
+          branch: values.branch,
+          year: values.year,
+        }
+      );
+      
+      if (error) {
+        toast.error(error.message || "Registration failed");
+        return;
+      }
+      
+      toast.success("Registration successful! Please check your email to confirm your account.", {
+        duration: 6000,
+      });
+      form.reset();
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -53,7 +80,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="John Doe" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -71,6 +98,7 @@ export function RegisterForm() {
                   type="email" 
                   placeholder="student@pccoepune.org" 
                   {...field} 
+                  disabled={isLoading}
                 />
               </FormControl>
               <FormMessage />
@@ -85,7 +113,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Branch</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Computer Engineering" {...field} />
+                <Input placeholder="e.g., Computer Engineering" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -98,7 +126,7 @@ export function RegisterForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Year</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select your year" />
@@ -123,7 +151,7 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
+                <Input type="password" placeholder="Enter your password" {...field} disabled={isLoading} />
               </FormControl>
               <PasswordStrengthIndicator password={field.value} />
               <FormMessage />
@@ -138,14 +166,16 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Confirm your password" {...field} />
+                <Input type="password" placeholder="Confirm your password" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full">Register</Button>
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Registering..." : "Register"}
+        </Button>
       </form>
     </Form>
   );

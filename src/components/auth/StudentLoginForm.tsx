@@ -4,20 +4,33 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 export const StudentLoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // Log the login attempt (for development purposes)
-    console.log("Login attempt with email:", credentials.email);
-    
-    // Show success message
-    toast.success("Welcome to PCCOE Connect!");
-    navigate("/home");
+    try {
+      const { error } = await signIn(credentials.email, credentials.password);
+      if (error) {
+        toast.error(error.message || "Failed to sign in");
+        return;
+      }
+      
+      toast.success("Welcome to PCCOE Connect!");
+      navigate("/home");
+    } catch (error) {
+      console.error("Login error:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,6 +48,7 @@ export const StudentLoginForm = () => {
           pattern="^[a-zA-Z0-9._%+-]+@pccoepune\.org$"
           title="Please enter a valid PCCOE email address (ending with @pccoepune.org)"
           className="bg-white dark:bg-gray-900"
+          disabled={isLoading}
         />
       </div>
       <div className="space-y-2">
@@ -48,10 +62,11 @@ export const StudentLoginForm = () => {
           }
           required
           className="bg-white dark:bg-gray-900"
+          disabled={isLoading}
         />
       </div>
-      <Button type="submit" className="w-full">
-        Sign In
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading ? "Signing in..." : "Sign In"}
       </Button>
     </form>
   );
