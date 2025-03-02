@@ -14,6 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const adminFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -39,6 +41,9 @@ const adminFormSchema = z.object({
 type AdminFormData = z.infer<typeof adminFormSchema>;
 
 export function AdminRegisterForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
+  
   const form = useForm<AdminFormData>({
     resolver: zodResolver(adminFormSchema),
     defaultValues: {
@@ -53,9 +58,35 @@ export function AdminRegisterForm() {
   });
 
   async function onSubmit(values: AdminFormData) {
-    console.log("Admin registration values:", values);
-    toast.success("Admin registration successful!");
-    form.reset();
+    setIsLoading(true);
+    try {
+      const { error } = await signUp(
+        values.email,
+        values.password,
+        {
+          name: values.name,
+          prn: values.prn,
+          branch: values.branch,
+          birthDate: values.birthDate,
+          role: "admin", // Add admin role identifier
+        }
+      );
+      
+      if (error) {
+        toast.error(error.message || "Admin registration failed");
+        return;
+      }
+      
+      toast.success("Admin registration successful! Please check your email to confirm your account.", {
+        duration: 6000,
+      });
+      form.reset();
+    } catch (error) {
+      console.error("Admin registration error:", error);
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -68,7 +99,7 @@ export function AdminRegisterForm() {
             <FormItem>
               <FormLabel>Full Name</FormLabel>
               <FormControl>
-                <Input placeholder="John Doe" {...field} />
+                <Input placeholder="John Doe" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,6 +117,7 @@ export function AdminRegisterForm() {
                   type="email"
                   placeholder="john.doe@pccoepune.org"
                   {...field}
+                  disabled={isLoading}
                 />
               </FormControl>
               <FormMessage />
@@ -100,7 +132,7 @@ export function AdminRegisterForm() {
             <FormItem>
               <FormLabel>PRN (Permanent Registration Number)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., 12345678900" {...field} />
+                <Input placeholder="e.g., 12345678900" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -114,7 +146,7 @@ export function AdminRegisterForm() {
             <FormItem>
               <FormLabel>Branch</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Computer Engineering" {...field} />
+                <Input placeholder="e.g., Computer Engineering" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -128,7 +160,7 @@ export function AdminRegisterForm() {
             <FormItem>
               <FormLabel>Birth Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <Input type="date" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -142,7 +174,7 @@ export function AdminRegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
+                <Input type="password" placeholder="Enter your password" {...field} disabled={isLoading} />
               </FormControl>
               <PasswordStrengthIndicator password={field.value} />
               <FormMessage />
@@ -161,6 +193,7 @@ export function AdminRegisterForm() {
                   type="password"
                   placeholder="Confirm your password"
                   {...field}
+                  disabled={isLoading}
                 />
               </FormControl>
               <FormMessage />
@@ -168,8 +201,8 @@ export function AdminRegisterForm() {
           )}
         />
 
-        <Button type="submit" className="w-full">
-          Register
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Registering..." : "Register"}
         </Button>
       </form>
     </Form>
