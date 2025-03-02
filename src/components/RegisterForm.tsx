@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { FormData, formSchema } from "@/utils/validation";
@@ -26,7 +27,7 @@ export function RegisterForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      prn: "",
+      email: "",
       branch: "",
       year: "1st",
       password: "",
@@ -61,12 +62,16 @@ export function RegisterForm() {
 
         <FormField
           control={form.control}
-          name="prn"
+          name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PRN Number</FormLabel>
+              <FormLabel>PCCOE Email</FormLabel>
               <FormControl>
-                <Input placeholder="122B1D066" {...field} />
+                <Input 
+                  type="email" 
+                  placeholder="student@pccoepune.org" 
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

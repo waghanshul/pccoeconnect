@@ -1,3 +1,4 @@
+
 import * as z from "zod";
 
 export const passwordSchema = z
@@ -8,17 +9,17 @@ export const passwordSchema = z
   .regex(/[0-9]/, "Password must contain at least one number")
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
-export const prnSchema = z
+export const emailSchema = z
   .string()
+  .email("Invalid email address")
   .regex(
-    /^\d{3}[A-Za-z]\d[A-Za-z]\d{3}$/,
-    "PRN must be in the format '122B1D066' (3 digits, letter, digit, letter, 3 digits)"
-  )
-  .transform(val => val.toUpperCase());
+    /^[a-zA-Z0-9._%+-]+@pccoepune\.org$/,
+    "Please use your PCCOE email address (ending with @pccoepune.org)"
+  );
 
 export const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  prn: prnSchema,
+  email: emailSchema,
   branch: z.string().min(2, "Branch is required"),
   year: z.string(),
   password: passwordSchema,
