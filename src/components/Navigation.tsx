@@ -1,3 +1,4 @@
+
 import { Bell, Home, MessageSquare, Search, User, LogOut, Settings } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Logo } from "./Logo";
@@ -12,8 +13,7 @@ export const Navigation = () => {
 
   const handleLogout = async () => {
     await signOut();
-    toast({
-      title: "Logged out successfully",
+    toast("Logged out successfully", {
       description: "See you soon!",
     });
   };
