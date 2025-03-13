@@ -71,7 +71,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .single();
         
         if (studentError) throw studentError;
-        extendedData = studentData;
+        extendedData = studentData || {};
       } else if (profileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin_profiles')
@@ -80,7 +80,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .single();
         
         if (adminError) throw adminError;
-        extendedData = adminData;
+        extendedData = adminData || {};
       }
       
       // Combine the data
@@ -90,10 +90,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
           name: profileData.full_name,
           avatar: profileData.avatar_url || defaultUserData.avatar,
           role: profileData.role,
-          department: extendedData.department || '',
-          year: extendedData.year || '',
-          bio: extendedData.bio || '',
-          interests: extendedData.interests || [],
+          department: (extendedData as any).department || '',
+          year: (extendedData as any).year || '',
+          bio: (extendedData as any).bio || '',
+          interests: (extendedData as any).interests || [],
           isPublic: true,
           email: profileData.email,
           phone: '',
@@ -160,7 +160,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       // Update profile status in Supabase
       const { error } = await supabase
         .from('profiles')
-        .update({ status })
+        .update({ status }) // Now 'status' is a valid column in profiles
         .eq('id', userData.id);
       
       if (error) throw error;

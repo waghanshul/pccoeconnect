@@ -57,7 +57,7 @@ const UserProfile = () => {
           .single();
 
         if (studentError) throw studentError;
-        extendedData = studentData;
+        extendedData = studentData || {};
       } else if (profileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin_profiles')
@@ -66,7 +66,7 @@ const UserProfile = () => {
           .single();
 
         if (adminError) throw adminError;
-        extendedData = adminData;
+        extendedData = adminData || {};
       }
 
       // Combine and set the data
@@ -75,10 +75,10 @@ const UserProfile = () => {
         name: profileData.full_name,
         avatar: profileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
         role: profileData.role,
-        department: extendedData.department || '',
-        year: extendedData.year || '',
-        bio: extendedData.bio || '',
-        interests: extendedData.interests || [],
+        department: (extendedData as any).department || '',
+        year: (extendedData as any).year || '',
+        bio: (extendedData as any).bio || '',
+        interests: (extendedData as any).interests || [],
         isPublic: true,
         email: profileData.email,
         phone: '',
@@ -121,7 +121,7 @@ const UserProfile = () => {
           <div className="absolute inset-0 h-48 bg-gradient-to-r from-primary to-blue-600 dark:from-primary/80 dark:to-blue-600/80 rounded-b-3xl -z-10" />
           <UserProfileComponent 
             user={userData} 
-            isOwnProfile={user?.id === userData.id}
+            isOwnProfile={user?.id === userData?.id}
           />
         </div>
       </main>
