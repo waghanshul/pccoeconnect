@@ -22,6 +22,18 @@ interface ProfileData {
   status: UserStatus;
 }
 
+// Define the ProfileRecord type to match the database schema
+interface ProfileRecord {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  created_at?: string;
+  updated_at?: string;
+  avatar_url?: string;
+  status?: UserStatus;
+}
+
 const UserProfile = () => {
   const { userId } = useParams();
   const [userData, setUserData] = useState<ProfileData | null>(null);
@@ -47,9 +59,12 @@ const UserProfile = () => {
 
       if (profileError) throw profileError;
 
+      // Safely cast the profile data to ensure TypeScript knows about all properties
+      const typedProfileData = profileData as ProfileRecord;
+
       // Determine role and fetch extended data
       let extendedData = {};
-      if (profileData.role === 'student') {
+      if (typedProfileData.role === 'student') {
         const { data: studentData, error: studentError } = await supabase
           .from('student_profiles')
           .select('*')
@@ -58,7 +73,7 @@ const UserProfile = () => {
 
         if (studentError) throw studentError;
         extendedData = studentData || {};
-      } else if (profileData.role === 'admin') {
+      } else if (typedProfileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin_profiles')
           .select('*')
@@ -71,18 +86,18 @@ const UserProfile = () => {
 
       // Combine and set the data
       setUserData({
-        id: profileData.id,
-        name: profileData.full_name,
-        avatar: profileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
-        role: profileData.role,
+        id: typedProfileData.id,
+        name: typedProfileData.full_name,
+        avatar: typedProfileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
+        role: typedProfileData.role,
         department: (extendedData as any).department || '',
         year: (extendedData as any).year || '',
         bio: (extendedData as any).bio || '',
         interests: (extendedData as any).interests || [],
         isPublic: true,
-        email: profileData.email,
+        email: typedProfileData.email,
         phone: '',
-        status: profileData.status as UserStatus || 'offline',
+        status: typedProfileData.status as UserStatus || 'offline',
       });
     } catch (error) {
       console.error("Error fetching user data:", error);

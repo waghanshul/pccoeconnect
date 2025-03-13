@@ -19,6 +19,18 @@ interface UserData {
   status: UserStatus;
 }
 
+// Define a type that matches the actual database schema for profiles
+interface ProfileRecord {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  created_at?: string;
+  updated_at?: string;
+  avatar_url?: string;
+  status?: UserStatus;
+}
+
 interface UserStore {
   userData: UserData;
   isLoading: boolean;
@@ -61,9 +73,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
       
       if (profileError) throw profileError;
       
+      // Cast to the correct type to handle additional properties
+      const typedProfileData = profileData as ProfileRecord;
+      
       // Fetch extended profile data based on role
       let extendedData = {};
-      if (profileData.role === 'student') {
+      if (typedProfileData.role === 'student') {
         const { data: studentData, error: studentError } = await supabase
           .from('student_profiles')
           .select('*')
@@ -72,7 +87,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
         
         if (studentError) throw studentError;
         extendedData = studentData || {};
-      } else if (profileData.role === 'admin') {
+      } else if (typedProfileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin_profiles')
           .select('*')
@@ -86,18 +101,18 @@ export const useUserStore = create<UserStore>((set, get) => ({
       // Combine the data
       set({
         userData: {
-          id: profileData.id,
-          name: profileData.full_name,
-          avatar: profileData.avatar_url || defaultUserData.avatar,
-          role: profileData.role,
+          id: typedProfileData.id,
+          name: typedProfileData.full_name,
+          avatar: typedProfileData.avatar_url || defaultUserData.avatar,
+          role: typedProfileData.role,
           department: (extendedData as any).department || '',
           year: (extendedData as any).year || '',
           bio: (extendedData as any).bio || '',
           interests: (extendedData as any).interests || [],
           isPublic: true,
-          email: profileData.email,
+          email: typedProfileData.email,
           phone: '',
-          status: profileData.status as UserStatus || 'offline',
+          status: typedProfileData.status as UserStatus || 'offline',
         },
         isLoading: false
       });
@@ -113,15 +128,18 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const { userData } = get();
       const userId = userData.id;
       
-      // Update profiles table
-      if (data.name || data.avatar || data.email) {
+      // Prepare data for profiles table update
+      const profileUpdate: Partial<ProfileRecord> = {};
+      
+      if (data.name) profileUpdate.full_name = data.name;
+      if (data.avatar) profileUpdate.avatar_url = data.avatar;
+      if (data.email) profileUpdate.email = data.email;
+      
+      // Update profiles table if needed
+      if (Object.keys(profileUpdate).length > 0) {
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({
-            full_name: data.name,
-            avatar_url: data.avatar,
-            email: data.email,
-          })
+          .update(profileUpdate)
           .eq('id', userId);
         
         if (profileError) throw profileError;
@@ -160,7 +178,9 @@ export const useUserStore = create<UserStore>((set, get) => ({
       // Update profile status in Supabase
       const { error } = await supabase
         .from('profiles')
-        .update({ status }) // Now 'status' is a valid column in profiles
+        .update({ 
+          status: status 
+        })
         .eq('id', userData.id);
       
       if (error) throw error;
