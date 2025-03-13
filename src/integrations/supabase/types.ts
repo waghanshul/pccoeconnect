@@ -9,261 +9,150 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      comments: {
+      admin_profiles: {
         Row: {
-          content: string
-          created_at: string | null
+          department: string
+          designation: string
+          employee_id: string
           id: string
-          post_id: string | null
-          user_id: string | null
         }
         Insert: {
-          content: string
-          created_at?: string | null
-          id?: string
-          post_id?: string | null
-          user_id?: string | null
+          department: string
+          designation: string
+          employee_id: string
+          id: string
         }
         Update: {
-          content?: string
-          created_at?: string | null
+          department?: string
+          designation?: string
+          employee_id?: string
           id?: string
-          post_id?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "comments_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
+            foreignKeyName: "admin_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      event_attendees: {
-        Row: {
-          event_id: string
-          status: string
-          user_id: string
-        }
-        Insert: {
-          event_id: string
-          status?: string
-          user_id: string
-        }
-        Update: {
-          event_id?: string
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "event_attendees_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "events"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_attendees_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      events: {
+      connections: {
         Row: {
           created_at: string | null
-          created_by: string | null
-          description: string | null
-          end_time: string | null
-          group_id: string | null
-          id: string
-          start_time: string
-          title: string
+          follower_id: string
+          following_id: string
         }
         Insert: {
           created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          end_time?: string | null
-          group_id?: string | null
-          id?: string
-          start_time: string
-          title: string
+          follower_id: string
+          following_id: string
         }
         Update: {
           created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          end_time?: string | null
-          group_id?: string | null
-          id?: string
-          start_time?: string
-          title?: string
+          follower_id?: string
+          following_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "events_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "connections_follower_id_fkey"
+            columns: ["follower_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "events_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      group_members: {
-        Row: {
-          group_id: string
-          joined_at: string | null
-          role: string
-          user_id: string
-        }
-        Insert: {
-          group_id: string
-          joined_at?: string | null
-          role?: string
-          user_id: string
-        }
-        Update: {
-          group_id?: string
-          joined_at?: string | null
-          role?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "group_members_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "group_members_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "connections_following_id_fkey"
+            columns: ["following_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      groups: {
+      conversation_participants: {
         Row: {
+          conversation_id: string
           created_at: string | null
-          created_by: string | null
-          description: string | null
-          id: string
-          name: string
+          profile_id: string
         }
         Insert: {
+          conversation_id: string
           created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          name: string
+          profile_id: string
         }
         Update: {
+          conversation_id?: string
           created_at?: string | null
-          created_by?: string | null
-          description?: string | null
-          id?: string
-          name?: string
+          profile_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "groups_created_by_fkey"
-            columns: ["created_by"]
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
       }
-      likes: {
+      conversations: {
         Row: {
           created_at: string | null
           id: string
-          post_id: string | null
-          user_id: string | null
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          post_id?: string | null
-          user_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          post_id?: string | null
-          user_id?: string | null
+          updated_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "likes_post_id_fkey"
-            columns: ["post_id"]
-            isOneToOne: false
-            referencedRelation: "posts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "likes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       messages: {
         Row: {
           content: string
+          conversation_id: string | null
           created_at: string | null
           id: string
-          read: boolean | null
-          receiver_id: string | null
+          read_at: string | null
           sender_id: string | null
         }
         Insert: {
           content: string
+          conversation_id?: string | null
           created_at?: string | null
           id?: string
-          read?: boolean | null
-          receiver_id?: string | null
+          read_at?: string | null
           sender_id?: string | null
         }
         Update: {
           content?: string
+          conversation_id?: string | null
           created_at?: string | null
           id?: string
-          read?: boolean | null
-          receiver_id?: string | null
+          read_at?: string | null
           sender_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "messages_receiver_id_fkey"
-            columns: ["receiver_id"]
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
           {
@@ -275,154 +164,100 @@ export type Database = {
           },
         ]
       }
+      notification_reads: {
+        Row: {
+          notification_id: string
+          profile_id: string
+          read_at: string | null
+        }
+        Insert: {
+          notification_id: string
+          profile_id: string
+          read_at?: string | null
+        }
+        Update: {
+          notification_id?: string
+          profile_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_reads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
+          category: string
           content: string
           created_at: string | null
           id: string
-          read: boolean | null
-          related_id: string | null
-          type: string
-          user_id: string | null
+          sender_id: string | null
+          title: string
         }
         Insert: {
+          category: string
           content: string
           created_at?: string | null
           id?: string
-          read?: boolean | null
-          related_id?: string | null
-          type: string
-          user_id?: string | null
+          sender_id?: string | null
+          title: string
         }
         Update: {
+          category?: string
           content?: string
           created_at?: string | null
           id?: string
-          read?: boolean | null
-          related_id?: string | null
-          type?: string
-          user_id?: string | null
+          sender_id?: string | null
+          title?: string
         }
         Relationships: [
           {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "notifications_sender_id_fkey"
+            columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      poll_responses: {
-        Row: {
-          created_at: string | null
-          poll_id: string
-          selected_option: number
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          poll_id: string
-          selected_option: number
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          poll_id?: string
-          selected_option?: number
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "poll_responses_poll_id_fkey"
-            columns: ["poll_id"]
-            isOneToOne: false
-            referencedRelation: "polls"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "poll_responses_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      polls: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          end_time: string | null
-          group_id: string | null
-          id: string
-          options: string[]
-          question: string
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          end_time?: string | null
-          group_id?: string | null
-          id?: string
-          options: string[]
-          question: string
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          end_time?: string | null
-          group_id?: string | null
-          id?: string
-          options?: string[]
-          question?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "polls_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "polls_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
             referencedColumns: ["id"]
           },
         ]
       }
       posts: {
         Row: {
+          author_id: string
           content: string
           created_at: string | null
-          hashtags: string[] | null
           id: string
           updated_at: string | null
-          user_id: string | null
         }
         Insert: {
+          author_id: string
           content: string
           created_at?: string | null
-          hashtags?: string[] | null
           id?: string
           updated_at?: string | null
-          user_id?: string | null
         }
         Update: {
+          author_id?: string
           content?: string
           created_at?: string | null
-          hashtags?: string[] | null
           id?: string
           updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "posts_user_id_fkey"
-            columns: ["user_id"]
+            foreignKeyName: "posts_author_id_fkey"
+            columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -431,54 +266,62 @@ export type Database = {
       }
       profiles: {
         Row: {
-          availability: string | null
-          avatar_url: string | null
-          bio: string | null
-          branch: string
           created_at: string | null
-          email: string | null
+          email: string
+          full_name: string
           id: string
-          interests: string[] | null
-          is_public: boolean | null
-          name: string
-          phone: string | null
-          prn: string
+          role: string
           updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name: string
+          id: string
+          role: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      student_profiles: {
+        Row: {
+          branch: string
+          id: string
+          prn: string
+          recovery_email: string
           year: string
         }
         Insert: {
-          availability?: string | null
-          avatar_url?: string | null
-          bio?: string | null
           branch: string
-          created_at?: string | null
-          email?: string | null
           id: string
-          interests?: string[] | null
-          is_public?: boolean | null
-          name: string
-          phone?: string | null
           prn: string
-          updated_at?: string | null
+          recovery_email: string
           year: string
         }
         Update: {
-          availability?: string | null
-          avatar_url?: string | null
-          bio?: string | null
           branch?: string
-          created_at?: string | null
-          email?: string | null
           id?: string
-          interests?: string[] | null
-          is_public?: boolean | null
-          name?: string
-          phone?: string | null
           prn?: string
-          updated_at?: string | null
+          recovery_email?: string
           year?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "student_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
