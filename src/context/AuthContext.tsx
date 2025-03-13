@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useUserStore } from "@/services/user";
 
 type AuthContextType = {
   session: Session | null;
@@ -25,8 +26,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<string>("user");
+  const [userRole, setUserRole] = useState<string>("student");
   const [isLoading, setIsLoading] = useState(true);
+  const { fetchUserProfile } = useUserStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // If user is logged in, fetch their profile data
       if (session?.user) {
         fetchUserRole(session.user.id);
+        fetchUserProfile(session.user.id);
       } else {
         setIsLoading(false);
       }
@@ -53,34 +56,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // If user is logged in, fetch their profile data
       if (session?.user) {
         fetchUserRole(session.user.id);
+        fetchUserProfile(session.user.id);
       } else {
         setIsLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchUserProfile]);
 
   const fetchUserRole = async (userId: string) => {
     try {
-      // For now, we'll just set a default role
-      // In the future, you can fetch from a user_roles table
-      setUserRole("user");
-      
-      // Fetch user profile
+      // Fetch user profile to get role
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("role")
         .eq("id", userId)
         .single();
       
       if (error) {
-        console.error("Error fetching user profile:", error);
-      }
-      
-      // Check if user is admin (you can modify this logic as needed)
-      if (data && data.email && data.email.includes("admin")) {
-        setUserRole("admin");
+        console.error("Error fetching user role:", error);
+        setUserRole("student"); // Default to student on error
+      } else {
+        setUserRole(data.role);
       }
       
       setIsLoading(false);
@@ -92,6 +90,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -101,12 +100,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Error signing in:", error);
       return { data: null, error: error as Error };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string, userData: object) => {
     try {
-      console.log("Registering with user data:", userData);
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -115,6 +116,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
       });
       if (error) throw error;
+      
       return { data, error: null };
     } catch (error) {
       console.error("Error signing up:", error);
@@ -122,15 +124,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         data: { user: null, session: null },
         error: error as Error,
       };
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
       await supabase.auth.signOut();
       navigate("/");
     } catch (error) {
       console.error("Error signing out:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

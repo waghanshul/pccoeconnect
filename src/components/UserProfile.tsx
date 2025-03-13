@@ -1,3 +1,4 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,10 +19,14 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { useUserStore } from "@/services/user";
+import { useUserStore, UserStatus } from "@/services/user";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/context/AuthContext";
+import { useEffect, useState } from "react";
 
 interface UserProfileProps {
   user: {
+    id: string;
     name: string;
     avatar: string;
     role: string;
@@ -32,40 +37,120 @@ interface UserProfileProps {
     isPublic: boolean;
     email: string;
     phone: string;
-    availability: 'available' | 'busy' | 'away' | 'inactive';
-    connections?: number;
+    status: UserStatus;
   };
+  isOwnProfile?: boolean;
 }
 
 const availabilityIcons = {
-  available: <CircleCheck className="w-6 h-6 text-green-500" />,
+  online: <CircleCheck className="w-6 h-6 text-green-500" />,
   busy: <CircleSlash className="w-6 h-6 text-red-500" />,
   away: <CircleAlert className="w-6 h-6 text-yellow-500" />,
-  inactive: <CircleX className="w-6 h-6 text-gray-500" />
+  offline: <CircleX className="w-6 h-6 text-gray-500" />
 };
 
 const availabilityLabels = {
-  available: 'Available',
+  online: 'Online',
   busy: 'Busy',
-  away: 'Away',
-  inactive: 'Inactive'
+  offline: 'Offline'
 };
 
-export const UserProfile = ({ user }: UserProfileProps) => {
+export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) => {
   const navigate = useNavigate();
-  const { updateUserData } = useUserStore();
+  const { updateUserStatus } = useUserStore();
+  const { user: authUser } = useAuth();
+  const [connectionCount, setConnectionCount] = useState(0);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    if (user.id) {
+      fetchConnectionCount();
+      checkConnection();
+    }
+  }, [user.id]);
+
+  const fetchConnectionCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('connections')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', user.id);
+      
+      if (error) throw error;
+      setConnectionCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching connection count:", error);
+    }
+  };
+
+  const checkConnection = async () => {
+    if (!authUser) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('connections')
+        .select('*')
+        .eq('follower_id', authUser.id)
+        .eq('following_id', user.id);
+      
+      if (error) throw error;
+      setIsConnected(data && data.length > 0);
+    } catch (error) {
+      console.error("Error checking connection:", error);
+    }
+  };
 
   const handleMessage = () => {
     navigate("/messages");
     toast.success("Redirecting to messages with " + user.name);
   };
 
-  const handleAvailabilityChange = () => {
-    const availabilityStates: ('available' | 'busy' | 'away' | 'inactive')[] = ['available', 'busy', 'away', 'inactive'];
-    const currentIndex = availabilityStates.indexOf(user.availability);
-    const nextIndex = (currentIndex + 1) % availabilityStates.length;
-    updateUserData({ availability: availabilityStates[nextIndex] });
-    toast.success(`Status updated to ${availabilityLabels[availabilityStates[nextIndex]]}`);
+  const handleAvailabilityChange = async () => {
+    if (!isOwnProfile) return;
+    
+    const statusOptions: UserStatus[] = ['online', 'busy', 'offline'];
+    const currentIndex = statusOptions.indexOf(user.status);
+    const nextIndex = (currentIndex + 1) % statusOptions.length;
+    const newStatus = statusOptions[nextIndex];
+    
+    await updateUserStatus(newStatus);
+    toast.success(`Status updated to ${availabilityLabels[newStatus]}`);
+  };
+
+  const handleConnect = async () => {
+    if (!authUser || isOwnProfile) return;
+    
+    try {
+      if (isConnected) {
+        // Disconnect
+        const { error } = await supabase
+          .from('connections')
+          .delete()
+          .eq('follower_id', authUser.id)
+          .eq('following_id', user.id);
+        
+        if (error) throw error;
+        setIsConnected(false);
+        setConnectionCount(prev => Math.max(0, prev - 1));
+        toast.success(`Disconnected from ${user.name}`);
+      } else {
+        // Connect
+        const { error } = await supabase
+          .from('connections')
+          .insert({
+            follower_id: authUser.id,
+            following_id: user.id
+          });
+        
+        if (error) throw error;
+        setIsConnected(true);
+        setConnectionCount(prev => prev + 1);
+        toast.success(`Connected with ${user.name}`);
+      }
+    } catch (error) {
+      console.error("Error updating connection:", error);
+      toast.error("Failed to update connection");
+    }
   };
 
   return (
@@ -76,13 +161,15 @@ export const UserProfile = ({ user }: UserProfileProps) => {
             <AvatarImage src={user.avatar} alt={user.name} />
             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <button 
-            onClick={handleAvailabilityChange}
-            className="absolute -bottom-2 -right-2 p-1 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:scale-110 transition-transform"
-            title={`Current status: ${availabilityLabels[user.availability]}`}
-          >
-            {availabilityIcons[user.availability]}
-          </button>
+          {isOwnProfile && (
+            <button 
+              onClick={handleAvailabilityChange}
+              className="absolute -bottom-2 -right-2 p-1 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:scale-110 transition-transform"
+              title={`Current status: ${availabilityLabels[user.status] || user.status}`}
+            >
+              {availabilityIcons[user.status] || availabilityIcons.offline}
+            </button>
+          )}
         </div>
         <div className="text-center space-y-2">
           <CardTitle className="text-2xl font-bold dark:text-white">{user.name}</CardTitle>
@@ -92,16 +179,29 @@ export const UserProfile = ({ user }: UserProfileProps) => {
           </div>
           <div className="flex items-center justify-center gap-2 text-primary">
             <Users className="w-4 h-4" />
-            <p className="text-muted-foreground dark:text-gray-400">{user.connections || 0} Connections</p>
+            <p className="text-muted-foreground dark:text-gray-400">{connectionCount} Connections</p>
           </div>
-          <Button 
-            variant="outline" 
-            className="gap-2 hover:bg-primary hover:text-white dark:text-gray-200 dark:hover:text-white transition-colors duration-200"
-            onClick={handleMessage}
-          >
-            <MessageSquare className="w-4 h-4" />
-            Message
-          </Button>
+          <div className="flex gap-2 justify-center">
+            <Button 
+              variant="outline" 
+              className="gap-2 hover:bg-primary hover:text-white dark:text-gray-200 dark:hover:text-white transition-colors duration-200"
+              onClick={handleMessage}
+            >
+              <MessageSquare className="w-4 h-4" />
+              Message
+            </Button>
+            
+            {!isOwnProfile && authUser && (
+              <Button 
+                variant={isConnected ? "default" : "outline"}
+                className="gap-2"
+                onClick={handleConnect}
+              >
+                <Users className="w-4 h-4" />
+                {isConnected ? "Connected" : "Connect"}
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -120,7 +220,7 @@ export const UserProfile = ({ user }: UserProfileProps) => {
             <BookOpen className="w-5 h-5 text-primary mt-1" />
             <div>
               <p className="font-medium dark:text-gray-200">Bio</p>
-              <p className="text-sm text-muted-foreground dark:text-gray-400">{user.bio}</p>
+              <p className="text-sm text-muted-foreground dark:text-gray-400">{user.bio || "No bio available"}</p>
             </div>
           </div>
 
@@ -129,14 +229,18 @@ export const UserProfile = ({ user }: UserProfileProps) => {
             <div className="w-full">
               <p className="font-medium dark:text-gray-200">Interests</p>
               <div className="flex flex-wrap gap-2 mt-2">
-                {user.interests.map((interest, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 text-sm bg-primary/10 dark:bg-primary/20 text-primary rounded-full transition-colors hover:bg-primary/20 dark:hover:bg-primary/30"
-                  >
-                    {interest}
-                  </span>
-                ))}
+                {user.interests && user.interests.length > 0 ? (
+                  user.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1 text-sm bg-primary/10 dark:bg-primary/20 text-primary rounded-full transition-colors hover:bg-primary/20 dark:hover:bg-primary/30"
+                    >
+                      {interest}
+                    </span>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground dark:text-gray-400">No interests listed</p>
+                )}
               </div>
             </div>
           </div>
