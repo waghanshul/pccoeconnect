@@ -84,7 +84,7 @@ const Messages = () => {
       if (convsError) throw convsError;
       
       // For each conversation, get participants and last message
-      const conversationsWithDetails = await Promise.all(convsData.map(async (conv) => {
+      const conversationsWithDetails = await Promise.all((convsData || []).map(async (conv) => {
         // Get participants
         const { data: participants, error: participantsError } = await supabase
           .from('conversation_participants')
@@ -142,16 +142,21 @@ const Messages = () => {
       
       // Get additional data for student profiles where available
       const friendsWithDepartments = await Promise.all((data || []).map(async (profile) => {
-        const { data: studentData } = await supabase
-          .from('student_profiles')
-          .select('department')
-          .eq('id', profile.id)
-          .single();
-          
-        return {
-          ...profile,
-          department: studentData?.department
-        };
+        try {
+          const { data: studentData } = await supabase
+            .from('student_profiles')
+            .select('department')
+            .eq('id', profile.id)
+            .single();
+            
+          return {
+            ...profile,
+            department: studentData?.department || undefined
+          };
+        } catch (err) {
+          // If there's an error getting the student profile, just return the basic profile
+          return profile;
+        }
       }));
       
       setFriends(friendsWithDepartments);
