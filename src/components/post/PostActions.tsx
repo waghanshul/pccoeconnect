@@ -11,6 +11,9 @@ import { toast } from "sonner";
 
 interface PostActionsProps {
   onCommentToggle: () => void;
+  onLike: () => void;
+  isLiked: boolean;
+  likeCount: number;
 }
 
 // Mock friends data - keep it here since it's specific to sharing functionality
@@ -20,15 +23,8 @@ const mockFriends = [
   { id: 3, name: "Anjali Desai", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80" },
 ];
 
-export const PostActions = ({ onCommentToggle }: PostActionsProps) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
+export const PostActions = ({ onCommentToggle, onLike, isLiked, likeCount }: PostActionsProps) => {
   const navigate = useNavigate();
-
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(prevCount => isLiked ? prevCount - 1 : prevCount + 1);
-  };
 
   const handleShare = (friendId: number, friendName: string) => {
     toast(`Shared with ${friendName}`, {
@@ -43,7 +39,7 @@ export const PostActions = ({ onCommentToggle }: PostActionsProps) => {
   return (
     <div className="flex justify-between items-center mt-4 pt-4 border-t dark:border-gray-700">
       <button 
-        onClick={handleLike}
+        onClick={onLike}
         className="flex items-center space-x-2 hover:text-primary transition-colors"
       >
         <Heart 
