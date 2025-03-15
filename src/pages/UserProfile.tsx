@@ -84,6 +84,9 @@ const UserProfile = () => {
         extendedData = adminData || {};
       }
 
+      console.log("Fetched profile data:", typedProfileData);
+      console.log("Fetched extended data:", extendedData);
+
       // Combine and set the data
       setUserData({
         id: typedProfileData.id,

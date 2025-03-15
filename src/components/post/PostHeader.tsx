@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 
 interface PostHeaderProps {
@@ -13,7 +14,7 @@ export const PostHeader = ({ author, timestamp, avatar, content, authorId }: Pos
 
   const handleProfileClick = () => {
     if (authorId) {
-      navigate(`/profile/${authorId}`);
+      navigate(`/user/${authorId}`);
     }
   };
 

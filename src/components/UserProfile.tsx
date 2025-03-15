@@ -211,7 +211,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
             <div>
               <p className="font-medium dark:text-gray-200">Academic Details</p>
               <p className="text-sm text-muted-foreground dark:text-gray-400">
-                {user.department} • {user.year} Year
+                {user.department || "Not specified"} • {user.year || "Not specified"} Year
               </p>
             </div>
           </div>
@@ -220,7 +220,9 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
             <BookOpen className="w-5 h-5 text-primary mt-1" />
             <div>
               <p className="font-medium dark:text-gray-200">Bio</p>
-              <p className="text-sm text-muted-foreground dark:text-gray-400">{user.bio || "No bio available"}</p>
+              <p className="text-sm text-muted-foreground dark:text-gray-400">
+                {user.bio ? user.bio : "No bio available"}
+              </p>
             </div>
           </div>
 

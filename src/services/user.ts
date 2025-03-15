@@ -150,8 +150,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
         if (profileError) throw profileError;
       }
       
-      // Update extended profile data
-      if (userData.role === 'student' && (data.bio || data.interests || data.year || data.department)) {
+      // Update extended profile data - specifically check for bio and interests
+      if (userData.role === 'student' && (
+        data.bio !== undefined || 
+        data.interests !== undefined || 
+        data.year !== undefined || 
+        data.department !== undefined
+      )) {
         const studentUpdate: any = {};
         if (data.bio !== undefined) studentUpdate.bio = data.bio;
         if (data.interests !== undefined) studentUpdate.interests = data.interests;
@@ -172,6 +177,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
         userData: { ...userData, ...data },
         isLoading: false 
       });
+
+      // Fetch updated profile to ensure we have the latest data
+      if (data.bio !== undefined || data.interests !== undefined) {
+        const { fetchUserProfile } = get();
+        await fetchUserProfile(userId);
+      }
     } catch (error) {
       console.error("Error updating user data:", error);
       set({ error: error as Error, isLoading: false });
@@ -229,7 +240,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       
       if (profileError) throw profileError;
       
-      // Sync student-specific data
+      // Sync student-specific data - make sure we properly sync bio and interests
       if (userData.role === 'student') {
         const studentUpdate = {
           department: userData.department,
@@ -246,6 +257,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
         
         if (studentError) throw studentError;
       }
+      
+      // Refresh the user data from the database to ensure we have the latest
+      const { fetchUserProfile } = get();
+      await fetchUserProfile(userData.id);
       
       set({ isLoading: false });
     } catch (error) {

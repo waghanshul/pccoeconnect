@@ -2,6 +2,7 @@
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
@@ -76,10 +77,17 @@ const Settings = () => {
     updateUserData({ [field]: value });
   };
 
+  const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateUserData({ bio: e.target.value });
+  };
+
   const handleAddInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newInterest.trim()) {
-      const updatedInterests = [...userData.interests, newInterest.trim()];
-      updateUserData({ interests: updatedInterests });
+      // Ensure we don't add duplicate interests
+      if (!userData.interests.includes(newInterest.trim())) {
+        const updatedInterests = [...userData.interests, newInterest.trim()];
+        updateUserData({ interests: updatedInterests });
+      }
       setNewInterest("");
     }
   };
@@ -170,11 +178,12 @@ const Settings = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <Input 
+                  <Textarea 
                     id="bio" 
                     value={userData.bio}
-                    onChange={(e) => handleInputChange('bio', e.target.value)}
+                    onChange={handleBioChange}
                     placeholder="Enter a brief bio about yourself"
+                    className="min-h-[100px] resize-y"
                   />
                 </div>
 
@@ -191,17 +200,21 @@ const Settings = () => {
                 <div className="space-y-2">
                   <Label>Interests</Label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {userData.interests.map((interest, index) => (
-                      <Badge key={index} variant="secondary" className="gap-1">
-                        {interest}
-                        <button
-                          onClick={() => handleRemoveInterest(interest)}
-                          className="ml-1 hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
-                    ))}
+                    {userData.interests && userData.interests.length > 0 ? (
+                      userData.interests.map((interest, index) => (
+                        <Badge key={index} variant="secondary" className="gap-1">
+                          {interest}
+                          <button
+                            onClick={() => handleRemoveInterest(interest)}
+                            className="ml-1 hover:text-destructive"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-muted-foreground">No interests added yet</p>
+                    )}
                   </div>
                   <Input
                     placeholder="Add new interest (press Enter)"
