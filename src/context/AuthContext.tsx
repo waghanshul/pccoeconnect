@@ -96,6 +96,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         password,
       });
       if (error) throw error;
+      
+      // Immediately fetch user profile after successful login
+      if (data.user) {
+        await fetchUserProfile(data.user.id);
+      }
+      
       return { data: data.session, error: null };
     } catch (error) {
       console.error("Error signing in:", error);

@@ -1,4 +1,3 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { FormData, formSchema } from "@/utils/validation";
@@ -22,11 +21,10 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { PasswordStrengthIndicator } from "@/components/ui/password-strength-indicator";
 import { useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { registerUser, checkExistingUser } from "@/services/auth";
 
 export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const { signUp } = useAuth();
   
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -45,17 +43,16 @@ export function RegisterForm() {
   async function onSubmit(values: FormData) {
     setIsLoading(true);
     try {
-      const { error } = await signUp(
-        values.email,
-        values.password,
-        {
-          name: values.name,
-          prn: values.prn,
-          branch: values.branch,
-          year: values.year,
-          recoveryEmail: values.recoveryEmail,
-        }
-      );
+      // First check if user with this PRN already exists
+      const { existingUser, checkError } = await checkExistingUser(values.prn);
+      
+      if (existingUser) {
+        toast.error("A user with this PRN already exists");
+        return;
+      }
+      
+      // Register the user
+      const { error } = await registerUser(values);
       
       if (error) {
         toast.error(error.message || "Registration failed");

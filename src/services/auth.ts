@@ -20,39 +20,23 @@ export async function checkExistingUser(prn: string) {
 export async function registerUser(values: FormData) {
   try {
     // Register with Supabase Auth
+    // Pass all user metadata to be used by the database trigger
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
-    });
-
-    if (authError) throw authError;
-
-    if (authData.user) {
-      // Create profile record
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: values.email,
-          full_name: values.name,
-          role: 'student',
-        });
-
-      if (profileError) throw profileError;
-
-      // Create student profile record
-      const { error: studentProfileError } = await supabase
-        .from('student_profiles')
-        .insert({
-          id: authData.user.id,
+      options: {
+        data: {
+          name: values.name,
           prn: values.prn,
           branch: values.branch,
           year: values.year,
-          recovery_email: values.recoveryEmail, // Now using the recovery email from the form
-        });
+          recoveryEmail: values.recoveryEmail,
+          role: 'student'
+        }
+      }
+    });
 
-      if (studentProfileError) throw studentProfileError;
-    }
+    if (authError) throw authError;
 
     return { 
       data: { user: authData.user }, 
