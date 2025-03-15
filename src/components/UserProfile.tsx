@@ -153,6 +153,9 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     }
   };
 
+  // Helper to ensure we handle undefined/empty arrays properly for interests
+  const hasInterests = user.interests && Array.isArray(user.interests) && user.interests.length > 0;
+
   return (
     <Card className="w-full max-w-3xl mx-auto backdrop-blur-lg bg-white/90 dark:bg-gray-800/90 shadow-xl">
       <CardHeader className="flex flex-col items-center space-y-4">
@@ -220,7 +223,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
             <BookOpen className="w-5 h-5 text-primary mt-1" />
             <div>
               <p className="font-medium dark:text-gray-200">Bio</p>
-              <p className="text-sm text-muted-foreground dark:text-gray-400">
+              <p className="text-sm text-muted-foreground dark:text-gray-400 whitespace-pre-wrap">
                 {user.bio ? user.bio : "No bio available"}
               </p>
             </div>
@@ -231,7 +234,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
             <div className="w-full">
               <p className="font-medium dark:text-gray-200">Interests</p>
               <div className="flex flex-wrap gap-2 mt-2">
-                {user.interests && user.interests.length > 0 ? (
+                {hasInterests ? (
                   user.interests.map((interest, index) => (
                     <span
                       key={index}

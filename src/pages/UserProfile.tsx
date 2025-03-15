@@ -71,8 +71,14 @@ const UserProfile = () => {
           .eq('id', id)
           .single();
 
-        if (studentError) throw studentError;
-        extendedData = studentData || {};
+        if (studentError && studentError.code !== 'PGRST116') {
+          throw studentError;
+        }
+        
+        // If student data is found, use it
+        if (studentData) {
+          extendedData = studentData;
+        }
       } else if (typedProfileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin_profiles')
@@ -80,23 +86,29 @@ const UserProfile = () => {
           .eq('id', id)
           .single();
 
-        if (adminError) throw adminError;
-        extendedData = adminData || {};
+        if (adminError && adminError.code !== 'PGRST116') {
+          throw adminError;
+        }
+        
+        // If admin data is found, use it
+        if (adminData) {
+          extendedData = adminData;
+        }
       }
 
       console.log("Fetched profile data:", typedProfileData);
       console.log("Fetched extended data:", extendedData);
 
-      // Combine and set the data
+      // Combine and set the data, ensuring proper handling of arrays and empty values
       setUserData({
         id: typedProfileData.id,
         name: typedProfileData.full_name,
         avatar: typedProfileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
         role: typedProfileData.role,
-        department: (extendedData as any).department || '',
-        year: (extendedData as any).year || '',
-        bio: (extendedData as any).bio || '',
-        interests: (extendedData as any).interests || [],
+        department: (extendedData as any)?.department || '',
+        year: (extendedData as any)?.year || '',
+        bio: (extendedData as any)?.bio || '',
+        interests: Array.isArray((extendedData as any)?.interests) ? (extendedData as any).interests : [],
         isPublic: true,
         email: typedProfileData.email,
         phone: '',

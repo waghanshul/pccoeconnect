@@ -27,6 +27,12 @@ const Settings = () => {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [newInterest, setNewInterest] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [localBio, setLocalBio] = useState(userData.bio || "");
+
+  useEffect(() => {
+    // Update local bio state when userData changes
+    setLocalBio(userData.bio || "");
+  }, [userData.bio]);
 
   useEffect(() => {
     // Check if profile name is empty and user auth data has a name
@@ -51,6 +57,11 @@ const Settings = () => {
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
+      // Make sure bio is saved before syncing
+      if (localBio !== userData.bio) {
+        await updateUserData({ bio: localBio });
+      }
+      
       await syncProfileToDatabase();
       toast.success("Settings saved successfully!");
     } catch (error) {
@@ -78,7 +89,19 @@ const Settings = () => {
   };
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    updateUserData({ bio: e.target.value });
+    // Update local state only
+    setLocalBio(e.target.value);
+  };
+  
+  // Debounced bio save to avoid too many DB updates
+  const saveBioToDatabase = async () => {
+    try {
+      await updateUserData({ bio: localBio });
+      toast.success("Bio updated successfully!");
+    } catch (error) {
+      console.error("Error updating bio:", error);
+      toast.error("Failed to update bio. Please try again.");
+    }
   };
 
   const handleAddInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -87,6 +110,7 @@ const Settings = () => {
       if (!userData.interests.includes(newInterest.trim())) {
         const updatedInterests = [...userData.interests, newInterest.trim()];
         updateUserData({ interests: updatedInterests });
+        toast.success("Interest added successfully!");
       }
       setNewInterest("");
     }
@@ -97,6 +121,7 @@ const Settings = () => {
       interest => interest !== interestToRemove
     );
     updateUserData({ interests: updatedInterests });
+    toast.success("Interest removed successfully!");
   };
 
   return (
@@ -180,8 +205,9 @@ const Settings = () => {
                   <Label htmlFor="bio">Bio</Label>
                   <Textarea 
                     id="bio" 
-                    value={userData.bio}
+                    value={localBio}
                     onChange={handleBioChange}
+                    onBlur={saveBioToDatabase}
                     placeholder="Enter a brief bio about yourself"
                     className="min-h-[100px] resize-y"
                   />
@@ -220,7 +246,7 @@ const Settings = () => {
                     placeholder="Add new interest (press Enter)"
                     value={newInterest}
                     onChange={(e) => setNewInterest(e.target.value)}
-                    onKeyPress={handleAddInterest}
+                    onKeyDown={handleAddInterest}
                   />
                 </div>
               </CardContent>
