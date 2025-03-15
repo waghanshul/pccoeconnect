@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -37,6 +38,7 @@ interface UserStore {
   fetchUserProfile: (userId: string) => Promise<void>;
   updateUserData: (data: Partial<UserData>) => Promise<void>;
   updateUserStatus: (status: UserStatus) => Promise<void>;
+  syncProfileToDatabase: () => Promise<void>;
 }
 
 const defaultUserData: UserData = {
@@ -97,11 +99,14 @@ export const useUserStore = create<UserStore>((set, get) => ({
         extendedData = adminData || {};
       }
       
+      console.log("Profile data fetched:", typedProfileData);
+      console.log("Extended data fetched:", extendedData);
+      
       // Combine the data
       set({
         userData: {
           id: typedProfileData.id,
-          name: typedProfileData.full_name,
+          name: typedProfileData.full_name || 'Guest User',
           avatar: typedProfileData.avatar_url || defaultUserData.avatar,
           role: typedProfileData.role,
           department: (extendedData as any).department || '',
@@ -136,6 +141,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       
       // Update profiles table if needed
       if (Object.keys(profileUpdate).length > 0) {
+        console.log("Updating profiles table with:", profileUpdate);
         const { error: profileError } = await supabase
           .from('profiles')
           .update(profileUpdate)
@@ -145,14 +151,17 @@ export const useUserStore = create<UserStore>((set, get) => ({
       }
       
       // Update extended profile data
-      if (userData.role === 'student' && (data.bio || data.interests || data.year)) {
+      if (userData.role === 'student' && (data.bio || data.interests || data.year || data.department)) {
+        const studentUpdate: any = {};
+        if (data.bio !== undefined) studentUpdate.bio = data.bio;
+        if (data.interests !== undefined) studentUpdate.interests = data.interests;
+        if (data.year !== undefined) studentUpdate.year = data.year;
+        if (data.department !== undefined) studentUpdate.department = data.department;
+        
+        console.log("Updating student_profiles table with:", studentUpdate);
         const { error: studentError } = await supabase
           .from('student_profiles')
-          .update({
-            bio: data.bio,
-            interests: data.interests,
-            year: data.year,
-          })
+          .update(studentUpdate)
           .eq('id', userId);
         
         if (studentError) throw studentError;
@@ -191,6 +200,56 @@ export const useUserStore = create<UserStore>((set, get) => ({
       });
     } catch (error) {
       console.error("Error updating user status:", error);
+      set({ error: error as Error, isLoading: false });
+    }
+  },
+
+  syncProfileToDatabase: async () => {
+    try {
+      set({ isLoading: true, error: null });
+      const { userData } = get();
+      
+      if (!userData.id) {
+        throw new Error("No user ID available");
+      }
+      
+      // Sync all current userData to appropriate tables
+      const profileUpdate = {
+        full_name: userData.name,
+        email: userData.email,
+        avatar_url: userData.avatar,
+        status: userData.status
+      };
+      
+      console.log("Syncing profile data:", profileUpdate);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('id', userData.id);
+      
+      if (profileError) throw profileError;
+      
+      // Sync student-specific data
+      if (userData.role === 'student') {
+        const studentUpdate = {
+          department: userData.department,
+          year: userData.year,
+          bio: userData.bio,
+          interests: userData.interests
+        };
+        
+        console.log("Syncing student profile data:", studentUpdate);
+        const { error: studentError } = await supabase
+          .from('student_profiles')
+          .update(studentUpdate)
+          .eq('id', userData.id);
+        
+        if (studentError) throw studentError;
+      }
+      
+      set({ isLoading: false });
+    } catch (error) {
+      console.error("Error syncing profile to database:", error);
       set({ error: error as Error, isLoading: false });
     }
   }

@@ -1,9 +1,10 @@
+
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import {
   Card,
@@ -16,15 +17,47 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserStore } from "@/services/user";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const Settings = () => {
-  const { userData, updateUserData } = useUserStore();
+  const { userData, updateUserData, isLoading, syncProfileToDatabase } = useUserStore();
+  const { user } = useAuth();
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [newInterest, setNewInterest] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSaveChanges = () => {
-    toast.success("Settings saved successfully!");
+  useEffect(() => {
+    // Check if profile name is empty and user auth data has a name
+    if ((!userData.name || userData.name === "Guest User") && user?.user_metadata?.name) {
+      console.log("Updating profile with auth metadata name:", user.user_metadata.name);
+      updateUserData({ name: user.user_metadata.name });
+    }
+    
+    // Check if department is empty
+    if (!userData.department && user?.user_metadata?.branch) {
+      console.log("Updating department with auth metadata branch:", user.user_metadata.branch);
+      updateUserData({ department: user.user_metadata.branch });
+    }
+    
+    // Check if year is empty
+    if (!userData.year && user?.user_metadata?.year) {
+      console.log("Updating year with auth metadata year:", user.user_metadata.year);
+      updateUserData({ year: user.user_metadata.year });
+    }
+  }, [userData, user, updateUserData]);
+
+  const handleSaveChanges = async () => {
+    setIsSaving(true);
+    try {
+      await syncProfileToDatabase();
+      toast.success("Settings saved successfully!");
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      toast.error("Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +132,7 @@ const Settings = () => {
                     id="name" 
                     value={userData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Enter your full name"
                   />
                 </div>
 
@@ -109,6 +143,7 @@ const Settings = () => {
                     type="email"
                     value={userData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="Enter your email address"
                   />
                 </div>
 
@@ -119,6 +154,17 @@ const Settings = () => {
                     type="tel"
                     value={userData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
+                    placeholder="Enter your phone number"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="department">Department/Branch</Label>
+                  <Input 
+                    id="department" 
+                    value={userData.department}
+                    onChange={(e) => handleInputChange('department', e.target.value)}
+                    placeholder="Enter your department/branch"
                   />
                 </div>
 
@@ -128,6 +174,7 @@ const Settings = () => {
                     id="bio" 
                     value={userData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
+                    placeholder="Enter a brief bio about yourself"
                   />
                 </div>
 
@@ -137,6 +184,7 @@ const Settings = () => {
                     id="year" 
                     value={userData.year}
                     onChange={(e) => handleInputChange('year', e.target.value)}
+                    placeholder="Enter your current year"
                   />
                 </div>
 
@@ -220,8 +268,12 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            <Button onClick={handleSaveChanges} className="w-full">
-              Save Changes
+            <Button 
+              onClick={handleSaveChanges} 
+              className="w-full"
+              disabled={isLoading || isSaving}
+            >
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </div>
