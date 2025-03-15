@@ -48,7 +48,7 @@ export async function registerUser(values: FormData) {
           prn: values.prn,
           branch: values.branch,
           year: values.year,
-          recovery_email: values.email, // Using same email as recovery for now
+          recovery_email: values.recoveryEmail, // Now using the recovery email from the form
         });
 
       if (studentProfileError) throw studentProfileError;

@@ -17,9 +17,18 @@ export const emailSchema = z
     "Please use your PCCOE email address (ending with @pccoepune.org)"
   );
 
+export const recoveryEmailSchema = z
+  .string()
+  .email("Invalid recovery email address")
+  .refine(
+    (email) => !email.endsWith("@pccoepune.org"),
+    "Recovery email should be different from your college email"
+  );
+
 export const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: emailSchema,
+  recoveryEmail: recoveryEmailSchema,
   prn: z.string().min(7, "PRN must be at least 7 characters").max(20, "PRN is too long"),
   branch: z.string().min(2, "Branch is required"),
   year: z.string(),

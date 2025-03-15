@@ -33,6 +33,7 @@ export function RegisterForm() {
     defaultValues: {
       name: "",
       email: "",
+      recoveryEmail: "",
       prn: "",
       branch: "",
       year: "1st",
@@ -52,6 +53,7 @@ export function RegisterForm() {
           prn: values.prn,
           branch: values.branch,
           year: values.year,
+          recoveryEmail: values.recoveryEmail,
         }
       );
       
@@ -104,6 +106,28 @@ export function RegisterForm() {
                 />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="recoveryEmail"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Recovery Email</FormLabel>
+              <FormControl>
+                <Input 
+                  type="email" 
+                  placeholder="your-personal-email@example.com" 
+                  {...field} 
+                  disabled={isLoading}
+                />
+              </FormControl>
+              <FormMessage />
+              <p className="text-xs text-muted-foreground">
+                This email will be used to recover your account after graduation when you no longer have access to your PCCOE email.
+              </p>
             </FormItem>
           )}
         />
