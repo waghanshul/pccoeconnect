@@ -78,7 +78,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       const typedProfileData = profileData as ProfileRecord;
       
       // Fetch extended profile data based on role
-      let extendedData = {};
+      let extendedData: any = {};
       if (typedProfileData.role === 'student') {
         const { data: studentData, error: studentError } = await supabase
           .from('student_profiles')
@@ -86,8 +86,23 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .eq('id', userId)
           .single();
         
-        if (studentError) throw studentError;
-        extendedData = studentData || {};
+        if (studentError && studentError.code !== 'PGRST116') {
+          throw studentError;
+        }
+        
+        if (studentData) {
+          extendedData = studentData;
+          
+          // Ensure interests is an array
+          if (extendedData.interests && typeof extendedData.interests === 'string') {
+            try {
+              extendedData.interests = JSON.parse(extendedData.interests);
+            } catch (e) {
+              console.error("Error parsing interests:", e);
+              extendedData.interests = [];
+            }
+          }
+        }
       } else if (typedProfileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
           .from('admin_profiles')
@@ -95,8 +110,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .eq('id', userId)
           .single();
         
-        if (adminError) throw adminError;
-        extendedData = adminData || {};
+        if (adminError && adminError.code !== 'PGRST116') {
+          throw adminError;
+        }
+        
+        if (adminData) {
+          extendedData = adminData;
+        }
       }
       
       console.log("Profile data fetched:", typedProfileData);
@@ -109,10 +129,10 @@ export const useUserStore = create<UserStore>((set, get) => ({
           name: typedProfileData.full_name || 'Guest User',
           avatar: typedProfileData.avatar_url || defaultUserData.avatar,
           role: typedProfileData.role,
-          department: (extendedData as any).department || '',
-          year: (extendedData as any).year || '',
-          bio: (extendedData as any).bio || '',
-          interests: (extendedData as any).interests || [],
+          department: extendedData.department || '',
+          year: extendedData.year || '',
+          bio: extendedData.bio || '',
+          interests: Array.isArray(extendedData.interests) ? extendedData.interests : [],
           isPublic: true,
           email: typedProfileData.email,
           phone: '',
@@ -150,16 +170,16 @@ export const useUserStore = create<UserStore>((set, get) => ({
         if (profileError) throw profileError;
       }
       
-      // Update extended profile data - improved handling for bio and interests
-      if (userData.role === 'student' && (
-        data.bio !== undefined || 
+      // Update extended profile data (bio, interests, year, department)
+      const hasExtendedUpdates = data.bio !== undefined || 
         data.interests !== undefined || 
         data.year !== undefined || 
-        data.department !== undefined
-      )) {
+        data.department !== undefined;
+      
+      if (userData.role === 'student' && hasExtendedUpdates) {
         const studentUpdate: any = {};
         
-        // Fix: Explicitly check each field and ensure we're using the correct database column names
+        // Explicitly check each field and use the correct database column names
         if (data.bio !== undefined) studentUpdate.bio = data.bio;
         if (data.interests !== undefined) studentUpdate.interests = data.interests;
         if (data.year !== undefined) studentUpdate.year = data.year;
@@ -206,16 +226,11 @@ export const useUserStore = create<UserStore>((set, get) => ({
         if (updateError) throw updateError;
       }
       
-      // Update local state
+      // Update local state with the new data
       set({ 
         userData: { ...userData, ...data },
         isLoading: false 
       });
-
-      // Always fetch updated profile to ensure we have the latest data,
-      // especially for bio and interests
-      const { fetchUserProfile } = get();
-      await fetchUserProfile(userId);
     } catch (error) {
       console.error("Error updating user data:", error);
       set({ error: error as Error, isLoading: false });
@@ -273,22 +288,56 @@ export const useUserStore = create<UserStore>((set, get) => ({
       
       if (profileError) throw profileError;
       
-      // Sync student-specific data - make sure we properly sync bio and interests
+      // Sync student-specific data including bio and interests
       if (userData.role === 'student') {
         const studentUpdate = {
-          department: userData.department,
-          year: userData.year,
-          bio: userData.bio,
-          interests: userData.interests
+          department: userData.department || '',
+          year: userData.year || '',
+          bio: userData.bio || '',
+          interests: userData.interests || []
         };
         
         console.log("Syncing student profile data:", studentUpdate);
-        const { error: studentError } = await supabase
-          .from('student_profiles')
-          .update(studentUpdate)
-          .eq('id', userData.id);
         
-        if (studentError) throw studentError;
+        // Check if student profile exists first
+        const { data: existingProfile, error: checkError } = await supabase
+          .from('student_profiles')
+          .select('id')
+          .eq('id', userData.id)
+          .single();
+        
+        if (checkError && checkError.code !== 'PGRST116') {
+          throw checkError;
+        }
+        
+        let updateError;
+        
+        if (existingProfile) {
+          // Update existing profile
+          const { error } = await supabase
+            .from('student_profiles')
+            .update(studentUpdate)
+            .eq('id', userData.id);
+          
+          updateError = error;
+        } else {
+          // Insert new profile
+          const fullStudentUpdate = {
+            ...studentUpdate,
+            id: userData.id,
+            prn: '',
+            branch: userData.department || '',
+            recovery_email: ''
+          };
+          
+          const { error } = await supabase
+            .from('student_profiles')
+            .insert(fullStudentUpdate);
+          
+          updateError = error;
+        }
+        
+        if (updateError) throw updateError;
       }
       
       // Refresh the user data from the database to ensure we have the latest

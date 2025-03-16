@@ -28,11 +28,13 @@ const Settings = () => {
   const [newInterest, setNewInterest] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [localBio, setLocalBio] = useState(userData.bio || "");
+  const [localInterests, setLocalInterests] = useState<string[]>(userData.interests || []);
 
   useEffect(() => {
-    // Update local bio state when userData changes
+    // Update local state when userData changes
     setLocalBio(userData.bio || "");
-  }, [userData.bio]);
+    setLocalInterests(userData.interests || []);
+  }, [userData.bio, userData.interests]);
 
   useEffect(() => {
     // Check if profile name is empty and user auth data has a name
@@ -60,6 +62,11 @@ const Settings = () => {
       // Make sure bio is saved before syncing
       if (localBio !== userData.bio) {
         await updateUserData({ bio: localBio });
+      }
+      
+      // Make sure interests are saved
+      if (JSON.stringify(localInterests) !== JSON.stringify(userData.interests)) {
+        await updateUserData({ interests: localInterests });
       }
       
       await syncProfileToDatabase();
@@ -93,7 +100,7 @@ const Settings = () => {
     setLocalBio(e.target.value);
   };
   
-  // Debounced bio save to avoid too many DB updates
+  // Save bio to database when focus leaves the textarea
   const saveBioToDatabase = async () => {
     try {
       await updateUserData({ bio: localBio });
@@ -107,8 +114,9 @@ const Settings = () => {
   const handleAddInterest = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && newInterest.trim()) {
       // Ensure we don't add duplicate interests
-      if (!userData.interests.includes(newInterest.trim())) {
-        const updatedInterests = [...userData.interests, newInterest.trim()];
+      if (!localInterests.includes(newInterest.trim())) {
+        const updatedInterests = [...localInterests, newInterest.trim()];
+        setLocalInterests(updatedInterests);
         updateUserData({ interests: updatedInterests });
         toast.success("Interest added successfully!");
       }
@@ -117,9 +125,10 @@ const Settings = () => {
   };
 
   const handleRemoveInterest = (interestToRemove: string) => {
-    const updatedInterests = userData.interests.filter(
+    const updatedInterests = localInterests.filter(
       interest => interest !== interestToRemove
     );
+    setLocalInterests(updatedInterests);
     updateUserData({ interests: updatedInterests });
     toast.success("Interest removed successfully!");
   };
@@ -226,8 +235,8 @@ const Settings = () => {
                 <div className="space-y-2">
                   <Label>Interests</Label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {userData.interests && userData.interests.length > 0 ? (
-                      userData.interests.map((interest, index) => (
+                    {localInterests && localInterests.length > 0 ? (
+                      localInterests.map((interest, index) => (
                         <Badge key={index} variant="secondary" className="gap-1">
                           {interest}
                           <button

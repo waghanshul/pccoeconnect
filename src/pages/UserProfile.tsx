@@ -63,7 +63,7 @@ const UserProfile = () => {
       const typedProfileData = profileData as ProfileRecord;
 
       // Determine role and fetch extended data
-      let extendedData = {};
+      let extendedData: any = {};
       if (typedProfileData.role === 'student') {
         const { data: studentData, error: studentError } = await supabase
           .from('student_profiles')
@@ -78,6 +78,16 @@ const UserProfile = () => {
         // If student data is found, use it
         if (studentData) {
           extendedData = studentData;
+          
+          // Ensure interests is an array
+          if (extendedData.interests && typeof extendedData.interests === 'string') {
+            try {
+              extendedData.interests = JSON.parse(extendedData.interests);
+            } catch (e) {
+              console.error("Error parsing interests:", e);
+              extendedData.interests = [];
+            }
+          }
         }
       } else if (typedProfileData.role === 'admin') {
         const { data: adminData, error: adminError } = await supabase
@@ -105,10 +115,10 @@ const UserProfile = () => {
         name: typedProfileData.full_name,
         avatar: typedProfileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
         role: typedProfileData.role,
-        department: (extendedData as any)?.department || '',
-        year: (extendedData as any)?.year || '',
-        bio: (extendedData as any)?.bio || '',
-        interests: Array.isArray((extendedData as any)?.interests) ? (extendedData as any).interests : [],
+        department: extendedData.department || '',
+        year: extendedData.year || '',
+        bio: extendedData.bio || '',
+        interests: Array.isArray(extendedData.interests) ? extendedData.interests : [],
         isPublic: true,
         email: typedProfileData.email,
         phone: '',
