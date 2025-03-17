@@ -84,7 +84,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .from('student_profiles')
           .select('*')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
         
         if (studentError && studentError.code !== 'PGRST116') {
           throw studentError;
@@ -93,14 +93,30 @@ export const useUserStore = create<UserStore>((set, get) => ({
         if (studentData) {
           extendedData = studentData;
           
-          // Ensure interests is an array
-          if (extendedData.interests && typeof extendedData.interests === 'string') {
-            try {
-              extendedData.interests = JSON.parse(extendedData.interests);
-            } catch (e) {
-              console.error("Error parsing interests:", e);
+          // Handle interests based on its type
+          if (extendedData.interests) {
+            // If interests is already an array, use it directly
+            if (Array.isArray(extendedData.interests)) {
+              // No need to process
+            } 
+            // If it's a string that might be JSON
+            else if (typeof extendedData.interests === 'string') {
+              try {
+                extendedData.interests = JSON.parse(extendedData.interests);
+              } catch (e) {
+                console.error("Error parsing interests string:", e);
+                extendedData.interests = [];
+              }
+            }
+            // If it's a JSONB object from Supabase
+            else if (typeof extendedData.interests === 'object') {
+              // It's already in the correct format
+            }
+            else {
               extendedData.interests = [];
             }
+          } else {
+            extendedData.interests = [];
           }
         }
       } else if (typedProfileData.role === 'admin') {
@@ -108,7 +124,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .from('admin_profiles')
           .select('*')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
         
         if (adminError && adminError.code !== 'PGRST116') {
           throw adminError;
@@ -181,7 +197,13 @@ export const useUserStore = create<UserStore>((set, get) => ({
         
         // Explicitly check each field and use the correct database column names
         if (data.bio !== undefined) studentUpdate.bio = data.bio;
-        if (data.interests !== undefined) studentUpdate.interests = data.interests;
+        
+        // Handle interests data properly for storage
+        if (data.interests !== undefined) {
+          // Make sure we store as JSON array, not as a stringified array
+          studentUpdate.interests = data.interests;
+        }
+        
         if (data.year !== undefined) studentUpdate.year = data.year;
         if (data.department !== undefined) studentUpdate.department = data.department;
         

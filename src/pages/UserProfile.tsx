@@ -79,14 +79,30 @@ const UserProfile = () => {
         if (studentData) {
           extendedData = studentData;
           
-          // Ensure interests is an array
-          if (extendedData.interests && typeof extendedData.interests === 'string') {
-            try {
-              extendedData.interests = JSON.parse(extendedData.interests);
-            } catch (e) {
-              console.error("Error parsing interests:", e);
+          // Handle interests as JSONB from database
+          if (extendedData.interests) {
+            // If interests is already an array, use it directly
+            if (Array.isArray(extendedData.interests)) {
+              // No need to parse
+            } 
+            // If it's a string that might be JSON
+            else if (typeof extendedData.interests === 'string') {
+              try {
+                extendedData.interests = JSON.parse(extendedData.interests);
+              } catch (e) {
+                console.error("Error parsing interests:", e);
+                extendedData.interests = [];
+              }
+            }
+            // If it's a JSONB object from Supabase
+            else if (typeof extendedData.interests === 'object') {
+              // It's already in the correct format
+            }
+            else {
               extendedData.interests = [];
             }
+          } else {
+            extendedData.interests = [];
           }
         }
       } else if (typedProfileData.role === 'admin') {

@@ -299,25 +299,31 @@ export type Database = {
       }
       student_profiles: {
         Row: {
+          bio: string | null
           branch: string
           department: string | null
           id: string
+          interests: Json | null
           prn: string
           recovery_email: string
           year: string
         }
         Insert: {
+          bio?: string | null
           branch: string
           department?: string | null
           id: string
+          interests?: Json | null
           prn: string
           recovery_email: string
           year: string
         }
         Update: {
+          bio?: string | null
           branch?: string
           department?: string | null
           id?: string
+          interests?: Json | null
           prn?: string
           recovery_email?: string
           year?: string
