@@ -11,7 +11,7 @@ import UserProfile from "./pages/UserProfile";
 import AdminDashboard from "./pages/AdminDashboard";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { AuthProvider } from "./context/AuthContext";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   useEffect(() => {
@@ -66,7 +66,7 @@ function App() {
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-        <Toaster position="top-right" />
+        <Toaster />
       </AuthProvider>
     </Router>
   );

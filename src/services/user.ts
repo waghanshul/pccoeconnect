@@ -1,383 +1,191 @@
 
-import { create } from 'zustand';
+import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
-export type UserStatus = 'online' | 'offline' | 'busy';
-
-interface UserData {
+interface StudentProfile {
   id: string;
-  name: string;
-  avatar: string;
-  role: string;
-  department: string;
+  prn: string;
+  branch: string;
   year: string;
+  recovery_email: string;
+  department: string;
   bio: string;
   interests: string[];
-  isPublic: boolean;
-  email: string;
-  phone: string;
-  status: UserStatus;
 }
 
-// Define a type that matches the actual database schema for profiles
-interface ProfileRecord {
+interface UserProfile {
   id: string;
   full_name: string;
   email: string;
   role: string;
-  created_at?: string;
-  updated_at?: string;
-  avatar_url?: string;
-  status?: UserStatus;
+  avatar?: string;
   phone?: string;
+  status?: string;
 }
 
 interface UserStore {
-  userData: UserData;
-  isLoading: boolean;
-  error: Error | null;
+  user: UserProfile | null;
+  studentProfile: StudentProfile | null;
   fetchUserProfile: (userId: string) => Promise<void>;
-  updateUserData: (data: Partial<UserData>) => Promise<void>;
-  updateUserStatus: (status: UserStatus) => Promise<void>;
-  syncProfileToDatabase: () => Promise<void>;
+  updateUserProfile: (userId: string, data: Partial<UserProfile>) => Promise<void>;
+  updateStudentProfile: (userId: string, data: Partial<StudentProfile>) => Promise<void>;
+  updateUserInterests: (userId: string, interests: string[]) => Promise<void>;
+  updateUserPhone: (userId: string, phone: string) => Promise<void>;
 }
 
-const defaultUserData: UserData = {
-  id: "",
-  name: "Guest User",
-  avatar: "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
-  role: "student",
-  department: "",
-  year: "",
-  bio: "",
-  interests: [],
-  isPublic: true,
-  email: "",
-  phone: "",
-  status: "offline",
-};
-
-export const useUserStore = create<UserStore>((set, get) => ({
-  userData: defaultUserData,
-  isLoading: false,
-  error: null,
-
+export const useUserStore = create<UserStore>((set) => ({
+  user: null,
+  studentProfile: null,
+  
   fetchUserProfile: async (userId: string) => {
     try {
-      set({ isLoading: true, error: null });
-      
-      // Fetch profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
+      const { data: userData, error: userError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
         .single();
-      
-      if (profileError) throw profileError;
-      
-      // Cast to the correct type to handle additional properties
-      const typedProfileData = profileData as ProfileRecord;
-      
-      // Fetch extended profile data based on role
-      let extendedData: any = {};
-      if (typedProfileData.role === 'student') {
-        const { data: studentData, error: studentError } = await supabase
-          .from('student_profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-        
-        if (studentError && studentError.code !== 'PGRST116') {
-          throw studentError;
-        }
-        
-        if (studentData) {
-          extendedData = studentData;
-          
-          // Handle interests based on its type
-          if (extendedData.interests) {
-            // If interests is already an array, use it directly
-            if (Array.isArray(extendedData.interests)) {
-              // No need to process
-            } 
-            // If it's a string that might be JSON
-            else if (typeof extendedData.interests === 'string') {
-              try {
-                extendedData.interests = JSON.parse(extendedData.interests);
-              } catch (e) {
-                console.error("Error parsing interests string:", e);
-                extendedData.interests = [];
-              }
-            }
-            // If it's a JSONB object from Supabase
-            else if (typeof extendedData.interests === 'object') {
-              // It's already in the correct format
-            }
-            else {
-              extendedData.interests = [];
-            }
-          } else {
-            extendedData.interests = [];
-          }
-        }
-      } else if (typedProfileData.role === 'admin') {
-        const { data: adminData, error: adminError } = await supabase
-          .from('admin_profiles')
-          .select('*')
-          .eq('id', userId)
-          .maybeSingle();
-        
-        if (adminError && adminError.code !== 'PGRST116') {
-          throw adminError;
-        }
-        
-        if (adminData) {
-          extendedData = adminData;
-        }
-      }
-      
-      console.log("Profile data fetched:", typedProfileData);
-      console.log("Extended data fetched:", extendedData);
-      
-      // Combine the data
-      set({
-        userData: {
-          id: typedProfileData.id,
-          name: typedProfileData.full_name || 'Guest User',
-          avatar: typedProfileData.avatar_url || defaultUserData.avatar,
-          role: typedProfileData.role,
-          department: extendedData.department || '',
-          year: extendedData.year || '',
-          bio: extendedData.bio || '',
-          interests: Array.isArray(extendedData.interests) ? extendedData.interests : [],
-          isPublic: true,
-          email: typedProfileData.email,
-          phone: typedProfileData.phone || '',
-          status: typedProfileData.status as UserStatus || 'offline',
-        },
-        isLoading: false
-      });
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      set({ error: error as Error, isLoading: false });
-    }
-  },
 
-  updateUserData: async (data: Partial<UserData>) => {
-    try {
-      set({ isLoading: true, error: null });
-      const { userData } = get();
-      const userId = userData.id;
-      
-      // Prepare data for profiles table update
-      const profileUpdate: Partial<ProfileRecord> = {};
-      
-      if (data.name) profileUpdate.full_name = data.name;
-      if (data.avatar) profileUpdate.avatar_url = data.avatar;
-      if (data.email) profileUpdate.email = data.email;
-      if (data.phone !== undefined) profileUpdate.phone = data.phone;
-      
-      // Update profiles table if needed
-      if (Object.keys(profileUpdate).length > 0) {
-        console.log("Updating profiles table with:", profileUpdate);
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update(profileUpdate)
-          .eq('id', userId);
+      if (userError) throw userError;
+
+      // Fetch student profile data if user exists
+      const { data: studentData, error: studentError } = await supabase
+        .from("student_profiles")
+        .select("*")
+        .eq("id", userId)
+        .maybeSingle();
         
-        if (profileError) throw profileError;
+      if (studentError) {
+        console.error("Error fetching student profile:", studentError);
       }
       
-      // Update extended profile data (bio, interests, year, department)
-      const hasExtendedUpdates = data.bio !== undefined || 
-        data.interests !== undefined || 
-        data.year !== undefined || 
-        data.department !== undefined;
+      // Log the fetched data
+      console.log("Extended data fetched:", studentData);
       
-      if (userData.role === 'student' && hasExtendedUpdates) {
-        const studentUpdate: any = {};
-        
-        // Explicitly check each field and use the correct database column names
-        if (data.bio !== undefined) studentUpdate.bio = data.bio;
-        
-        // Handle interests data properly for storage
-        if (data.interests !== undefined) {
-          // Make sure we store as JSON array, not as a stringified array
-          studentUpdate.interests = data.interests;
-        }
-        
-        if (data.year !== undefined) studentUpdate.year = data.year;
-        if (data.department !== undefined) studentUpdate.department = data.department;
-        
-        console.log("Updating student_profiles table with:", studentUpdate);
-        
-        // Check if student profile exists first
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('student_profiles')
-          .select('id')
-          .eq('id', userId)
-          .maybeSingle();
-        
-        if (checkError && checkError.code !== 'PGRST116') {
-          throw checkError;
-        }
-        
-        let updateError;
-        
-        if (existingProfile) {
-          // Update existing profile
-          const { error } = await supabase
-            .from('student_profiles')
-            .update(studentUpdate)
-            .eq('id', userId);
-          
-          updateError = error;
-        } else {
-          // Insert new profile
-          studentUpdate.id = userId;
-          studentUpdate.prn = studentUpdate.prn || '';
-          studentUpdate.branch = studentUpdate.branch || userData.department || '';
-          studentUpdate.recovery_email = studentUpdate.recovery_email || userData.email || '';
-          studentUpdate.year = studentUpdate.year || userData.year || '';
-          
-          const { error } = await supabase
-            .from('student_profiles')
-            .insert(studentUpdate);
-          
-          updateError = error;
-        }
-        
-        if (updateError) throw updateError;
-      }
-      
-      // Update local state with the new data
+      // Set the state with user and student profiles
       set({ 
-        userData: { ...userData, ...data },
-        isLoading: false 
+        user: userData as UserProfile,
+        studentProfile: studentData as StudentProfile 
       });
-      
-      // Immediately fetch fresh data from the server to ensure local state is in sync
-      const { fetchUserProfile } = get();
-      await fetchUserProfile(userId);
-      
     } catch (error) {
-      console.error("Error updating user data:", error);
-      set({ error: error as Error, isLoading: false });
+      console.error("Error fetching profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load user profile",
+        variant: "destructive",
+      });
     }
   },
-
-  updateUserStatus: async (status: UserStatus) => {
+  
+  updateUserProfile: async (userId: string, data: Partial<UserProfile>) => {
     try {
-      set({ isLoading: true, error: null });
-      const { userData } = get();
-      
-      // Update profile status in Supabase
       const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          status: status 
-        })
-        .eq('id', userData.id);
+        .from("profiles")
+        .update(data)
+        .eq("id", userId);
+
+      if (error) throw error;
       
+      set((state) => ({
+        user: state.user ? { ...state.user, ...data } : null,
+      }));
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    }
+  },
+  
+  updateStudentProfile: async (userId: string, data: Partial<StudentProfile>) => {
+    try {
+      const { error } = await supabase
+        .from("student_profiles")
+        .update(data)
+        .eq("id", userId);
+
+      if (error) throw error;
+      
+      set((state) => ({
+        studentProfile: state.studentProfile ? { ...state.studentProfile, ...data } : null,
+      }));
+      
+      toast({
+        title: "Success",
+        description: "Profile updated successfully",
+      });
+    } catch (error) {
+      console.error("Error updating student profile:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile",
+        variant: "destructive",
+      });
+    }
+  },
+  
+  updateUserInterests: async (userId: string, interests: string[]) => {
+    try {
+      // Update student_profiles table
+      const { error } = await supabase
+        .from("student_profiles")
+        .update({ interests })
+        .eq("id", userId);
+
       if (error) throw error;
       
       // Update local state
-      set({ 
-        userData: { ...userData, status },
-        isLoading: false 
+      set((state) => ({
+        studentProfile: state.studentProfile ? { ...state.studentProfile, interests } : null,
+      }));
+      
+      toast({
+        title: "Success",
+        description: "Interests updated successfully",
       });
     } catch (error) {
-      console.error("Error updating user status:", error);
-      set({ error: error as Error, isLoading: false });
+      console.error("Error updating interests:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update interests",
+        variant: "destructive",
+      });
     }
   },
-
-  syncProfileToDatabase: async () => {
+  
+  updateUserPhone: async (userId: string, phone: string) => {
     try {
-      set({ isLoading: true, error: null });
-      const { userData } = get();
+      // Update profiles table
+      const { error } = await supabase
+        .from("profiles")
+        .update({ phone })
+        .eq("id", userId);
+
+      if (error) throw error;
       
-      if (!userData.id) {
-        throw new Error("No user ID available");
-      }
+      // Update local state
+      set((state) => ({
+        user: state.user ? { ...state.user, phone } : null,
+      }));
       
-      // Sync all current userData to appropriate tables
-      const profileUpdate = {
-        full_name: userData.name,
-        email: userData.email,
-        avatar_url: userData.avatar,
-        status: userData.status,
-        phone: userData.phone
-      };
-      
-      console.log("Syncing profile data:", profileUpdate);
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update(profileUpdate)
-        .eq('id', userData.id);
-      
-      if (profileError) throw profileError;
-      
-      // Sync student-specific data including bio and interests
-      if (userData.role === 'student') {
-        const studentUpdate = {
-          department: userData.department || '',
-          year: userData.year || '',
-          bio: userData.bio || '',
-          interests: userData.interests || []
-        };
-        
-        console.log("Syncing student profile data:", studentUpdate);
-        
-        // Check if student profile exists first
-        const { data: existingProfile, error: checkError } = await supabase
-          .from('student_profiles')
-          .select('id')
-          .eq('id', userData.id)
-          .maybeSingle();
-        
-        if (checkError && checkError.code !== 'PGRST116') {
-          throw checkError;
-        }
-        
-        let updateError;
-        
-        if (existingProfile) {
-          // Update existing profile
-          const { error } = await supabase
-            .from('student_profiles')
-            .update(studentUpdate)
-            .eq('id', userData.id);
-          
-          updateError = error;
-        } else {
-          // Insert new profile
-          const fullStudentUpdate = {
-            ...studentUpdate,
-            id: userData.id,
-            prn: '',
-            branch: userData.department || '',
-            recovery_email: userData.email || ''
-          };
-          
-          const { error } = await supabase
-            .from('student_profiles')
-            .insert(fullStudentUpdate);
-          
-          updateError = error;
-        }
-        
-        if (updateError) throw updateError;
-      }
-      
-      // Refresh the user data from the database to ensure we have the latest
-      const { fetchUserProfile } = get();
-      await fetchUserProfile(userData.id);
-      
-      set({ isLoading: false });
+      toast({
+        title: "Success",
+        description: "Phone number updated successfully",
+      });
     } catch (error) {
-      console.error("Error syncing profile to database:", error);
-      set({ error: error as Error, isLoading: false });
+      console.error("Error updating phone number:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update phone number",
+        variant: "destructive",
+      });
     }
-  }
+  },
 }));
