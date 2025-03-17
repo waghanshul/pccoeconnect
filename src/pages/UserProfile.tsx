@@ -35,7 +35,7 @@ interface ProfileRecord {
 }
 
 const UserProfile = () => {
-  const { userId } = useParams();
+  const { userId } = useParams<{ userId: string }>();
   const [userData, setUserData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
@@ -69,7 +69,7 @@ const UserProfile = () => {
           .from('student_profiles')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (studentError && studentError.code !== 'PGRST116') {
           throw studentError;
@@ -94,7 +94,7 @@ const UserProfile = () => {
           .from('admin_profiles')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (adminError && adminError.code !== 'PGRST116') {
           throw adminError;
@@ -112,7 +112,7 @@ const UserProfile = () => {
       // Combine and set the data, ensuring proper handling of arrays and empty values
       setUserData({
         id: typedProfileData.id,
-        name: typedProfileData.full_name,
+        name: typedProfileData.full_name || 'Guest User',
         avatar: typedProfileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
         role: typedProfileData.role,
         department: extendedData.department || '',
@@ -120,7 +120,7 @@ const UserProfile = () => {
         bio: extendedData.bio || '',
         interests: Array.isArray(extendedData.interests) ? extendedData.interests : [],
         isPublic: true,
-        email: typedProfileData.email,
+        email: typedProfileData.email || '',
         phone: '',
         status: typedProfileData.status as UserStatus || 'offline',
       });

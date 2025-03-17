@@ -33,7 +33,7 @@ const Settings = () => {
   useEffect(() => {
     // Update local state when userData changes
     setLocalBio(userData.bio || "");
-    setLocalInterests(userData.interests || []);
+    setLocalInterests(Array.isArray(userData.interests) ? [...userData.interests] : []);
   }, [userData.bio, userData.interests]);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ const Settings = () => {
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      // Make sure bio is saved before syncing
+      // Make sure bio is saved
       if (localBio !== userData.bio) {
         await updateUserData({ bio: localBio });
       }
@@ -96,18 +96,21 @@ const Settings = () => {
   };
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    // Update local state only
     setLocalBio(e.target.value);
   };
   
   // Save bio to database when focus leaves the textarea
   const saveBioToDatabase = async () => {
     try {
-      await updateUserData({ bio: localBio });
-      toast.success("Bio updated successfully!");
+      if (localBio !== userData.bio) {
+        await updateUserData({ bio: localBio });
+        toast.success("Bio updated successfully!");
+      }
     } catch (error) {
       console.error("Error updating bio:", error);
       toast.error("Failed to update bio. Please try again.");
+      // Reset local bio to the state in userData if save fails
+      setLocalBio(userData.bio || "");
     }
   };
 
@@ -117,8 +120,15 @@ const Settings = () => {
       if (!localInterests.includes(newInterest.trim())) {
         const updatedInterests = [...localInterests, newInterest.trim()];
         setLocalInterests(updatedInterests);
-        updateUserData({ interests: updatedInterests });
-        toast.success("Interest added successfully!");
+        updateUserData({ interests: updatedInterests })
+          .then(() => toast.success("Interest added successfully!"))
+          .catch(err => {
+            console.error("Error adding interest:", err);
+            toast.error("Failed to add interest");
+            setLocalInterests([...userData.interests]); // Reset to original on error
+          });
+      } else {
+        toast.error("This interest is already in your list");
       }
       setNewInterest("");
     }
@@ -129,8 +139,13 @@ const Settings = () => {
       interest => interest !== interestToRemove
     );
     setLocalInterests(updatedInterests);
-    updateUserData({ interests: updatedInterests });
-    toast.success("Interest removed successfully!");
+    updateUserData({ interests: updatedInterests })
+      .then(() => toast.success("Interest removed successfully!"))
+      .catch(err => {
+        console.error("Error removing interest:", err);
+        toast.error("Failed to remove interest");
+        setLocalInterests([...userData.interests]); // Reset to original on error
+      });
   };
 
   return (
@@ -235,13 +250,14 @@ const Settings = () => {
                 <div className="space-y-2">
                   <Label>Interests</Label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {localInterests && localInterests.length > 0 ? (
+                    {Array.isArray(localInterests) && localInterests.length > 0 ? (
                       localInterests.map((interest, index) => (
                         <Badge key={index} variant="secondary" className="gap-1">
                           {interest}
                           <button
                             onClick={() => handleRemoveInterest(interest)}
                             className="ml-1 hover:text-destructive"
+                            type="button"
                           >
                             <X className="h-3 w-3" />
                           </button>

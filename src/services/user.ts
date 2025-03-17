@@ -192,7 +192,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .from('student_profiles')
           .select('id')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
         
         if (checkError && checkError.code !== 'PGRST116') {
           throw checkError;
@@ -212,9 +212,9 @@ export const useUserStore = create<UserStore>((set, get) => ({
           // Insert new profile
           studentUpdate.id = userId;
           studentUpdate.prn = studentUpdate.prn || '';
-          studentUpdate.branch = studentUpdate.branch || '';
-          studentUpdate.recovery_email = studentUpdate.recovery_email || '';
-          studentUpdate.year = studentUpdate.year || '';
+          studentUpdate.branch = studentUpdate.branch || userData.department || '';
+          studentUpdate.recovery_email = studentUpdate.recovery_email || userData.email || '';
+          studentUpdate.year = studentUpdate.year || userData.year || '';
           
           const { error } = await supabase
             .from('student_profiles')
@@ -231,6 +231,11 @@ export const useUserStore = create<UserStore>((set, get) => ({
         userData: { ...userData, ...data },
         isLoading: false 
       });
+      
+      // Immediately fetch fresh data from the server to ensure local state is in sync
+      const { fetchUserProfile } = get();
+      await fetchUserProfile(userId);
+      
     } catch (error) {
       console.error("Error updating user data:", error);
       set({ error: error as Error, isLoading: false });
@@ -304,7 +309,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           .from('student_profiles')
           .select('id')
           .eq('id', userData.id)
-          .single();
+          .maybeSingle();
         
         if (checkError && checkError.code !== 'PGRST116') {
           throw checkError;
@@ -327,7 +332,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
             id: userData.id,
             prn: '',
             branch: userData.department || '',
-            recovery_email: ''
+            recovery_email: userData.email || ''
           };
           
           const { error } = await supabase
