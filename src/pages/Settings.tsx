@@ -29,12 +29,14 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [localBio, setLocalBio] = useState(userData.bio || "");
   const [localInterests, setLocalInterests] = useState<string[]>(userData.interests || []);
+  const [localPhone, setLocalPhone] = useState(userData.phone || "");
 
   useEffect(() => {
     // Update local state when userData changes
     setLocalBio(userData.bio || "");
     setLocalInterests(Array.isArray(userData.interests) ? [...userData.interests] : []);
-  }, [userData.bio, userData.interests]);
+    setLocalPhone(userData.phone || "");
+  }, [userData.bio, userData.interests, userData.phone]);
 
   useEffect(() => {
     // Check if profile name is empty and user auth data has a name
@@ -69,6 +71,11 @@ const Settings = () => {
         await updateUserData({ interests: localInterests });
       }
       
+      // Make sure phone is saved
+      if (localPhone !== userData.phone) {
+        await updateUserData({ phone: localPhone });
+      }
+      
       await syncProfileToDatabase();
       toast.success("Settings saved successfully!");
     } catch (error) {
@@ -93,6 +100,25 @@ const Settings = () => {
 
   const handleInputChange = (field: string, value: string) => {
     updateUserData({ [field]: value });
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalPhone(e.target.value);
+  };
+  
+  // Save phone to database when focus leaves the input
+  const savePhoneToDatabase = async () => {
+    try {
+      if (localPhone !== userData.phone) {
+        await updateUserData({ phone: localPhone });
+        toast.success("Phone number updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating phone:", error);
+      toast.error("Failed to update phone number. Please try again.");
+      // Reset local phone to the state in userData if save fails
+      setLocalPhone(userData.phone || "");
+    }
   };
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -209,8 +235,9 @@ const Settings = () => {
                   <Input 
                     id="phone" 
                     type="tel"
-                    value={userData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    value={localPhone}
+                    onChange={handlePhoneChange}
+                    onBlur={savePhoneToDatabase}
                     placeholder="Enter your phone number"
                   />
                 </div>

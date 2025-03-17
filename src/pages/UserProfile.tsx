@@ -32,6 +32,7 @@ interface ProfileRecord {
   updated_at?: string;
   avatar_url?: string;
   status?: UserStatus;
+  phone?: string;
 }
 
 const UserProfile = () => {
@@ -137,7 +138,7 @@ const UserProfile = () => {
         interests: Array.isArray(extendedData.interests) ? extendedData.interests : [],
         isPublic: true,
         email: typedProfileData.email || '',
-        phone: '',
+        phone: typedProfileData.phone || '',
         status: typedProfileData.status as UserStatus || 'offline',
       });
     } catch (error) {

@@ -29,6 +29,7 @@ interface ProfileRecord {
   updated_at?: string;
   avatar_url?: string;
   status?: UserStatus;
+  phone?: string;
 }
 
 interface UserStore {
@@ -151,7 +152,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           interests: Array.isArray(extendedData.interests) ? extendedData.interests : [],
           isPublic: true,
           email: typedProfileData.email,
-          phone: '',
+          phone: typedProfileData.phone || '',
           status: typedProfileData.status as UserStatus || 'offline',
         },
         isLoading: false
@@ -174,6 +175,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
       if (data.name) profileUpdate.full_name = data.name;
       if (data.avatar) profileUpdate.avatar_url = data.avatar;
       if (data.email) profileUpdate.email = data.email;
+      if (data.phone !== undefined) profileUpdate.phone = data.phone;
       
       // Update profiles table if needed
       if (Object.keys(profileUpdate).length > 0) {
@@ -304,7 +306,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
         full_name: userData.name,
         email: userData.email,
         avatar_url: userData.avatar,
-        status: userData.status
+        status: userData.status,
+        phone: userData.phone
       };
       
       console.log("Syncing profile data:", profileUpdate);
