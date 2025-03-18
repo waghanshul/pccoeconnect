@@ -1,6 +1,8 @@
+
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 export type UserStatus = 'online' | 'busy' | 'away' | 'offline';
 
@@ -85,10 +87,20 @@ export const useUserStore = create<UserStore>((set, get) => ({
       // Log the fetched data
       console.log("Extended data fetched:", studentData);
       
+      // Ensure interests is always an array of strings
+      const interests = studentData?.interests
+        ? Array.isArray(studentData.interests)
+          ? studentData.interests.map(item => String(item)) // Convert all items to strings
+          : []
+        : [];
+      
       // Set the state with user and student profiles
       set({ 
         user: userData as UserProfile,
-        studentProfile: studentData as StudentProfile,
+        studentProfile: studentData ? {
+          ...studentData,
+          interests: interests
+        } as StudentProfile : null,
         userData: {
           id: userData.id,
           name: userData.full_name || 'Guest User',
@@ -97,7 +109,7 @@ export const useUserStore = create<UserStore>((set, get) => ({
           department: studentData?.department || '',
           year: studentData?.year || '',
           bio: studentData?.bio || '',
-          interests: Array.isArray(studentData?.interests) ? studentData.interests : [],
+          interests: interests,
           isPublic: true,
           email: userData.email || '',
           phone: userData.phone || '',
