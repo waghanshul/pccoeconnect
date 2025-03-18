@@ -3,6 +3,8 @@ import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+export type UserStatus = 'online' | 'busy' | 'away' | 'offline';
+
 interface StudentProfile {
   id: string;
   prn: string;
@@ -21,25 +23,47 @@ interface UserProfile {
   role: string;
   avatar?: string;
   phone?: string;
-  status?: string;
+  status?: UserStatus;
+}
+
+interface UserData {
+  id: string;
+  name: string;
+  avatar: string;
+  role: string;
+  department: string;
+  year: string;
+  bio: string;
+  interests: string[];
+  isPublic: boolean;
+  email: string;
+  phone: string;
+  status: UserStatus;
 }
 
 interface UserStore {
   user: UserProfile | null;
   studentProfile: StudentProfile | null;
+  userData: UserData | null;
+  isLoading: boolean;
   fetchUserProfile: (userId: string) => Promise<void>;
   updateUserProfile: (userId: string, data: Partial<UserProfile>) => Promise<void>;
   updateStudentProfile: (userId: string, data: Partial<StudentProfile>) => Promise<void>;
   updateUserInterests: (userId: string, interests: string[]) => Promise<void>;
   updateUserPhone: (userId: string, phone: string) => Promise<void>;
+  updateUserStatus: (status: UserStatus) => Promise<void>;
 }
 
-export const useUserStore = create<UserStore>((set) => ({
+export const useUserStore = create<UserStore>((set, get) => ({
   user: null,
   studentProfile: null,
+  userData: null,
+  isLoading: false,
   
   fetchUserProfile: async (userId: string) => {
     try {
+      set({ isLoading: true });
+      
       const { data: userData, error: userError } = await supabase
         .from("profiles")
         .select("*")
@@ -65,7 +89,21 @@ export const useUserStore = create<UserStore>((set) => ({
       // Set the state with user and student profiles
       set({ 
         user: userData as UserProfile,
-        studentProfile: studentData as StudentProfile 
+        studentProfile: studentData as StudentProfile,
+        userData: {
+          id: userData.id,
+          name: userData.full_name || 'Guest User',
+          avatar: userData.avatar_url || '',
+          role: userData.role,
+          department: studentData?.department || '',
+          year: studentData?.year || '',
+          bio: studentData?.bio || '',
+          interests: Array.isArray(studentData?.interests) ? studentData.interests : [],
+          isPublic: true,
+          email: userData.email || '',
+          phone: userData.phone || '',
+          status: (userData.status as UserStatus) || 'offline',
+        }
       });
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -74,6 +112,8 @@ export const useUserStore = create<UserStore>((set) => ({
         description: "Failed to load user profile",
         variant: "destructive",
       });
+    } finally {
+      set({ isLoading: false });
     }
   },
   
@@ -88,6 +128,15 @@ export const useUserStore = create<UserStore>((set) => ({
       
       set((state) => ({
         user: state.user ? { ...state.user, ...data } : null,
+        userData: state.userData ? { 
+          ...state.userData,
+          name: data.full_name || state.userData.name,
+          email: data.email || state.userData.email,
+          role: data.role || state.userData.role,
+          avatar: data.avatar || state.userData.avatar,
+          phone: data.phone || state.userData.phone,
+          status: data.status || state.userData.status,
+        } : null
       }));
       
       toast({
@@ -115,6 +164,13 @@ export const useUserStore = create<UserStore>((set) => ({
       
       set((state) => ({
         studentProfile: state.studentProfile ? { ...state.studentProfile, ...data } : null,
+        userData: state.userData ? { 
+          ...state.userData,
+          department: data.department || state.userData.department,
+          year: data.year || state.userData.year,
+          bio: data.bio || state.userData.bio,
+          interests: data.interests || state.userData.interests,
+        } : null
       }));
       
       toast({
@@ -144,6 +200,7 @@ export const useUserStore = create<UserStore>((set) => ({
       // Update local state
       set((state) => ({
         studentProfile: state.studentProfile ? { ...state.studentProfile, interests } : null,
+        userData: state.userData ? { ...state.userData, interests } : null
       }));
       
       toast({
@@ -173,6 +230,7 @@ export const useUserStore = create<UserStore>((set) => ({
       // Update local state
       set((state) => ({
         user: state.user ? { ...state.user, phone } : null,
+        userData: state.userData ? { ...state.userData, phone } : null
       }));
       
       toast({
@@ -188,4 +246,30 @@ export const useUserStore = create<UserStore>((set) => ({
       });
     }
   },
+  
+  updateUserStatus: async (status: UserStatus) => {
+    const { user } = get();
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ status })
+        .eq("id", user.id);
+        
+      if (error) throw error;
+      
+      set((state) => ({
+        user: state.user ? { ...state.user, status } : null,
+        userData: state.userData ? { ...state.userData, status } : null
+      }));
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update status",
+        variant: "destructive",
+      });
+    }
+  }
 }));
