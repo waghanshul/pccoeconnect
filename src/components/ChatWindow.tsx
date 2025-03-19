@@ -143,8 +143,13 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
               .eq('id', payload.new.sender_id)
               .single();
             
-            const newMessage = {
-              ...payload.new,
+            // Ensure the new message conforms to the Message interface
+            const newMessage: Message = {
+              id: payload.new.id,
+              sender_id: payload.new.sender_id,
+              content: payload.new.content,
+              created_at: payload.new.created_at,
+              read_at: payload.new.read_at,
               sender: profileData || undefined
             };
             
@@ -198,9 +203,13 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
         
       if (error) throw error;
       
-      // Add sender info to the message
-      const newMessageWithSender = {
-        ...data,
+      // Add sender info to the message with proper typing
+      const newMessageWithSender: Message = {
+        id: data.id,
+        sender_id: data.sender_id,
+        content: data.content,
+        created_at: data.created_at,
+        read_at: data.read_at,
         sender: {
           full_name: user?.user_metadata?.full_name || user?.email || 'You',
           avatar_url: user?.user_metadata?.avatar_url || null
