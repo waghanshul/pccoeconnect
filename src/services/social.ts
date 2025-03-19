@@ -88,10 +88,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
         .from('social_posts')
         .select(`
           *,
-          profiles:user_id (
-            full_name,
-            avatar_url
-          )
+          profiles(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
       
@@ -120,11 +117,11 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           
         return {
           ...post,
-          author: post.profiles,
+          author: post.profiles ? post.profiles : { full_name: 'Anonymous' },
           likes_count: likesCount || 0,
           comments_count: commentsCount || 0,
           user_has_liked: likes && likes.length > 0
-        };
+        } as SocialPost;
       }));
       
       set({ posts: formattedPosts, isLoading: false });
@@ -142,6 +139,10 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
   
   createPost: async (content, fileUrl, fileType, pollId, parentPostId) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+      
       const { data, error } = await supabase
         .from('social_posts')
         .insert({
@@ -149,7 +150,8 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           file_url: fileUrl,
           file_type: fileType,
           poll_id: pollId,
-          parent_post_id: parentPostId
+          parent_post_id: parentPostId,
+          user_id: user.id
         })
         .select()
         .single();
@@ -202,9 +204,16 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
   
   likePost: async (postId) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+      
       const { error } = await supabase
         .from('post_likes')
-        .insert({ post_id: postId });
+        .insert({ 
+          post_id: postId,
+          user_id: user.id
+        });
       
       if (error) throw error;
       
@@ -263,19 +272,16 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
         .from('post_comments')
         .select(`
           *,
-          profiles:user_id (
-            full_name,
-            avatar_url
-          )
+          profiles(full_name, avatar_url)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
       
       if (error) throw error;
       
-      const formattedComments = data.map(comment => ({
+      const formattedComments: Comment[] = data.map(comment => ({
         ...comment,
-        author: comment.profiles
+        author: comment.profiles ? comment.profiles : { full_name: 'Anonymous' }
       }));
       
       set((state) => ({
@@ -296,15 +302,20 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
   
   addComment: async (postId, content) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+      
       const { data, error } = await supabase
         .from('post_comments')
-        .insert({ post_id: postId, content })
+        .insert({ 
+          post_id: postId, 
+          content, 
+          user_id: user.id 
+        })
         .select(`
           *,
-          profiles:user_id (
-            full_name,
-            avatar_url
-          )
+          profiles(full_name, avatar_url)
         `)
         .single();
       
@@ -313,9 +324,9 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       // Update local state
       set((state) => {
         const postComments = state.comments[postId] || [];
-        const newComment = {
+        const newComment: Comment = {
           ...data,
-          author: data.profiles
+          author: data.profiles ? data.profiles : { full_name: 'Anonymous' }
         };
         
         return {
@@ -368,12 +379,17 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
   
   votePoll: async (pollId, option) => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+      
       // Insert vote
       const { error } = await supabase
         .from('poll_votes')
         .insert({
           poll_id: pollId,
-          choice: option
+          choice: option,
+          user_id: user.id
         });
       
       if (error) throw error;
@@ -425,7 +441,15 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       
       // Count votes for each option
       const voteCount: Record<string, number> = {};
-      pollData.options.forEach((option: string) => {
+      
+      // Ensure options is treated as string array
+      const pollOptions = Array.isArray(pollData.options) 
+        ? pollData.options 
+        : typeof pollData.options === 'string' 
+          ? JSON.parse(pollData.options) 
+          : [];
+      
+      pollOptions.forEach((option: string) => {
         voteCount[option] = 0;
       });
       
@@ -436,7 +460,10 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       });
       
       const poll: Poll = {
-        ...pollData,
+        id: pollData.id,
+        question: pollData.question,
+        options: pollOptions,
+        created_at: pollData.created_at,
         votes: voteCount,
         user_vote: userVote?.choice
       };
@@ -470,10 +497,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           .from('social_posts')
           .select(`
             *,
-            profiles:user_id (
-              full_name,
-              avatar_url
-            )
+            profiles(full_name, avatar_url)
           `)
           .eq('id', payload.new.id)
           .single()
@@ -487,11 +511,11 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
             set((state) => ({
               posts: [{
                 ...data,
-                author: data.profiles,
+                author: data.profiles ? data.profiles : { full_name: 'Anonymous' },
                 likes_count: 0,
                 comments_count: 0,
                 user_has_liked: false
-              }, ...state.posts]
+              } as SocialPost, ...state.posts]
             }));
           });
       })
