@@ -191,6 +191,19 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
     if (!newMessage.trim() || !user) return;
     
     try {
+      console.log("Sending message to conversation:", conversationId);
+      
+      // First, update the conversation's updated_at timestamp
+      const { error: updateError } = await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', conversationId);
+        
+      if (updateError) {
+        console.error("Error updating conversation timestamp:", updateError);
+      }
+      
+      // Then insert the message
       const { data, error } = await supabase
         .from('messages')
         .insert({
@@ -201,7 +214,10 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
         .select()
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error sending message:", error);
+        throw error;
+      }
       
       // Add sender info to the message with proper typing
       const newMessageWithSender: Message = {

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Navigation } from "@/components/Navigation";
 import { Plus, User, Search, Loader2 } from "lucide-react";
@@ -294,30 +293,56 @@ const Messages = () => {
       
       // If no existing conversation, create one
       if (!existingConversationId) {
-        // Create new conversation
+        console.log("Creating new conversation");
+        
+        // First create the conversation
         const { data: newConv, error: convError } = await supabase
           .from('conversations')
           .insert({})
           .select()
           .single();
           
-        if (convError) throw convError;
+        if (convError) {
+          console.error("Error creating conversation:", convError);
+          throw convError;
+        }
         
+        console.log("Created conversation:", newConv);
         existingConversationId = newConv.id;
         
-        // Add participants
-        const participantsToAdd = [
-          { conversation_id: existingConversationId, profile_id: user?.id },
-          { conversation_id: existingConversationId, profile_id: friendId }
-        ];
-        
-        const { error: partError } = await supabase
+        // Then add current user as participant
+        const { error: currentUserPartError } = await supabase
           .from('conversation_participants')
-          .insert(participantsToAdd);
+          .insert({
+            conversation_id: existingConversationId,
+            profile_id: user?.id
+          });
           
-        if (partError) throw partError;
+        if (currentUserPartError) {
+          console.error("Error adding current user as participant:", currentUserPartError);
+          throw currentUserPartError;
+        }
+        
+        // Then add friend as participant
+        const { error: friendPartError } = await supabase
+          .from('conversation_participants')
+          .insert({
+            conversation_id: existingConversationId,
+            profile_id: friendId
+          });
+          
+        if (friendPartError) {
+          console.error("Error adding friend as participant:", friendPartError);
+          throw friendPartError;
+        }
+        
+        console.log("Added participants to conversation");
       }
       
+      // Refresh conversations to include the new one
+      await fetchConversations();
+      
+      // Navigate to the conversation
       navigate(`/messages/${existingConversationId}`);
     } catch (error) {
       console.error("Error creating conversation:", error);
