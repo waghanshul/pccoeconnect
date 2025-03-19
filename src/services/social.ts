@@ -117,7 +117,10 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           
         return {
           ...post,
-          author: post.profiles ? post.profiles : { full_name: 'Anonymous' },
+          author: post.profiles ? {
+            full_name: post.profiles.full_name,
+            avatar_url: post.profiles.avatar_url
+          } : { full_name: 'Anonymous' },
           likes_count: likesCount || 0,
           comments_count: commentsCount || 0,
           user_has_liked: likes && likes.length > 0
@@ -280,8 +283,15 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       if (error) throw error;
       
       const formattedComments: Comment[] = data.map(comment => ({
-        ...comment,
-        author: comment.profiles ? comment.profiles : { full_name: 'Anonymous' }
+        id: comment.id,
+        post_id: comment.post_id,
+        user_id: comment.user_id,
+        content: comment.content,
+        created_at: comment.created_at || '',
+        author: comment.profiles ? {
+          full_name: comment.profiles.full_name,
+          avatar_url: comment.profiles.avatar_url
+        } : { full_name: 'Anonymous' }
       }));
       
       set((state) => ({
@@ -325,8 +335,15 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       set((state) => {
         const postComments = state.comments[postId] || [];
         const newComment: Comment = {
-          ...data,
-          author: data.profiles ? data.profiles : { full_name: 'Anonymous' }
+          id: data.id,
+          post_id: data.post_id,
+          user_id: data.user_id,
+          content: data.content,
+          created_at: data.created_at || '',
+          author: data.profiles ? {
+            full_name: data.profiles.full_name,
+            avatar_url: data.profiles.avatar_url
+          } : { full_name: 'Anonymous' }
         };
         
         return {
@@ -449,10 +466,12 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           ? JSON.parse(pollData.options) 
           : [];
       
+      // Initialize vote counts for each option
       pollOptions.forEach((option: string) => {
         voteCount[option] = 0;
       });
       
+      // Count votes
       votesData.forEach((vote) => {
         if (voteCount[vote.choice] !== undefined) {
           voteCount[vote.choice]++;
@@ -511,7 +530,10 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
             set((state) => ({
               posts: [{
                 ...data,
-                author: data.profiles ? data.profiles : { full_name: 'Anonymous' },
+                author: data.profiles ? {
+                  full_name: data.profiles.full_name,
+                  avatar_url: data.profiles.avatar_url
+                } : { full_name: 'Anonymous' },
                 likes_count: 0,
                 comments_count: 0,
                 user_has_liked: false
