@@ -32,11 +32,19 @@ function App() {
               <Index />
             </ProtectedRoute>
           } />
+          
+          {/* Messages routes */}
           <Route path="/messages" element={
             <ProtectedRoute>
               <Messages />
             </ProtectedRoute>
           } />
+          <Route path="/messages/:conversationId" element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
