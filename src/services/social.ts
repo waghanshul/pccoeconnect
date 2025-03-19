@@ -73,9 +73,14 @@ interface SocialStore {
 const isValidProfile = (profiles: any): boolean => {
   return profiles && 
          typeof profiles === 'object' && 
-         !profiles.error && 
+         !('error' in profiles) && 
          typeof profiles.full_name === 'string';
 };
+
+// Create a default author object for fallback
+const createDefaultAuthor = () => ({ 
+  full_name: 'Anonymous' 
+});
 
 export const useSocialStore = create<SocialStore>((set, get) => ({
   posts: [],
@@ -123,12 +128,17 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           .select('id', { count: 'exact', head: true })
           .eq('post_id', post.id);
           
+        // Create the author object with proper type checking
+        const author = isValidProfile(post.profiles) 
+          ? { 
+              full_name: post.profiles.full_name, 
+              avatar_url: post.profiles.avatar_url 
+            } 
+          : createDefaultAuthor();
+          
         return {
           ...post,
-          author: isValidProfile(post.profiles) ? {
-            full_name: post.profiles.full_name,
-            avatar_url: post.profiles.avatar_url
-          } : { full_name: 'Anonymous' },
+          author,
           likes_count: likesCount || 0,
           comments_count: commentsCount || 0,
           user_has_liked: likes && likes.length > 0
@@ -290,17 +300,25 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       
       if (error) throw error;
       
-      const formattedComments: Comment[] = data.map(comment => ({
-        id: comment.id,
-        post_id: comment.post_id,
-        user_id: comment.user_id,
-        content: comment.content,
-        created_at: comment.created_at || '',
-        author: isValidProfile(comment.profiles) ? {
-          full_name: comment.profiles.full_name,
-          avatar_url: comment.profiles.avatar_url
-        } : { full_name: 'Anonymous' }
-      }));
+      // Format and type check each comment
+      const formattedComments: Comment[] = data.map(comment => {
+        // Create the author object with proper type checking
+        const author = isValidProfile(comment.profiles) 
+          ? { 
+              full_name: comment.profiles.full_name, 
+              avatar_url: comment.profiles.avatar_url 
+            } 
+          : createDefaultAuthor();
+          
+        return {
+          id: comment.id,
+          post_id: comment.post_id,
+          user_id: comment.user_id,
+          content: comment.content,
+          created_at: comment.created_at || '',
+          author
+        };
+      });
       
       set((state) => ({
         comments: {
@@ -339,7 +357,15 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       
       if (error) throw error;
       
-      // Update local state
+      // Create the author object with proper type checking
+      const author = isValidProfile(data.profiles) 
+        ? { 
+            full_name: data.profiles.full_name, 
+            avatar_url: data.profiles.avatar_url 
+          } 
+        : createDefaultAuthor();
+      
+      // Update local state with properly typed comment
       set((state) => {
         const postComments = state.comments[postId] || [];
         const newComment: Comment = {
@@ -348,10 +374,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           user_id: data.user_id,
           content: data.content,
           created_at: data.created_at || '',
-          author: isValidProfile(data.profiles) ? {
-            full_name: data.profiles.full_name,
-            avatar_url: data.profiles.avatar_url
-          } : { full_name: 'Anonymous' }
+          author
         };
         
         return {
@@ -534,14 +557,19 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
               return;
             }
             
-            // Add to state
+            // Create the author object with proper type checking
+            const author = isValidProfile(data.profiles) 
+              ? { 
+                  full_name: data.profiles.full_name, 
+                  avatar_url: data.profiles.avatar_url 
+                } 
+              : createDefaultAuthor();
+            
+            // Add to state with properly typed post
             set((state) => ({
               posts: [{
                 ...data,
-                author: isValidProfile(data.profiles) ? {
-                  full_name: data.profiles.full_name,
-                  avatar_url: data.profiles.avatar_url
-                } : { full_name: 'Anonymous' },
+                author,
                 likes_count: 0,
                 comments_count: 0,
                 user_has_liked: false
