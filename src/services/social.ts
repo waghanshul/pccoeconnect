@@ -70,7 +70,7 @@ interface SocialStore {
 }
 
 // Helper to check if a profiles object is valid and not an error
-const isValidProfile = (profiles: any): boolean => {
+const isValidProfile = (profiles: any): profiles is { full_name: string; avatar_url?: string } => {
   return profiles && 
          typeof profiles === 'object' && 
          !('error' in profiles) && 
@@ -96,19 +96,15 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       const { data: { user } } = await supabase.auth.getUser();
       const currentUserId = user?.id;
       
-      // Fetch posts with author information
-      const { data: posts, error } = await supabase
+      // Fetch posts with author information directly
+      const { data: postsData, error } = await supabase
         .from('social_posts')
-        .select(`
-          *,
-          profiles(full_name, avatar_url)
-        `)
-        .order('created_at', { ascending: false });
+        .select(`*`);
       
       if (error) throw error;
       
       // Format posts for display
-      const formattedPosts = await Promise.all(posts.map(async (post) => {
+      const formattedPosts = await Promise.all(postsData.map(async (post) => {
         // Check if user has liked this post
         const { data: likes, error: likesError } = await supabase
           .from('post_likes')
@@ -128,13 +124,20 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           .select('id', { count: 'exact', head: true })
           .eq('post_id', post.id);
           
-        // Create the author object with proper type checking
-        const author = isValidProfile(post.profiles) 
-          ? { 
-              full_name: post.profiles.full_name, 
-              avatar_url: post.profiles.avatar_url 
-            } 
-          : createDefaultAuthor();
+        // Fetch author profile separately
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', post.user_id)
+          .single();
+        
+        // Create author object with proper type checking
+        const author = profileError || !profileData 
+          ? createDefaultAuthor()
+          : { 
+              full_name: profileData.full_name, 
+              avatar_url: profileData.avatar_url 
+            };
           
         return {
           ...post,
@@ -289,26 +292,31 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
   
   fetchComments: async (postId) => {
     try {
-      const { data, error } = await supabase
+      // Fetch comments
+      const { data: commentsData, error } = await supabase
         .from('post_comments')
-        .select(`
-          *,
-          profiles(full_name, avatar_url)
-        `)
+        .select(`*`)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
       
       if (error) throw error;
       
       // Format and type check each comment
-      const formattedComments: Comment[] = data.map(comment => {
-        // Create the author object with proper type checking
-        const author = isValidProfile(comment.profiles) 
-          ? { 
-              full_name: comment.profiles.full_name, 
-              avatar_url: comment.profiles.avatar_url 
-            } 
-          : createDefaultAuthor();
+      const formattedComments: Comment[] = await Promise.all(commentsData.map(async (comment) => {
+        // Fetch author profile separately
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', comment.user_id)
+          .single();
+        
+        // Create author object with proper type checking
+        const author = profileError || !profileData
+          ? createDefaultAuthor()
+          : { 
+              full_name: profileData.full_name, 
+              avatar_url: profileData.avatar_url 
+            };
           
         return {
           id: comment.id,
@@ -318,7 +326,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           created_at: comment.created_at || '',
           author
         };
-      });
+      }));
       
       set((state) => ({
         comments: {
@@ -342,38 +350,43 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
       
-      const { data, error } = await supabase
+      // Insert comment
+      const { data: commentData, error } = await supabase
         .from('post_comments')
         .insert({ 
           post_id: postId, 
           content, 
           user_id: user.id 
         })
-        .select(`
-          *,
-          profiles(full_name, avatar_url)
-        `)
+        .select()
         .single();
       
       if (error) throw error;
       
-      // Create the author object with proper type checking
-      const author = isValidProfile(data.profiles) 
-        ? { 
-            full_name: data.profiles.full_name, 
-            avatar_url: data.profiles.avatar_url 
-          } 
-        : createDefaultAuthor();
+      // Fetch user profile for the comment author
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      // Create author object with proper type checking
+      const author = profileError || !profileData
+        ? createDefaultAuthor()
+        : { 
+            full_name: profileData.full_name, 
+            avatar_url: profileData.avatar_url 
+          };
       
       // Update local state with properly typed comment
       set((state) => {
         const postComments = state.comments[postId] || [];
         const newComment: Comment = {
-          id: data.id,
-          post_id: data.post_id,
-          user_id: data.user_id,
-          content: data.content,
-          created_at: data.created_at || '',
+          id: commentData.id,
+          post_id: commentData.post_id,
+          user_id: commentData.user_id,
+          content: commentData.content,
+          created_at: commentData.created_at || '',
           author
         };
         
@@ -543,38 +556,47 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
         table: 'social_posts' 
       }, (payload) => {
         // Fetch the new post with author info
+        const newPostId = payload.new.id;
+        const newPostUserId = payload.new.user_id;
+        
+        // First fetch the post data
         supabase
           .from('social_posts')
-          .select(`
-            *,
-            profiles(full_name, avatar_url)
-          `)
-          .eq('id', payload.new.id)
+          .select(`*`)
+          .eq('id', newPostId)
           .single()
-          .then(({ data, error }) => {
-            if (error) {
-              console.error("Error fetching new post:", error);
+          .then(({ data: postData, error: postError }) => {
+            if (postError) {
+              console.error("Error fetching new post:", postError);
               return;
             }
             
-            // Create the author object with proper type checking
-            const author = isValidProfile(data.profiles) 
-              ? { 
-                  full_name: data.profiles.full_name, 
-                  avatar_url: data.profiles.avatar_url 
-                } 
-              : createDefaultAuthor();
-            
-            // Add to state with properly typed post
-            set((state) => ({
-              posts: [{
-                ...data,
-                author,
-                likes_count: 0,
-                comments_count: 0,
-                user_has_liked: false
-              } as SocialPost, ...state.posts]
-            }));
+            // Then fetch the user profile separately
+            supabase
+              .from('profiles')
+              .select('full_name, avatar_url')
+              .eq('id', newPostUserId)
+              .single()
+              .then(({ data: profileData, error: profileError }) => {
+                // Create the author object with proper type checking
+                const author = profileError || !profileData
+                  ? createDefaultAuthor()
+                  : { 
+                      full_name: profileData.full_name, 
+                      avatar_url: profileData.avatar_url 
+                    };
+                
+                // Add to state with properly typed post
+                set((state) => ({
+                  posts: [{
+                    ...postData,
+                    author,
+                    likes_count: 0,
+                    comments_count: 0,
+                    user_has_liked: false
+                  } as SocialPost, ...state.posts]
+                }));
+              });
           });
       })
       .on('postgres_changes', { 
