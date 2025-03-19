@@ -69,6 +69,14 @@ interface SocialStore {
   setupRealtimeSubscriptions: () => () => void;
 }
 
+// Helper to check if a profiles object is valid and not an error
+const isValidProfile = (profiles: any): boolean => {
+  return profiles && 
+         typeof profiles === 'object' && 
+         !profiles.error && 
+         typeof profiles.full_name === 'string';
+};
+
 export const useSocialStore = create<SocialStore>((set, get) => ({
   posts: [],
   isLoading: false,
@@ -117,7 +125,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           
         return {
           ...post,
-          author: post.profiles ? {
+          author: isValidProfile(post.profiles) ? {
             full_name: post.profiles.full_name,
             avatar_url: post.profiles.avatar_url
           } : { full_name: 'Anonymous' },
@@ -288,7 +296,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
         user_id: comment.user_id,
         content: comment.content,
         created_at: comment.created_at || '',
-        author: comment.profiles ? {
+        author: isValidProfile(comment.profiles) ? {
           full_name: comment.profiles.full_name,
           avatar_url: comment.profiles.avatar_url
         } : { full_name: 'Anonymous' }
@@ -340,7 +348,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
           user_id: data.user_id,
           content: data.content,
           created_at: data.created_at || '',
-          author: data.profiles ? {
+          author: isValidProfile(data.profiles) ? {
             full_name: data.profiles.full_name,
             avatar_url: data.profiles.avatar_url
           } : { full_name: 'Anonymous' }
@@ -530,7 +538,7 @@ export const useSocialStore = create<SocialStore>((set, get) => ({
             set((state) => ({
               posts: [{
                 ...data,
-                author: data.profiles ? {
+                author: isValidProfile(data.profiles) ? {
                   full_name: data.profiles.full_name,
                   avatar_url: data.profiles.avatar_url
                 } : { full_name: 'Anonymous' },
