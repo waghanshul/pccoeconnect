@@ -21,3 +21,21 @@ export interface Friend {
   department?: string;
   avatar_url?: string;
 }
+
+export interface Message {
+  id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  read_at: string | null;
+  sender?: {
+    full_name: string;
+    avatar_url: string | null;
+  };
+}
+
+export interface ReceiverProfile {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+}

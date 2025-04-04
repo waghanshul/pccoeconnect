@@ -1,19 +1,10 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
+import { Message } from "@/hooks/messaging/types";
 
 interface MessageItemProps {
-  message: {
-    id: string;
-    sender_id: string;
-    content: string;
-    created_at: string;
-    read_at: string | null;
-    sender?: {
-      full_name: string;
-      avatar_url: string | null;
-    };
-  };
+  message: Message;
 }
 
 const MessageItem = ({ message }: MessageItemProps) => {
