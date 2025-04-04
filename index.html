@@ -9,15 +9,32 @@
     <meta name="author" content="Lovable" />
     <meta property="og:image" content="/og-image.png" />
     <style>
-      /* Hide the "Edit with ❤️ lovable" button */
-      .lovable-editor-button {
+      /* Aggressive styling to hide the Lovable badge */
+      .lovable-editor-button, 
+      [id*="lovable"], 
+      [class*="lovable"],
+      [id^="lovable"],
+      [class^="lovable"] {
         display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        margin: -1px !important;
+        padding: 0 !important;
+        border: 0 !important;
       }
+
       /* Ensure no overflow elements are visible */
       body {
         overflow-x: hidden;
         position: relative;
       }
+
       /* Layer to block any potential floating elements */
       #badge-blocker {
         position: fixed;
@@ -26,18 +43,67 @@
         width: 200px;
         height: 50px;
         background-color: transparent;
-        z-index: 99999;
+        z-index: 2147483647; /* Highest possible z-index */
         pointer-events: none;
       }
     </style>
+    <!-- Execute badge removal immediately at the parser level -->
+    <script>
+      (function() {
+        // Pre-load suppression
+        document.addEventListener('DOMContentLoaded', function() {
+          var style = document.createElement('style');
+          style.textContent = `.lovable-editor-button, [id*="lovable"], [class*="lovable"] { display: none !important; opacity: 0 !important; visibility: hidden !important; }`;
+          document.head.appendChild(style);
+          
+          // Find and remove any lovable elements
+          function removeLovableElements() {
+            var elements = document.querySelectorAll('.lovable-editor-button, [id*="lovable"], [class*="lovable"]');
+            elements.forEach(function(el) {
+              if (el && el.parentNode) {
+                el.parentNode.removeChild(el);
+              }
+            });
+          }
+          
+          // Run immediately and periodically
+          removeLovableElements();
+          setInterval(removeLovableElements, 100);
+        });
+        
+        // Set up MutationObserver to catch any dynamically added elements
+        window.addEventListener('load', function() {
+          var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+              if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                for (var i = 0; i < mutation.addedNodes.length; i++) {
+                  var node = mutation.addedNodes[i];
+                  if (node.classList && (node.classList.contains('lovable-editor-button') || 
+                      (node.id && node.id.indexOf('lovable') !== -1) ||
+                      (node.className && typeof node.className === 'string' && node.className.indexOf('lovable') !== -1))) {
+                    if (node.parentNode) {
+                      node.parentNode.removeChild(node);
+                    }
+                  }
+                }
+              }
+            });
+          });
+          
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+        });
+      })();
+    </script>
   </head>
 
   <body>
     <div id="root"></div>
     <!-- Add a div to block the badge visually -->
     <div id="badge-blocker"></div>
-    <!-- Remove or comment out the GPT Engineer script -->
-    <!-- <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script> -->
+    <!-- Remove GPT Engineer script completely -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
