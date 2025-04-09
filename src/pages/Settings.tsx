@@ -6,7 +6,6 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
-import { HomeSidebar } from "@/components/HomeSidebar";
 import { useAuth } from "@/context/AuthContext";
 import { useUserStore } from "@/services/user";
 import { useState, useEffect } from "react";
@@ -167,9 +166,8 @@ const Settings = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-black dark:text-white">
-        <HomeSidebar />
-        <div className="ml-16 p-4">
-          <Navigation />
+        <Navigation />
+        <div className="p-4 pt-20">
           <div className="flex justify-center items-center h-[80vh]">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
           </div>
@@ -180,10 +178,9 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-black dark:text-white">
-      <HomeSidebar />
-      <div className="ml-16 p-4">
-        <Navigation />
-        <div className="max-w-4xl mx-auto mt-8">
+      <Navigation />
+      <div className="p-4 pt-20">
+        <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Settings</h1>
           
           {/* Basic Information */}
