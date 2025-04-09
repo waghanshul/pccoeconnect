@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Navigation } from "@/components/Navigation";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ChatWindow from "@/components/ChatWindow";
 import ConversationsList from "@/components/messaging/ConversationsList";
 import NewMessageDialog from "@/components/messaging/NewMessageDialog";
@@ -10,6 +10,7 @@ import { useConversations } from "@/hooks/useConversations";
 const Messages = () => {
   const navigate = useNavigate();
   const { conversationId } = useParams();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -22,6 +23,16 @@ const Messages = () => {
     searchUsers,
     createConversation
   } = useConversations();
+
+  useEffect(() => {
+    // Check if we have an initialContactId in location state
+    const state = location.state as { initialContactId?: string } | null;
+    if (state?.initialContactId) {
+      handleFriendSelect(state.initialContactId);
+      // Clear the state to prevent handling it again on navigation
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;

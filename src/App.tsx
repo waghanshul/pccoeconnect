@@ -1,83 +1,124 @@
-
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
-import Landing from "./pages/Landing";
-import Index from "./pages/Index";
-import Messages from "./pages/Messages";
+import React, { useEffect, useState } from "react";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
+import { Auth } from "@supabase/ui";
+import { supabase } from "./integrations/supabase/client";
+import Home from "./pages/Home";
 import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
-import Notifications from "./pages/Notifications";
 import UserProfile from "./pages/UserProfile";
-import AdminDashboard from "./pages/AdminDashboard";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { AuthProvider } from "./context/AuthContext";
-import { Toaster } from "@/components/ui/toaster";
+import Social from "./pages/Social";
+import Notifications from "./pages/Notifications";
+import Messages from "./pages/Messages";
+import { AuthContext } from "./context/AuthContext";
+import Connections from "./pages/Connections";
 
-function App() {
+const App = () => {
+  const [session, setSession] = useState(null);
+
   useEffect(() => {
-    // Force dark mode
-    document.documentElement.classList.add("dark");
-    localStorage.setItem("darkMode", "true");
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
   }, []);
 
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    if (!session) {
+      return <Navigate to="/login" />;
+    }
+
+    return <>{children}</>;
+  };
+
+  const routes = [
+    {
+      path: "/",
+      element: (
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/profile",
+      element: (
+        <ProtectedRoute>
+          <Profile />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/user/:id",
+      element: (
+        <ProtectedRoute>
+          <UserProfile />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/social",
+      element: (
+        <ProtectedRoute>
+          <Social />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/notifications",
+      element: (
+        <ProtectedRoute>
+          <Notifications />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/messages",
+      element: (
+        <ProtectedRoute>
+          <Messages />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/messages/:conversationId",
+      element: (
+        <ProtectedRoute>
+          <Messages />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/connections",
+      element: (
+        <ProtectedRoute>
+          <Connections />
+        </ProtectedRoute>
+      ),
+    },
+  ];
+
   return (
-    <Router>
-      <AuthProvider>
+    <AuthContext.Provider value={{ session }}>
+      <Router>
         <Routes>
-          <Route path="/" element={<Landing />} />
-          
-          {/* Protected routes */}
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <Index />
-            </ProtectedRoute>
-          } />
-          
-          {/* Messages routes */}
-          <Route path="/messages" element={
-            <ProtectedRoute>
-              <Messages />
-            </ProtectedRoute>
-          } />
-          <Route path="/messages/:conversationId" element={
-            <ProtectedRoute>
-              <Messages />
-            </ProtectedRoute>
-          } />
-          
-          <Route path="/profile" element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute>
-              <Settings />
-            </ProtectedRoute>
-          } />
-          <Route path="/notifications" element={
-            <ProtectedRoute>
-              <Notifications />
-            </ProtectedRoute>
-          } />
-          <Route path="/user/:id" element={
-            <ProtectedRoute>
-              <UserProfile />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/dashboard" element={
-            <ProtectedRoute requiredRole="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          
-          {/* Fallback route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route
+            path="/login"
+            element={<Auth supabaseClient={supabase} appearance={{ theme: Auth.Theme.dark }} />}
+          />
+          {routes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element} />
+          ))}
         </Routes>
-        <Toaster />
-      </AuthProvider>
-    </Router>
+      </Router>
+    </AuthContext.Provider>
   );
-}
+};
 
 export default App;
