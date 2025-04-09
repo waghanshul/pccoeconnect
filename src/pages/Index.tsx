@@ -11,7 +11,7 @@ const Index = () => {
   useEffect(() => {
     // Find and remove the badge if it exists
     const removeEditButton = () => {
-      const badgeElements = document.querySelectorAll('.lovable-editor-button');
+      const badgeElements = document.querySelectorAll('.lovable-editor-button, [id*="lovable"], [class*="lovable"]');
       badgeElements.forEach(el => {
         if (el instanceof HTMLElement) {
           el.style.display = 'none';
