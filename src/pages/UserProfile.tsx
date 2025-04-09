@@ -36,13 +36,14 @@ interface ProfileRecord {
 }
 
 const UserProfile = () => {
-  const { userId } = useParams<{ userId: string }>();
+  const { id: userId } = useParams<{ id: string }>();
   const [userData, setUserData] = useState<ProfileData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
 
   useEffect(() => {
     if (userId) {
+      console.log("Fetching data for user ID:", userId);
       fetchUserData(userId);
     }
   }, [userId]);
@@ -58,7 +59,12 @@ const UserProfile = () => {
         .eq('id', id)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        throw profileError;
+      }
+
+      console.log("Fetched profile data:", profileData);
 
       // Safely cast the profile data to ensure TypeScript knows about all properties
       const typedProfileData = profileData as ProfileRecord;
@@ -73,6 +79,7 @@ const UserProfile = () => {
           .maybeSingle();
 
         if (studentError && studentError.code !== 'PGRST116') {
+          console.error("Error fetching student profile:", studentError);
           throw studentError;
         }
         
@@ -114,6 +121,7 @@ const UserProfile = () => {
           .maybeSingle();
 
         if (adminError && adminError.code !== 'PGRST116') {
+          console.error("Error fetching admin profile:", adminError);
           throw adminError;
         }
         
@@ -123,7 +131,6 @@ const UserProfile = () => {
         }
       }
 
-      console.log("Fetched profile data:", typedProfileData);
       console.log("Fetched extended data:", extendedData);
 
       // Combine and set the data, ensuring proper handling of arrays and empty values

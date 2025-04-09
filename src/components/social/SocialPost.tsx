@@ -58,6 +58,7 @@ export const SocialPost = ({ post }: SocialPostProps) => {
   
   const handleProfileClick = () => {
     if (post.user_id) {
+      console.log("Navigating to user profile:", post.user_id);
       navigate(`/user/${post.user_id}`);
     }
   };
