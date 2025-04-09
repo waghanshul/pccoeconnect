@@ -10,6 +10,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { SocialPostComments } from "./SocialPostComments";
+import { useNavigate } from "react-router-dom";
 
 interface SocialPostProps {
   post: SocialPostType;
@@ -19,6 +20,7 @@ export const SocialPost = ({ post }: SocialPostProps) => {
   const [showComments, setShowComments] = useState(false);
   const [poll, setPoll] = useState<Poll | null>(null);
   const { likePost, unlikePost, fetchComments, fetchPoll, votePoll } = useSocialStore();
+  const navigate = useNavigate();
   
   useEffect(() => {
     if (post.file_type === 'poll' && post.poll_id) {
@@ -51,6 +53,12 @@ export const SocialPost = ({ post }: SocialPostProps) => {
   const handleVote = (option: string) => {
     if (post.poll_id && !poll?.user_vote) {
       votePoll(post.poll_id, option);
+    }
+  };
+  
+  const handleProfileClick = () => {
+    if (post.user_id) {
+      navigate(`/user/${post.user_id}`);
     }
   };
   
@@ -182,14 +190,22 @@ export const SocialPost = ({ post }: SocialPostProps) => {
     <Card className="mb-4">
       <CardContent className="pt-6">
         <div className="flex items-start gap-3">
-          <Avatar>
+          <Avatar 
+            className="cursor-pointer hover:opacity-90 transition-opacity"
+            onClick={handleProfileClick}
+          >
             <AvatarImage src={post.author?.avatar_url} />
             <AvatarFallback>{post.author?.full_name?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
           
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold">{post.author?.full_name || 'Anonymous'}</h3>
+              <h3 
+                className="font-semibold cursor-pointer hover:text-primary transition-colors"
+                onClick={handleProfileClick}
+              >
+                {post.author?.full_name || 'Anonymous'}
+              </h3>
               {renderFileTypeIcon()}
             </div>
             <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
