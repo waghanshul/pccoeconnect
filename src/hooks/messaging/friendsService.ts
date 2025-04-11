@@ -7,17 +7,28 @@ export const fetchContacts = async (userId: string | undefined): Promise<Friend[
   try {
     if (!userId) return [];
     
-    // For simplicity, we're getting all users except the current user
-    // In a real app, you'd want to filter for friends/connections
-    const { data, error } = await supabase
+    // Get the user's connections first (people they follow)
+    const { data: connections, error: connectionsError } = await supabase
+      .from('connections')
+      .select('following_id')
+      .eq('follower_id', userId);
+      
+    if (connectionsError) throw connectionsError;
+    
+    // If no connections, return empty array
+    if (!connections || connections.length === 0) return [];
+    
+    // Get the profile information for each connection
+    const connectionIds = connections.map(c => c.following_id);
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
-      .neq('id', userId);
+      .in('id', connectionIds);
       
-    if (error) throw error;
+    if (profilesError) throw profilesError;
     
     // Get additional data for student profiles where available
-    const friendsWithDepartments = await Promise.all((data || []).map(async (profile) => {
+    const friendsWithDepartments = await Promise.all((profiles || []).map(async (profile) => {
       try {
         const { data: studentData } = await supabase
           .from('student_profiles')
@@ -55,11 +66,24 @@ export const searchUsers = async (query: string, userId: string | undefined): Pr
       return await fetchContacts(userId);
     }
     
+    // Get user's connections
+    const { data: connections } = await supabase
+      .from('connections')
+      .select('following_id')
+      .eq('follower_id', userId);
+    
+    const connectionIds = connections?.map(c => c.following_id) || [];
+    
+    // Search only within connections
+    if (connectionIds.length === 0) {
+      return [];
+    }
+    
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
-      .neq('id', userId)
-      .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`);
+      .in('id', connectionIds)
+      .ilike('full_name', `%${query}%`);
       
     if (error) throw error;
     

@@ -1,171 +1,225 @@
-
-import { Bell, Home, MessageSquare, Search, User, LogOut, Settings, Menu } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Logo } from "./Logo";
-import { Button } from "./ui/button";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
-import { useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useMobile } from "@/hooks/use-mobile";
+import {
+  User,
+  Settings,
+  Bell,
+  LogOut,
+  Menu,
+  X,
+  MessageSquare,
+  Home,
+  Users
+} from "lucide-react";
 
 export const Navigation = () => {
+  const { logout, user } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { signOut } = useAuth();
-  const isMobile = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const currentPath = location.pathname;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isMobile = useMobile();
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location]);
 
   const handleLogout = async () => {
-    await signOut();
-    toast("Logged out successfully", {
-      description: "See you soon!",
-    });
+    await logout();
   };
 
-  const getActiveStyles = (path: string) => {
-    const isActive = location.pathname === path;
-    return isActive
-      ? "text-primary border-b-2 border-primary"
-      : "text-gray-600 dark:text-gray-300 hover:text-primary";
-  };
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-gray-900/80 backdrop-blur-md border-b border-gray-800 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/home" className="flex items-center">
-            <Logo />
-          </Link>
-          
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/home" 
-              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/home')}`}
-            >
-              <Home size={20} />
-              <span>Home</span>
-            </Link>
-            <Link 
-              to="/messages" 
-              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/messages')}`}
-            >
-              <MessageSquare size={20} />
-              <span>Messages</span>
-            </Link>
-            <Link 
-              to="/notifications" 
-              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/notifications')}`}
-            >
-              <Bell size={20} />
-              <span>Notifications</span>
-            </Link>
-            <Link 
-              to="/profile" 
-              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/profile')}`}
-            >
-              <User size={20} />
-              <span>Profile</span>
-            </Link>
-            <Link 
-              to="/settings" 
-              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/settings')}`}
-            >
-              <Settings size={20} />
-              <span>Settings</span>
-            </Link>
-          </div>
+    <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-10">
+      <div className="container max-w-screen-xl mx-auto p-4 flex items-center justify-between">
+        <Link to="/home" className="flex items-center space-x-2">
+          <Logo />
+          <span className="font-bold">CampusConnect</span>
+        </Link>
 
-          <div className="flex items-center space-x-4">
-            {/* Mobile menu button */}
-            <button 
-              className="md:hidden text-gray-300 hover:text-primary"
-              onClick={toggleMobileMenu}
-            >
-              <Menu size={24} />
-            </button>
-            
-            {/* Search and Logout for all screens */}
-            <div className="relative hidden md:block">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="pl-10 pr-4 py-2 border border-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-800 text-gray-200"
-              />
-              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleLogout}
-              className="text-gray-300 hover:text-primary"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Mobile Navigation Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-gray-800 py-2 px-4 rounded-b-lg">
-            <div className="flex flex-col space-y-3">
-              <Link 
-                to="/home" 
-                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/home' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Home size={20} />
-                <span>Home</span>
-              </Link>
-              <Link 
-                to="/messages" 
-                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/messages' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <MessageSquare size={20} />
-                <span>Messages</span>
-              </Link>
-              <Link 
-                to="/notifications" 
-                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/notifications' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Bell size={20} />
-                <span>Notifications</span>
-              </Link>
-              <Link 
-                to="/profile" 
-                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/profile' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <User size={20} />
-                <span>Profile</span>
-              </Link>
-              <Link 
-                to="/settings" 
-                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/settings' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <Settings size={20} />
-                <span>Settings</span>
-              </Link>
-              
-              {/* Mobile search */}
-              <div className="relative mt-2">
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-800 text-gray-200"
-                />
-                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-          </div>
+        {isMobile && (
+          <button onClick={toggleMenu}>
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         )}
+
+        <div className="hidden md:flex items-center space-x-4">
+          {user ? (
+            <div className="flex items-center space-x-4">
+              <Link to="/profile">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url as string} />
+                  <AvatarFallback>{user?.user_metadata?.full_name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </Link>
+            </div>
+          ) : (
+            <Link to="/login">
+              <Button variant="outline">Login</Button>
+            </Link>
+          )}
+        </div>
+      </div>
+      
+      <div className={`absolute top-full left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 md:hidden transform transition-transform duration-300 ease-in-out ${isMenuOpen ? "translate-y-0" : "-translate-y-full"}`}>
+        <div className="flex flex-col space-y-4">
+          <Link
+            to="/home"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              currentPath === "/home"
+                ? "bg-gray-100 dark:bg-gray-800 text-primary"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Home size={20} />
+            <span>Home</span>
+          </Link>
+          <Link
+            to="/connections"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              currentPath === "/connections"
+                ? "bg-gray-100 dark:bg-gray-800 text-primary"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Users size={20} />
+            <span>Connections</span>
+          </Link>
+          <Link
+            to="/messages"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              currentPath === "/messages"
+                ? "bg-gray-100 dark:bg-gray-800 text-primary"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <MessageSquare size={20} />
+            <span>Messages</span>
+          </Link>
+          <Link
+            to="/notifications"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              currentPath === "/notifications"
+                ? "bg-gray-100 dark:bg-gray-800 text-primary"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Bell size={20} />
+            <span>Notifications</span>
+          </Link>
+          <Link
+            to="/profile"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              currentPath === "/profile"
+                ? "bg-gray-100 dark:bg-gray-800 text-primary"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <User size={20} />
+            <span>Profile</span>
+          </Link>
+          <Link
+            to="/settings"
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
+              currentPath === "/settings"
+                ? "bg-gray-100 dark:bg-gray-800 text-primary"
+                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Settings size={20} />
+            <span>Settings</span>
+          </Link>
+          <Button
+            variant="ghost"
+            className="flex items-center space-x-2 px-4 py-2 w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut size={20} />
+            <span>Logout</span>
+          </Button>
+        </div>
+      </div>
+
+      <div className="hidden md:flex justify-center space-x-1 pb-1">
+        <Link
+          to="/home"
+          className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
+            currentPath === "/home"
+              ? "bg-gray-100 dark:bg-gray-800 text-primary"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <Home size={18} />
+          <span>Home</span>
+        </Link>
+        <Link
+          to="/connections"
+          className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
+            currentPath === "/connections"
+              ? "bg-gray-100 dark:bg-gray-800 text-primary"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <Users size={18} />
+          <span>Connections</span>
+        </Link>
+        <Link
+          to="/messages"
+          className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
+            currentPath === "/messages"
+              ? "bg-gray-100 dark:bg-gray-800 text-primary"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <MessageSquare size={18} />
+          <span>Messages</span>
+        </Link>
+        <Link
+          to="/notifications"
+          className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
+            currentPath === "/notifications"
+              ? "bg-gray-100 dark:bg-gray-800 text-primary"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <Bell size={18} />
+          <span>Notifications</span>
+        </Link>
+        <Link
+          to="/profile"
+          className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
+            currentPath === "/profile"
+              ? "bg-gray-100 dark:bg-gray-800 text-primary"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <User size={18} />
+          <span>Profile</span>
+        </Link>
+        <Link
+          to="/settings"
+          className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
+            currentPath === "/settings"
+              ? "bg-gray-100 dark:bg-gray-800 text-primary"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+          }`}
+        >
+          <Settings size={18} />
+          <span>Settings</span>
+        </Link>
       </div>
     </nav>
   );
