@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -7,7 +8,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import Landing from "./pages/Landing";
-import RegisterForm from "./pages/Register";
+import Register from "./pages/Register";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import UserProfile from "./pages/UserProfile";
@@ -26,7 +27,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedRoles,
 }) => {
-  const { user, loading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [hasRequiredRole, setHasRequiredRole] = useState(true);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [user, allowedRoles]);
 
-  if (loading) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -65,7 +66,7 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/register" element={<RegisterForm />} />
+          <Route path="/register" element={<Register />} />
           <Route
             path="/home"
             element={
