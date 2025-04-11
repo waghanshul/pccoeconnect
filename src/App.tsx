@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
@@ -5,7 +6,6 @@ import {
   Routes,
   Navigate,
 } from "react-router-dom";
-import { Auth } from "@supabase/ui";
 import { supabase } from "./integrations/supabase/client";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -13,8 +13,9 @@ import UserProfile from "./pages/UserProfile";
 import Social from "./pages/Social";
 import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
-import { AuthContext } from "./context/AuthContext";
+import { AuthContext, AuthProvider } from "./context/AuthContext";
 import Connections from "./pages/Connections";
+import { ThemeProvider } from "./context/ThemeContext";
 
 const App = () => {
   const [session, setSession] = useState(null);
@@ -105,19 +106,35 @@ const App = () => {
   ];
 
   return (
-    <AuthContext.Provider value={{ session }}>
-      <Router>
-        <Routes>
-          <Route
-            path="/login"
-            element={<Auth supabaseClient={supabase} appearance={{ theme: Auth.Theme.dark }} />}
-          />
-          {routes.map((route, index) => (
-            <Route key={index} path={route.path} element={route.element} />
-          ))}
-        </Routes>
-      </Router>
-    </AuthContext.Provider>
+    <ThemeProvider>
+      <AuthContext.Provider value={{ session }}>
+        <Router>
+          <Routes>
+            <Route
+              path="/login"
+              element={
+                <div className="flex items-center justify-center min-h-screen bg-gray-900">
+                  <div className="w-full max-w-md p-8 bg-gray-800 rounded-lg shadow-lg">
+                    <h1 className="text-2xl font-bold text-white mb-6 text-center">Campus Connect</h1>
+                    <div className="space-y-4">
+                      <button
+                        className="w-full bg-primary hover:bg-primary/90 text-white py-2 px-4 rounded-md transition-colors"
+                        onClick={() => window.location.href = '/'}
+                      >
+                        Continue to App
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            />
+            {routes.map((route, index) => (
+              <Route key={index} path={route.path} element={route.element} />
+            ))}
+          </Routes>
+        </Router>
+      </AuthContext.Provider>
+    </ThemeProvider>
   );
 };
 

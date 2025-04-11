@@ -1,3 +1,4 @@
+
 import {
   Home,
   Book,
@@ -50,7 +51,7 @@ const navigationItems = [
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { signOut } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -59,7 +60,7 @@ export const Navigation = () => {
   }, []);
 
   const handleLogout = async () => {
-    await logout();
+    await signOut();
     navigate("/login");
   };
 
