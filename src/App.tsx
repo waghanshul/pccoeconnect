@@ -13,7 +13,7 @@ import UserProfile from "./pages/UserProfile";
 import Social from "./pages/Social";
 import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
-import { AuthContext, AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./context/AuthContext";
 import Connections from "./pages/Connections";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -106,9 +106,9 @@ const App = () => {
   ];
 
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
+    <Router>
+      <ThemeProvider>
+        <AuthProvider>
           <Routes>
             <Route
               path="/login"
@@ -132,9 +132,9 @@ const App = () => {
               <Route key={index} path={route.path} element={route.element} />
             ))}
           </Routes>
-        </Router>
-      </AuthProvider>
-    </ThemeProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </Router>
   );
 };
 
