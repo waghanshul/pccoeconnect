@@ -19,10 +19,9 @@ type AuthContextType = {
     data: { user: User | null; session: Session | null };
   }>;
   signOut: () => Promise<void>;
-  logout: () => Promise<void>; // Add the logout method
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -148,19 +147,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Add the logout method that's being called from Navigation
-  const logout = async () => {
-    try {
-      setIsLoading(true);
-      await supabase.auth.signOut();
-      navigate("/login");
-    } catch (error) {
-      console.error("Error logging out:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const value = {
     session,
     user,
@@ -169,7 +155,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signIn,
     signUp,
     signOut,
-    logout, // Add the logout method to the context value
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

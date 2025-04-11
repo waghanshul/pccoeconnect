@@ -20,8 +20,6 @@ export interface Friend {
   full_name: string;
   department?: string;
   avatar_url?: string;
-  status?: string;
-  isConnected?: boolean;
 }
 
 export interface Message {

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { Conversation, Friend } from "./messaging/types";
 import { fetchConversations } from "./messaging/conversationService";
-import { fetchContacts, searchUsers as searchUsersService, toggleConnection } from "./messaging/friendsService";
+import { fetchContacts, searchUsers as searchUsersService } from "./messaging/friendsService";
 import { createConversation as createConversationService } from "./messaging/conversationOperations";
 import { setupRealtimeSubscription } from "./messaging/realtimeService";
 
@@ -38,7 +38,6 @@ export const useConversations = () => {
   const searchUsers = async (query: string) => {
     const result = await searchUsersService(query, user?.id);
     setFriends(result);
-    return result;
   };
 
   const createConversation = async (friendId: string) => {
@@ -48,23 +47,6 @@ export const useConversations = () => {
     return conversationId;
   };
 
-  const toggleUserConnection = async (targetUserId: string, isConnected: boolean) => {
-    if (!user) return isConnected;
-    
-    const newStatus = await toggleConnection(user.id, targetUserId, isConnected);
-    
-    // Update the friends list to reflect the new connection status
-    setFriends(prev => 
-      prev.map(friend => 
-        friend.id === targetUserId 
-          ? { ...friend, isConnected: newStatus }
-          : friend
-      )
-    );
-    
-    return newStatus;
-  };
-
   return {
     conversations,
     friends,
@@ -72,8 +54,7 @@ export const useConversations = () => {
     fetchConversations: fetchConversationsData,
     fetchContacts: fetchContactsData,
     searchUsers,
-    createConversation,
-    toggleConnection: toggleUserConnection
+    createConversation
   };
 };
 

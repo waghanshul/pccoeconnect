@@ -1,123 +1,171 @@
 
-import {
-  Home,
-  Book,
-  Settings,
-  User,
-  LogOut,
-  Sun,
-  Moon,
-  Users
-} from "lucide-react";
+import { Bell, Home, MessageSquare, Search, User, LogOut, Settings, Menu } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Logo } from "./Logo";
+import { Button } from "./ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
-import { Switch } from "@/components/ui/switch"
-import { useTheme } from "@/context/ThemeContext";
-
-const navigationItems = [
-  {
-    name: "Home",
-    to: "/",
-    icon: <Home className="h-5 w-5" />,
-    activeIcon: <Home className="h-5 w-5 text-primary" />,
-  },
-  {
-    name: "Courses",
-    to: "/courses",
-    icon: <Book className="h-5 w-5" />,
-    activeIcon: <Book className="h-5 w-5 text-primary" />,
-  },
-  {
-    name: "Profile",
-    to: "/profile",
-    icon: <User className="h-5 w-5" />,
-    activeIcon: <User className="h-5 w-5 text-primary" />,
-  },
-  {
-    name: "Settings",
-    to: "/settings",
-    icon: <Settings className="h-5 w-5" />,
-    activeIcon: <Settings className="h-5 w-5 text-primary" />,
-  },
-  {
-    name: "Connections",
-    to: "/connections",
-    icon: <Users className="h-5 w-5" />,
-    activeIcon: <Users className="h-5 w-5 text-primary" />,
-  },
-];
+import { toast } from "sonner";
+import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut } = useAuth();
-  const [isMounted, setIsMounted] = useState(false);
-  const { theme, setTheme } = useTheme();
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await signOut();
-    navigate("/login");
+    toast("Logged out successfully", {
+      description: "See you soon!",
+    });
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
+  const getActiveStyles = (path: string) => {
+    const isActive = location.pathname === path;
+    return isActive
+      ? "text-primary border-b-2 border-primary"
+      : "text-gray-600 dark:text-gray-300 hover:text-primary";
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuOpen(!mobileMenuOpen);
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-900 shadow fixed top-0 left-0 w-full z-50 transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 w-full bg-gray-900/80 backdrop-blur-md border-b border-gray-800 z-50">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Link to="/" className="text-primary font-bold text-xl">
-                CampusConnect
-              </Link>
+          <Link to="/home" className="flex items-center">
+            <Logo />
+          </Link>
+          
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/home" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/home')}`}
+            >
+              <Home size={20} />
+              <span>Home</span>
+            </Link>
+            <Link 
+              to="/messages" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/messages')}`}
+            >
+              <MessageSquare size={20} />
+              <span>Messages</span>
+            </Link>
+            <Link 
+              to="/notifications" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/notifications')}`}
+            >
+              <Bell size={20} />
+              <span>Notifications</span>
+            </Link>
+            <Link 
+              to="/profile" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/profile')}`}
+            >
+              <User size={20} />
+              <span>Profile</span>
+            </Link>
+            <Link 
+              to="/settings" 
+              className={`flex items-center gap-2 transition-colors duration-200 pb-1 ${getActiveStyles('/settings')}`}
+            >
+              <Settings size={20} />
+              <span>Settings</span>
+            </Link>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {/* Mobile menu button */}
+            <button 
+              className="md:hidden text-gray-300 hover:text-primary"
+              onClick={toggleMobileMenu}
+            >
+              <Menu size={24} />
+            </button>
+            
+            {/* Search and Logout for all screens */}
+            <div className="relative hidden md:block">
+              <input
+                type="text"
+                placeholder="Search..."
+                className="pl-10 pr-4 py-2 border border-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-800 text-gray-200"
+              />
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-baseline space-x-4">
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.name}
-                    to={item.to}
-                    className={`hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-300 px-3 py-2 rounded-md text-sm font-medium flex items-center space-x-2 ${
-                      location.pathname === item.to
-                        ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                        : ""
-                    }`}
-                  >
-                    {location.pathname === item.to
-                      ? item.activeIcon
-                      : item.icon}
-                    <span>{item.name}</span>
-                  </Link>
-                ))}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              className="text-gray-300 hover:text-primary"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-gray-800 py-2 px-4 rounded-b-lg">
+            <div className="flex flex-col space-y-3">
+              <Link 
+                to="/home" 
+                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/home' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Home size={20} />
+                <span>Home</span>
+              </Link>
+              <Link 
+                to="/messages" 
+                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/messages' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <MessageSquare size={20} />
+                <span>Messages</span>
+              </Link>
+              <Link 
+                to="/notifications" 
+                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/notifications' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Bell size={20} />
+                <span>Notifications</span>
+              </Link>
+              <Link 
+                to="/profile" 
+                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/profile' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <User size={20} />
+                <span>Profile</span>
+              </Link>
+              <Link 
+                to="/settings" 
+                className={`flex items-center gap-2 p-2 rounded-md ${location.pathname === '/settings' ? 'bg-gray-700 text-primary' : 'text-gray-300'}`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Settings size={20} />
+                <span>Settings</span>
+              </Link>
+              
+              {/* Mobile search */}
+              <div className="relative mt-2">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 py-2 border border-gray-700 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 bg-gray-800 text-gray-200"
+                />
+                <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
             </div>
           </div>
-          <div className="hidden md:block">
-            <div className="ml-4 flex items-center md:ml-6">
-              {isMounted && (
-                <Switch
-                  id="theme"
-                  checked={theme === "dark"}
-                  onCheckedChange={() => toggleTheme()}
-                />
-              )}
-              <button
-                onClick={handleLogout}
-                className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-300 px-3 py-2 rounded-md text-sm font-medium ml-4 flex items-center space-x-2"
-              >
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </nav>
   );
