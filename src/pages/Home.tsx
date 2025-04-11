@@ -9,7 +9,7 @@ interface PostData {
   id: string;
   content: string;
   created_at: string;
-  user_id: string;
+  author_id: string;
   user: {
     id: string;
     full_name: string;
@@ -28,14 +28,16 @@ const Home = () => {
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
+      
+      // Using the posts table structure which has author_id instead of user_id
       const { data, error } = await supabase
         .from('posts')
         .select(`
           id,
           content,
           created_at,
-          user_id,
-          user:user_id (
+          author_id,
+          user:profiles!posts_author_id_fkey (
             id,
             full_name,
             avatar_url
@@ -43,11 +45,25 @@ const Home = () => {
         `)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching posts:', error);
+        setPosts([]);
+        return;
+      }
       
-      setPosts(data || []);
+      // Map the data to match the PostData interface
+      const formattedPosts = data.map((post: any) => ({
+        id: post.id,
+        content: post.content,
+        created_at: post.created_at,
+        author_id: post.author_id,
+        user: post.user
+      }));
+      
+      setPosts(formattedPosts);
     } catch (error) {
-      console.error('Error fetching posts:', error);
+      console.error('Error in fetchPosts:', error);
+      setPosts([]);
     } finally {
       setIsLoading(false);
     }

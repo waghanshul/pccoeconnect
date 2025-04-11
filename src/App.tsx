@@ -107,7 +107,7 @@ const App = () => {
 
   return (
     <ThemeProvider>
-      <AuthContext.Provider value={{ session }}>
+      <AuthProvider>
         <Router>
           <Routes>
             <Route
@@ -133,7 +133,7 @@ const App = () => {
             ))}
           </Routes>
         </Router>
-      </AuthContext.Provider>
+      </AuthProvider>
     </ThemeProvider>
   );
 };
