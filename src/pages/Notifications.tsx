@@ -63,39 +63,56 @@ const Notifications = () => {
     try {
       setIsLoading(true);
       
-      // Fetch regular notifications
+      // Fetch regular notifications with explicit join on sender profiles
       const { data: notificationData, error: notificationError } = await supabase
         .from('notifications')
-        .select('*, sender:sender_id(avatar_url, full_name)')
+        .select(`
+          *,
+          sender:sender_id(
+            avatar_url,
+            full_name
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (notificationError) throw notificationError;
       
-      // Fetch connection requests
+      // Fetch connection requests with explicit profile data for requester
       const { data: connectionRequests, error: connectionError } = await supabase
         .from('connection_requests')
-        .select('id, created_at, requester_id, requester:requester_id(avatar_url, full_name)')
+        .select(`
+          id, 
+          created_at, 
+          requester_id,
+          requester:requester_id(
+            avatar_url, 
+            full_name
+          )
+        `)
         .eq('recipient_id', user?.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
         
       if (connectionError) throw connectionError;
       
-      // Convert connection requests to notification format
-      const connectionNotifications = connectionRequests.map(request => ({
+      // Convert connection requests to notification format with explicit typing
+      const connectionNotifications: Notification[] = connectionRequests.map(request => ({
         id: `connection-${request.id}`,
         title: 'Connection Request',
         content: `${request.requester?.full_name || 'Someone'} wants to connect with you`,
         category: 'connections',
         created_at: request.created_at,
         sender_id: request.requester_id,
-        sender: request.requester,
+        sender: {
+          avatar_url: request.requester?.avatar_url,
+          full_name: request.requester?.full_name || 'Unknown User'
+        },
         isConnectionRequest: true,
         requestId: request.id
       }));
       
       // Combine both types of notifications and sort by date
-      const allNotifications = [...notificationData, ...connectionNotifications]
+      const allNotifications: Notification[] = [...notificationData, ...connectionNotifications]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       setNotifications(allNotifications);

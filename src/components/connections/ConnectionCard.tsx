@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare, UserMinus, UserCheck, Plus, Loader2 } from "lucide-react";
+import { MessageSquare, UserMinus, UserPlus, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -157,9 +157,9 @@ export const ConnectionCard = ({
     } else if (isConnected) {
       return <UserMinus className="h-4 w-4" />;
     } else if (hasPendingRequest) {
-      return <Plus className="h-4 w-4" />;
+      return <Loader2 className="h-4 w-4" />;
     } else {
-      return <UserCheck className="h-4 w-4" />;
+      return <UserPlus className="h-4 w-4" />;
     }
   };
 
@@ -177,7 +177,7 @@ export const ConnectionCard = ({
     if (isConnected) {
       return "Disconnect";
     } else if (hasPendingRequest) {
-      return "Cancel request";
+      return "Request Pending";
     } else {
       return "Connect";
     }
