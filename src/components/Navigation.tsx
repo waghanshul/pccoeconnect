@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -55,11 +54,11 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50">
+    <nav className="fixed top-0 left-0 w-full bg-gray-900 border-b border-gray-800 z-50">
       <div className="container max-w-screen-xl mx-auto p-4 flex items-center justify-between">
         <Link to="/home" className="flex items-center space-x-2">
           <Logo />
-          <span className="font-bold">CampusConnect</span>
+          <span className="font-bold text-white">CampusConnect</span>
         </Link>
 
         {isMobile && (
@@ -77,6 +76,14 @@ export const Navigation = () => {
                   <AvatarFallback>{user?.user_metadata?.full_name?.charAt(0)}</AvatarFallback>
                 </Avatar>
               </Link>
+              <Button 
+                variant="ghost" 
+                className="flex items-center space-x-2 text-white"
+                onClick={handleLogout}
+              >
+                <LogOut size={20} />
+                <span>Logout</span>
+              </Button>
             </div>
           ) : (
             <Link to="/login">
@@ -86,14 +93,14 @@ export const Navigation = () => {
         </div>
       </div>
       
-      <div className={`absolute top-full left-0 w-full bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 md:hidden transform transition-transform duration-300 ease-in-out ${isMenuOpen ? "translate-y-0" : "-translate-y-full"} z-50`}>
+      <div className={`absolute top-full left-0 w-full bg-gray-900 border-b border-gray-800 p-4 md:hidden transform transition-transform duration-300 ease-in-out ${isMenuOpen ? "translate-y-0" : "-translate-y-full"} z-50`}>
         <div className="flex flex-col space-y-4">
           <Link
             to="/home"
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentPath === "/home"
-                ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-gray-800 text-primary"
+                : "hover:bg-gray-800"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -104,8 +111,8 @@ export const Navigation = () => {
             to="/connections"
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentPath === "/connections"
-                ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-gray-800 text-primary"
+                : "hover:bg-gray-800"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -116,8 +123,8 @@ export const Navigation = () => {
             to="/messages"
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentPath === "/messages"
-                ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-gray-800 text-primary"
+                : "hover:bg-gray-800"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -128,8 +135,8 @@ export const Navigation = () => {
             to="/notifications"
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentPath === "/notifications"
-                ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-gray-800 text-primary"
+                : "hover:bg-gray-800"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -140,8 +147,8 @@ export const Navigation = () => {
             to="/profile"
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentPath === "/profile"
-                ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-gray-800 text-primary"
+                : "hover:bg-gray-800"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -152,8 +159,8 @@ export const Navigation = () => {
             to="/settings"
             className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${
               currentPath === "/settings"
-                ? "bg-gray-100 dark:bg-gray-800 text-primary"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                ? "bg-gray-800 text-primary"
+                : "hover:bg-gray-800"
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
@@ -162,7 +169,7 @@ export const Navigation = () => {
           </Link>
           <Button
             variant="ghost"
-            className="flex items-center space-x-2 px-4 py-2 w-full justify-start"
+            className="flex items-center space-x-2 px-4 py-2 w-full justify-start text-white"
             onClick={handleLogout}
           >
             <LogOut size={20} />
@@ -171,13 +178,13 @@ export const Navigation = () => {
         </div>
       </div>
 
-      <div className="hidden md:flex justify-center space-x-1 pb-1">
+      <div className="hidden md:flex justify-center space-x-1 py-2">
         <Link
           to="/home"
           className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
             currentPath === "/home"
-              ? "bg-gray-100 dark:bg-gray-800 text-primary"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-gray-800 text-primary"
+              : "hover:bg-gray-800"
           }`}
         >
           <Home size={18} />
@@ -187,8 +194,8 @@ export const Navigation = () => {
           to="/connections"
           className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
             currentPath === "/connections"
-              ? "bg-gray-100 dark:bg-gray-800 text-primary"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-gray-800 text-primary"
+              : "hover:bg-gray-800"
           }`}
         >
           <Users size={18} />
@@ -198,8 +205,8 @@ export const Navigation = () => {
           to="/messages"
           className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
             currentPath === "/messages"
-              ? "bg-gray-100 dark:bg-gray-800 text-primary"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-gray-800 text-primary"
+              : "hover:bg-gray-800"
           }`}
         >
           <MessageSquare size={18} />
@@ -209,8 +216,8 @@ export const Navigation = () => {
           to="/notifications"
           className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
             currentPath === "/notifications"
-              ? "bg-gray-100 dark:bg-gray-800 text-primary"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-gray-800 text-primary"
+              : "hover:bg-gray-800"
           }`}
         >
           <Bell size={18} />
@@ -220,8 +227,8 @@ export const Navigation = () => {
           to="/profile"
           className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
             currentPath === "/profile"
-              ? "bg-gray-100 dark:bg-gray-800 text-primary"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-gray-800 text-primary"
+              : "hover:bg-gray-800"
           }`}
         >
           <User size={18} />
@@ -231,8 +238,8 @@ export const Navigation = () => {
           to="/settings"
           className={`flex items-center space-x-1 px-3 py-2 rounded-lg ${
             currentPath === "/settings"
-              ? "bg-gray-100 dark:bg-gray-800 text-primary"
-              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              ? "bg-gray-800 text-primary"
+              : "hover:bg-gray-800"
           }`}
         >
           <Settings size={18} />

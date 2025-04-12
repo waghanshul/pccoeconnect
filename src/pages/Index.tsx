@@ -27,9 +27,9 @@ const Index = () => {
   }, []);
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-gray-900 transition-colors duration-200">
       <Navigation />
-      <main className="container mx-auto px-4 pt-20 pb-10 max-w-3xl">
+      <main className="container mx-auto px-4 pt-32 pb-10 max-w-3xl">
         <SocialFeed />
       </main>
       {/* Additional layer to block the badge */}
