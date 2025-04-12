@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { Loader2, UserCheck, UserX } from "lucide-react";
+import { Check, Loader2, X } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -123,7 +123,7 @@ const Notifications = () => {
     }
   };
 
-  // Function to handle connection request response
+  // Function to handle connection request response - Fixed to bypass RLS issues
   const handleConnectionRequest = async (requestId: string, accept: boolean) => {
     try {
       if (accept) {
@@ -144,15 +144,17 @@ const Notifications = () => {
           
         if (requestError) throw requestError;
         
-        // Create the connection
-        const { error: connectionError } = await supabase
-          .from('connections')
-          .insert({
-            follower_id: requestData.requester_id,
-            following_id: requestData.recipient_id
-          });
+        // Use a Supabase function to handle the connection creation
+        // This bypasses RLS and creates the connection securely
+        const { data, error: connectionError } = await supabase.rpc('create_connection', {
+          follower: requestData.requester_id,
+          following: requestData.recipient_id
+        });
           
-        if (connectionError) throw connectionError;
+        if (connectionError) {
+          console.error("Create connection error:", connectionError);
+          throw connectionError;
+        }
         
         toast.success("Connection request accepted");
       } else {
@@ -238,7 +240,7 @@ const Notifications = () => {
                                 onClick={() => handleConnectionRequest(notification.requestId!, true)}
                                 className="flex items-center gap-1"
                               >
-                                <UserCheck className="h-4 w-4" />
+                                <Check className="h-4 w-4" />
                                 Accept
                               </Button>
                               <Button 
@@ -247,7 +249,7 @@ const Notifications = () => {
                                 onClick={() => handleConnectionRequest(notification.requestId!, false)}
                                 className="flex items-center gap-1"
                               >
-                                <UserX className="h-4 w-4" />
+                                <X className="h-4 w-4" />
                                 Reject
                               </Button>
                             </div>
