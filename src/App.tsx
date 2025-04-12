@@ -52,14 +52,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 };
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(
-    localStorage.getItem("theme") === "dark"
-  );
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
-    document.body.classList.toggle("dark", isDarkMode);
-    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+    document.body.classList.add("dark");
+    localStorage.setItem("theme", "dark");
+  }, []);
 
   return (
     <Router>

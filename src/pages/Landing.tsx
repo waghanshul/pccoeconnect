@@ -21,7 +21,7 @@ const Landing = () => {
   const [role, setRole] = useState<"student" | "admin" | null>(null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#111827] to-gray-900 dark">
       {step === "initial" && <Hero setStep={setStep} />}
 
       {step === "role" && (
