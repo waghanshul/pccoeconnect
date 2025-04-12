@@ -146,7 +146,7 @@ const Notifications = () => {
         
         // Use a Supabase function to handle the connection creation
         // This bypasses RLS and creates the connection securely
-        const { data, error: connectionError } = await supabase.rpc('create_connection', {
+        const { error: connectionError } = await supabase.rpc('create_connection', {
           follower: requestData.requester_id,
           following: requestData.recipient_id
         });

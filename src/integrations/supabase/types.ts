@@ -556,7 +556,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_connection: {
+        Args: { follower: string; following: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
