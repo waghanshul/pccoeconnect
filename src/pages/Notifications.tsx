@@ -68,7 +68,7 @@ const Notifications = () => {
         .from('notifications')
         .select(`
           *,
-          sender:sender_id(
+          sender:profiles!sender_id(
             avatar_url,
             full_name
           )
@@ -84,7 +84,7 @@ const Notifications = () => {
           id, 
           created_at, 
           requester_id,
-          requester:requester_id(
+          requester:profiles!requester_id(
             avatar_url, 
             full_name
           )
