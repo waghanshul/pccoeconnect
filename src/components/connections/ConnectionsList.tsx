@@ -17,6 +17,7 @@ interface Connection {
 export const ConnectionsList = () => {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
+  const [pendingRequestIds, setPendingRequestIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
@@ -24,7 +25,25 @@ export const ConnectionsList = () => {
   useEffect(() => {
     if (user) {
       fetchConnections();
+      fetchPendingRequests();
       fetchAllUsers();
+      
+      // Set up realtime subscription for connection requests
+      const channel = supabase
+        .channel('connection-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'connection_requests' },
+          () => {
+            fetchPendingRequests();
+            fetchConnections();
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -40,6 +59,22 @@ export const ConnectionsList = () => {
       setConnectedIds(data.map(connection => connection.following_id));
     } catch (error) {
       console.error("Error fetching connections:", error);
+    }
+  };
+  
+  const fetchPendingRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('connection_requests')
+        .select('recipient_id')
+        .eq('requester_id', user?.id)
+        .eq('status', 'pending');
+        
+      if (error) throw error;
+      
+      setPendingRequestIds(data.map(request => request.recipient_id));
+    } catch (error) {
+      console.error("Error fetching pending requests:", error);
     }
   };
 
@@ -129,6 +164,7 @@ export const ConnectionsList = () => {
 
   const handleConnectionUpdate = () => {
     fetchConnections();
+    fetchPendingRequests();
   };
 
   const filteredConnections = searchQuery 
@@ -165,6 +201,7 @@ export const ConnectionsList = () => {
               key={connection.id}
               connection={connection}
               isConnected={connectedIds.includes(connection.id)}
+              hasPendingRequest={pendingRequestIds.includes(connection.id)}
               onConnectionUpdate={handleConnectionUpdate}
             />
           ))}

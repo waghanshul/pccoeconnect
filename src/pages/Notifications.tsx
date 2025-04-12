@@ -4,8 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Navigation } from "@/components/Navigation";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
-import { Loader2 } from "lucide-react";
+import { Loader2, UserCheck, UserX } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Notification {
   id: string;
@@ -13,6 +16,13 @@ interface Notification {
   content: string;
   category: string;
   created_at: string;
+  sender_id?: string;
+  sender?: {
+    avatar_url?: string;
+    full_name: string;
+  };
+  isConnectionRequest?: boolean;
+  requestId?: string;
 }
 
 const Notifications = () => {
@@ -23,24 +33,128 @@ const Notifications = () => {
   useEffect(() => {
     if (user) {
       fetchNotifications();
+      
+      // Set up realtime subscription for notifications
+      const channel = supabase
+        .channel('notification-changes')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications' },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'connection_requests' },
+          () => {
+            fetchNotifications();
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
   const fetchNotifications = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+      
+      // Fetch regular notifications
+      const { data: notificationData, error: notificationError } = await supabase
         .from('notifications')
-        .select('*')
+        .select('*, sender:sender_id(avatar_url, full_name)')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (notificationError) throw notificationError;
       
-      setNotifications(data || []);
+      // Fetch connection requests
+      const { data: connectionRequests, error: connectionError } = await supabase
+        .from('connection_requests')
+        .select('id, created_at, requester_id, requester:requester_id(avatar_url, full_name)')
+        .eq('recipient_id', user?.id)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+        
+      if (connectionError) throw connectionError;
+      
+      // Convert connection requests to notification format
+      const connectionNotifications = connectionRequests.map(request => ({
+        id: `connection-${request.id}`,
+        title: 'Connection Request',
+        content: `${request.requester?.full_name || 'Someone'} wants to connect with you`,
+        category: 'connections',
+        created_at: request.created_at,
+        sender_id: request.requester_id,
+        sender: request.requester,
+        isConnectionRequest: true,
+        requestId: request.id
+      }));
+      
+      // Combine both types of notifications and sort by date
+      const allNotifications = [...notificationData, ...connectionNotifications]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      setNotifications(allNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Function to handle connection request response
+  const handleConnectionRequest = async (requestId: string, accept: boolean) => {
+    try {
+      if (accept) {
+        // First update the request status
+        const { error: updateError } = await supabase
+          .from('connection_requests')
+          .update({ status: 'accepted' })
+          .eq('id', requestId);
+          
+        if (updateError) throw updateError;
+        
+        // Get the request details to create the connection
+        const { data: requestData, error: requestError } = await supabase
+          .from('connection_requests')
+          .select('requester_id, recipient_id')
+          .eq('id', requestId)
+          .single();
+          
+        if (requestError) throw requestError;
+        
+        // Create the connection
+        const { error: connectionError } = await supabase
+          .from('connections')
+          .insert({
+            follower_id: requestData.requester_id,
+            following_id: requestData.recipient_id
+          });
+          
+        if (connectionError) throw connectionError;
+        
+        toast.success("Connection request accepted");
+      } else {
+        // Reject the request
+        const { error } = await supabase
+          .from('connection_requests')
+          .update({ status: 'rejected' })
+          .eq('id', requestId);
+          
+        if (error) throw error;
+        
+        toast.success("Connection request rejected");
+      }
+      
+      // Refresh notifications
+      fetchNotifications();
+    } catch (error) {
+      console.error("Error handling connection request:", error);
+      toast.error("Failed to process connection request");
     }
   };
 
@@ -66,8 +180,9 @@ const Notifications = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Tabs defaultValue="sports" className="w-full">
+          <Tabs defaultValue="connections" className="w-full">
             <TabsList className="w-full justify-start mb-8 overflow-x-auto bg-white dark:bg-gray-800">
+              <TabsTrigger value="connections">Connections</TabsTrigger>
               <TabsTrigger value="sports">Sports</TabsTrigger>
               <TabsTrigger value="exams">Exams</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
@@ -76,16 +191,52 @@ const Notifications = () => {
               <TabsTrigger value="celebrations">Celebrations</TabsTrigger>
             </TabsList>
 
-            {["sports", "exams", "events", "clubs", "placements", "celebrations"].map((category) => (
+            {["connections", "sports", "exams", "events", "clubs", "placements", "celebrations"].map((category) => (
               <TabsContent key={category} value={category} className="space-y-4">
                 {getNotificationsByCategory(category).length > 0 ? (
                   getNotificationsByCategory(category).map((notification) => (
                     <div key={notification.id} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
-                      <h3 className="font-semibold dark:text-white">{notification.title}</h3>
-                      <p className="text-gray-600 dark:text-gray-300">{notification.content}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        {formatDate(notification.created_at)}
-                      </p>
+                      <div className="flex items-start gap-4">
+                        {notification.sender && (
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={notification.sender.avatar_url} />
+                            <AvatarFallback>
+                              {notification.sender.full_name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        
+                        <div className="flex-1">
+                          <h3 className="font-semibold dark:text-white">{notification.title}</h3>
+                          <p className="text-gray-600 dark:text-gray-300 mb-2">{notification.content}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDate(notification.created_at)}
+                          </p>
+                          
+                          {notification.isConnectionRequest && notification.requestId && (
+                            <div className="flex gap-2 mt-4">
+                              <Button 
+                                variant="default" 
+                                size="sm"
+                                onClick={() => handleConnectionRequest(notification.requestId!, true)}
+                                className="flex items-center gap-1"
+                              >
+                                <UserCheck className="h-4 w-4" />
+                                Accept
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleConnectionRequest(notification.requestId!, false)}
+                                className="flex items-center gap-1"
+                              >
+                                <UserX className="h-4 w-4" />
+                                Reject
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))
                 ) : (
