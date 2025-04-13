@@ -18,25 +18,24 @@ export const ConnectionsList = () => {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
   const [pendingRequestIds, setPendingRequestIds] = useState<string[]>([]);
+  const [receivedRequestIds, setReceivedRequestIds] = useState<string[]>([]); 
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const { user } = useAuth();
 
   useEffect(() => {
     if (user) {
-      fetchConnections();
-      fetchPendingRequests();
+      fetchUserConnectionStatus();
       fetchAllUsers();
       
-      // Set up realtime subscription for connection requests
+      // Set up realtime subscription for connection changes
       const channel = supabase
         .channel('connection-changes')
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'connection_requests' },
+          { event: '*', schema: 'public', table: 'connections_v2' },
           () => {
-            fetchPendingRequests();
-            fetchConnections();
+            fetchUserConnectionStatus();
           }
         )
         .subscribe();
@@ -47,34 +46,49 @@ export const ConnectionsList = () => {
     }
   }, [user]);
 
-  const fetchConnections = async () => {
+  const fetchUserConnectionStatus = async () => {
+    if (!user) return;
+    
     try {
-      const { data, error } = await supabase
-        .from('connections')
-        .select('following_id')
-        .eq('follower_id', user?.id);
+      // Get accepted connections where user is either sender or receiver
+      const { data: connectedData, error: connectedError } = await supabase
+        .from('connections_v2')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .eq('status', 'accepted');
         
-      if (error) throw error;
+      if (connectedError) throw connectedError;
       
-      setConnectedIds(data.map(connection => connection.following_id));
-    } catch (error) {
-      console.error("Error fetching connections:", error);
-    }
-  };
-  
-  const fetchPendingRequests = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('connection_requests')
-        .select('recipient_id')
-        .eq('requester_id', user?.id)
+      // Extract connected user IDs
+      const connected = connectedData.map(conn => 
+        conn.sender_id === user.id ? conn.receiver_id : conn.sender_id
+      );
+      setConnectedIds(connected);
+      
+      // Get pending requests sent by user
+      const { data: sentData, error: sentError } = await supabase
+        .from('connections_v2')
+        .select('receiver_id')
+        .eq('sender_id', user.id)
         .eq('status', 'pending');
         
-      if (error) throw error;
+      if (sentError) throw sentError;
       
-      setPendingRequestIds(data.map(request => request.recipient_id));
+      setPendingRequestIds(sentData.map(req => req.receiver_id));
+      
+      // Get pending requests received by user
+      const { data: receivedData, error: receivedError } = await supabase
+        .from('connections_v2')
+        .select('sender_id')
+        .eq('receiver_id', user.id)
+        .eq('status', 'pending');
+        
+      if (receivedError) throw receivedError;
+      
+      setReceivedRequestIds(receivedData.map(req => req.sender_id));
+      
     } catch (error) {
-      console.error("Error fetching pending requests:", error);
+      console.error("Error fetching connection status:", error);
     }
   };
 
@@ -163,8 +177,7 @@ export const ConnectionsList = () => {
   };
 
   const handleConnectionUpdate = () => {
-    fetchConnections();
-    fetchPendingRequests();
+    fetchUserConnectionStatus();
   };
 
   const filteredConnections = searchQuery 
@@ -202,6 +215,7 @@ export const ConnectionsList = () => {
               connection={connection}
               isConnected={connectedIds.includes(connection.id)}
               hasPendingRequest={pendingRequestIds.includes(connection.id)}
+              hasReceivedRequest={receivedRequestIds.includes(connection.id)}
               onConnectionUpdate={handleConnectionUpdate}
             />
           ))}

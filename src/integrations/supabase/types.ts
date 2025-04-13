@@ -113,6 +113,60 @@ export type Database = {
           },
         ]
       }
+      connections_notifications: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          status: Database["public"]["Enums"]["connection_status"]
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          status: Database["public"]["Enums"]["connection_status"]
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      connections_v2: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_id: string
+          sender_id: string
+          status: Database["public"]["Enums"]["connection_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_id: string
+          sender_id: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_id?: string
+          sender_id?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -560,9 +614,13 @@ export type Database = {
         Args: { follower: string; following: string }
         Returns: boolean
       }
+      get_user_connections: {
+        Args: { user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      connection_status: "pending" | "accepted" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -677,6 +735,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      connection_status: ["pending", "accepted", "rejected"],
+    },
   },
 } as const
