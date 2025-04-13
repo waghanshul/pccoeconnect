@@ -28,16 +28,16 @@ interface ConnectionCardProps {
     role?: string;
   };
   isConnected: boolean;
-  hasPendingRequest?: boolean;
-  hasReceivedRequest?: boolean;
+  hasPendingRequest: boolean;
+  hasReceivedRequest: boolean;
   onConnectionUpdate: () => void;
 }
 
 export const ConnectionCard = ({ 
   connection, 
   isConnected,
-  hasPendingRequest = false,
-  hasReceivedRequest = false,
+  hasPendingRequest,
+  hasReceivedRequest,
   onConnectionUpdate 
 }: ConnectionCardProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +45,8 @@ export const ConnectionCard = ({
   const [dialogAction, setDialogAction] = useState<'remove' | 'cancel'>('remove');
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  console.log(`Connection ${connection.full_name} - isConnected: ${isConnected}, hasPendingRequest: ${hasPendingRequest}, hasReceivedRequest: ${hasReceivedRequest}`);
 
   const handleConnectionAction = async () => {
     if (!user) return;
@@ -115,8 +117,7 @@ export const ConnectionCard = ({
         const { error: deleteError } = await supabase
           .from('connections_v2')
           .delete()
-          .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-          .or(`sender_id.eq.${connection.id},receiver_id.eq.${connection.id}`)
+          .or(`(sender_id.eq.${user.id}.and.receiver_id.eq.${connection.id}), (sender_id.eq.${connection.id}.and.receiver_id.eq.${user.id})`)
           .eq('status', 'accepted');
           
         if (deleteError) throw deleteError;

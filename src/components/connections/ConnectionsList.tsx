@@ -1,10 +1,10 @@
-
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
 import { ConnectionCard } from "./ConnectionCard";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Connection {
   id: string;
@@ -35,6 +35,7 @@ export const ConnectionsList = () => {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'connections_v2' },
           () => {
+            console.log("Connection change detected, refreshing status...");
             fetchUserConnectionStatus();
           }
         )
@@ -64,6 +65,7 @@ export const ConnectionsList = () => {
         conn.sender_id === user.id ? conn.receiver_id : conn.sender_id
       );
       setConnectedIds(connected);
+      console.log("Connected IDs:", connected);
       
       // Get pending requests sent by user
       const { data: sentData, error: sentError } = await supabase
@@ -74,7 +76,9 @@ export const ConnectionsList = () => {
         
       if (sentError) throw sentError;
       
-      setPendingRequestIds(sentData.map(req => req.receiver_id));
+      const pendingIds = sentData.map(req => req.receiver_id);
+      setPendingRequestIds(pendingIds);
+      console.log("Pending request IDs:", pendingIds);
       
       // Get pending requests received by user
       const { data: receivedData, error: receivedError } = await supabase
@@ -85,10 +89,13 @@ export const ConnectionsList = () => {
         
       if (receivedError) throw receivedError;
       
-      setReceivedRequestIds(receivedData.map(req => req.sender_id));
+      const receivedIds = receivedData.map(req => req.sender_id);
+      setReceivedRequestIds(receivedIds);
+      console.log("Received request IDs:", receivedIds);
       
     } catch (error) {
       console.error("Error fetching connection status:", error);
+      toast.error("Failed to load connection status");
     }
   };
 
@@ -177,6 +184,7 @@ export const ConnectionsList = () => {
   };
 
   const handleConnectionUpdate = () => {
+    console.log("Connection updated, refreshing data...");
     fetchUserConnectionStatus();
   };
 
