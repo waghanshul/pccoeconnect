@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -133,15 +134,19 @@ export const ConnectionCard = ({
           return;
         }
         
-        // Delete the connection in either direction
+        // Fix: Delete the connection in either direction using a proper OR condition
         const { error: deleteError } = await supabase
           .from('connections_v2')
           .delete()
-          .or(`(sender_id.eq.${user.id}.and.receiver_id.eq.${connection.id}), (sender_id.eq.${connection.id}.and.receiver_id.eq.${user.id})`)
+          .or(`sender_id.eq.${user.id}.and.receiver_id.eq.${connection.id},sender_id.eq.${connection.id}.and.receiver_id.eq.${user.id}`)
           .eq('status', 'accepted');
           
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error("Error removing connection:", deleteError);
+          throw deleteError;
+        }
         
+        console.log(`Connection with ${connection.full_name} removed successfully`);
         toast.success(`You are no longer connected with ${connection.full_name}`);
         setIsDialogOpen(false);
       }
