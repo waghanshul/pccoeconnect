@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,7 +12,8 @@ import {
   UserMinus,
   Clock,
   CheckCheck,
-  MessageSquare
+  MessageSquare,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { 
