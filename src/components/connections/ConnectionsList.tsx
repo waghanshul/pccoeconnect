@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
@@ -51,7 +52,9 @@ export const ConnectionsList = () => {
     if (!user) return;
     
     try {
-      // Get accepted connections where user is either sender or receiver
+      // First check the connections_v2 table for all connection states
+      
+      // Get accepted connections
       const { data: connectedData, error: connectedError } = await supabase
         .from('connections_v2')
         .select('sender_id, receiver_id')
