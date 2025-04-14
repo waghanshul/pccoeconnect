@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserMinus, Clock, CheckCheck, Loader2 } from "lucide-react";
@@ -55,7 +54,6 @@ export const ConnectionButton = ({
         setLocalConnectionState(prev => ({ ...prev, hasPendingRequest: true }));
         
         await sendConnectionRequest(userId, connection.id);
-        toast.success(`Connection request sent to ${connection.full_name}`);
       }
       // Case 2: Request received - Accept connection
       else if (localConnectionState.hasReceivedRequest) {
@@ -67,7 +65,6 @@ export const ConnectionButton = ({
         }));
         
         await acceptConnectionRequest(userId, connection.id);
-        toast.success(`You are now connected with ${connection.full_name}`);
       }
       // Case 3: Pending request sent - Cancel request (requires dialog)
       else if (localConnectionState.hasPendingRequest) {
@@ -78,7 +75,6 @@ export const ConnectionButton = ({
           return;
         }
         
-        // Optimistic UI update
         setLocalConnectionState(prev => ({ 
           isConnected: false, 
           hasPendingRequest: false, 
@@ -86,7 +82,6 @@ export const ConnectionButton = ({
         }));
         
         await cancelConnectionRequest(userId, connection.id);
-        toast.success(`Connection request to ${connection.full_name} cancelled`);
         setIsDialogOpen(false);
       }
       // Case 4: Connected - Remove connection (requires dialog)
@@ -98,25 +93,19 @@ export const ConnectionButton = ({
           return;
         }
         
-        // Optimistic UI update
         setLocalConnectionState(prev => ({ 
           isConnected: false, 
           hasPendingRequest: false, 
           hasReceivedRequest: false 
         }));
         
-        console.log("About to remove connection with:", connection.id);
         await removeConnection(userId, connection.id);
-        toast.success(`You are no longer connected with ${connection.full_name}`);
         setIsDialogOpen(false);
       }
       
-      // Notify parent component to refresh connection status
       onConnectionUpdate();
     } catch (error) {
       console.error("Error managing connection:", error);
-      toast.error("Failed to update connection");
-      
       // Revert to original state on error
       setLocalConnectionState({
         isConnected,

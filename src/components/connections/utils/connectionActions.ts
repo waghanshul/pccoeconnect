@@ -52,6 +52,7 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
       
     if (requestError) {
       console.error("Error finding request to accept:", requestError);
+      toast.error("Could not find the connection request");
       throw requestError;
     }
     
@@ -63,10 +64,12 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
       
     if (updateError) {
       console.error("Error updating request status:", updateError);
+      toast.error("Failed to accept connection request");
       throw updateError;
     }
     
     console.log("Connection request accepted successfully");
+    toast.success("Connection request accepted");
     return true;
   } catch (error) {
     console.error("Error accepting connection request:", error);
