@@ -35,26 +35,42 @@ export const ConnectionButton = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogAction, setDialogAction] = useState<'remove' | 'cancel'>('remove');
+  const [localConnectionState, setLocalConnectionState] = useState({
+    isConnected,
+    hasPendingRequest,
+    hasReceivedRequest
+  });
 
+  // Handle connection actions with optimistic UI updates
   const handleConnectionAction = async () => {
     if (!userId) return;
     
     setIsLoading(true);
     try {
-      console.log("Connection state:", { isConnected, hasPendingRequest, hasReceivedRequest });
+      console.log("Connection state:", { isConnected: localConnectionState.isConnected, hasPendingRequest: localConnectionState.hasPendingRequest, hasReceivedRequest: localConnectionState.hasReceivedRequest });
       
       // Case 1: Not connected and no pending request - Send connection request
-      if (!isConnected && !hasPendingRequest && !hasReceivedRequest) {
+      if (!localConnectionState.isConnected && !localConnectionState.hasPendingRequest && !localConnectionState.hasReceivedRequest) {
+        // Optimistic UI update
+        setLocalConnectionState(prev => ({ ...prev, hasPendingRequest: true }));
+        
         await sendConnectionRequest(userId, connection.id);
         toast.success(`Connection request sent to ${connection.full_name}`);
       }
       // Case 2: Request received - Accept connection
-      else if (hasReceivedRequest) {
+      else if (localConnectionState.hasReceivedRequest) {
+        // Optimistic UI update
+        setLocalConnectionState(prev => ({ 
+          isConnected: true, 
+          hasPendingRequest: false, 
+          hasReceivedRequest: false 
+        }));
+        
         await acceptConnectionRequest(userId, connection.id);
         toast.success(`You are now connected with ${connection.full_name}`);
       }
       // Case 3: Pending request sent - Cancel request (requires dialog)
-      else if (hasPendingRequest) {
+      else if (localConnectionState.hasPendingRequest) {
         if (!isDialogOpen) {
           setDialogAction('cancel');
           setIsDialogOpen(true);
@@ -62,18 +78,32 @@ export const ConnectionButton = ({
           return;
         }
         
+        // Optimistic UI update
+        setLocalConnectionState(prev => ({ 
+          isConnected: false, 
+          hasPendingRequest: false, 
+          hasReceivedRequest: false 
+        }));
+        
         await cancelConnectionRequest(userId, connection.id);
         toast.success(`Connection request to ${connection.full_name} cancelled`);
         setIsDialogOpen(false);
       }
       // Case 4: Connected - Remove connection (requires dialog)
-      else if (isConnected) {
+      else if (localConnectionState.isConnected) {
         if (!isDialogOpen) {
           setDialogAction('remove');
           setIsDialogOpen(true);
           setIsLoading(false);
           return;
         }
+        
+        // Optimistic UI update
+        setLocalConnectionState(prev => ({ 
+          isConnected: false, 
+          hasPendingRequest: false, 
+          hasReceivedRequest: false 
+        }));
         
         console.log("About to remove connection with:", connection.id);
         await removeConnection(userId, connection.id);
@@ -86,30 +116,48 @@ export const ConnectionButton = ({
     } catch (error) {
       console.error("Error managing connection:", error);
       toast.error("Failed to update connection");
+      
+      // Revert to original state on error
+      setLocalConnectionState({
+        isConnected,
+        hasPendingRequest,
+        hasReceivedRequest
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Update local state when props change
+  if (isConnected !== localConnectionState.isConnected ||
+      hasPendingRequest !== localConnectionState.hasPendingRequest ||
+      hasReceivedRequest !== localConnectionState.hasReceivedRequest) {
+    setLocalConnectionState({
+      isConnected,
+      hasPendingRequest,
+      hasReceivedRequest
+    });
+  }
+
   // Ensure the button displays correctly based on the connection state
   const buttonText = () => {
-    if (isConnected) return "Connected";
-    if (hasPendingRequest) return "Requested";
-    if (hasReceivedRequest) return "Accept";
+    if (localConnectionState.isConnected) return "Connected";
+    if (localConnectionState.hasPendingRequest) return "Requested";
+    if (localConnectionState.hasReceivedRequest) return "Accept";
     return "Connect";
   };
 
   const buttonIcon = () => {
-    if (isConnected) return <CheckCheck className="h-4 w-4 mr-1" />;
-    if (hasPendingRequest) return <Clock className="h-4 w-4 mr-1" />;
-    if (hasReceivedRequest) return <UserPlus className="h-4 w-4 mr-1" />;
+    if (localConnectionState.isConnected) return <CheckCheck className="h-4 w-4 mr-1" />;
+    if (localConnectionState.hasPendingRequest) return <Clock className="h-4 w-4 mr-1" />;
+    if (localConnectionState.hasReceivedRequest) return <UserPlus className="h-4 w-4 mr-1" />;
     return <UserPlus className="h-4 w-4 mr-1" />;
   };
 
   // Use correct button variant based on connection state
   const buttonVariant = () => {
-    if (isConnected) return "default";
-    if (hasReceivedRequest) return "default";
+    if (localConnectionState.isConnected) return "default";
+    if (localConnectionState.hasReceivedRequest) return "default";
     return "outline";
   };
 
