@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -93,10 +92,10 @@ export const removeConnection = async (userId: string, connectionId: string) => 
       // Don't throw here, try the other direction
     }
     
-    // Type safety: Use array check without relying on length property initially
-    const senderDataEmpty = !senderData || senderData === null || senderData.length === undefined;
+    // Explicit type check to handle the Supabase response
+    const isDeletedAsSender = senderData !== null && senderData !== undefined;
     
-    if (senderDataEmpty) {
+    if (!isDeletedAsSender) {
       // If no rows were affected as sender, try as receiver
       const { data: receiverData, error: receiverError } = await supabase
         .from('connections_v2')
@@ -110,10 +109,10 @@ export const removeConnection = async (userId: string, connectionId: string) => 
         throw receiverError;
       }
       
-      // Type safety: Use array check without relying on length property
-      const receiverDataEmpty = !receiverData || receiverData === null || receiverData.length === undefined;
+      // Explicit type check to handle the Supabase response
+      const isDeletedAsReceiver = receiverData !== null && receiverData !== undefined;
       
-      if (receiverDataEmpty) {
+      if (!isDeletedAsReceiver) {
         console.error("No connection found to remove");
         throw new Error("Connection not found");
       }
