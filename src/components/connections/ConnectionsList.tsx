@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
@@ -52,8 +51,6 @@ export const ConnectionsList = () => {
     if (!user) return;
     
     try {
-      // First check the connections_v2 table for all connection states
-      
       // Get accepted connections
       const { data: connectedData, error: connectedError } = await supabase
         .from('connections_v2')
@@ -64,7 +61,7 @@ export const ConnectionsList = () => {
       if (connectedError) throw connectedError;
       
       // Extract connected user IDs
-      const connected = connectedData.map(conn => 
+      const connected = (connectedData || []).map(conn => 
         conn.sender_id === user.id ? conn.receiver_id : conn.sender_id
       );
       setConnectedIds(connected);
@@ -79,7 +76,7 @@ export const ConnectionsList = () => {
         
       if (sentError) throw sentError;
       
-      const pendingIds = sentData.map(req => req.receiver_id);
+      const pendingIds = (sentData || []).map(req => req.receiver_id);
       setPendingRequestIds(pendingIds);
       console.log("Pending request IDs:", pendingIds);
       
@@ -92,7 +89,7 @@ export const ConnectionsList = () => {
         
       if (receivedError) throw receivedError;
       
-      const receivedIds = receivedData.map(req => req.sender_id);
+      const receivedIds = (receivedData || []).map(req => req.sender_id);
       setReceivedRequestIds(receivedIds);
       console.log("Received request IDs:", receivedIds);
       

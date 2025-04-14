@@ -60,19 +60,48 @@ export const cancelConnectionRequest = async (userId: string, connectionId: stri
   return true;
 };
 
-// Handle removing an existing connection
+// Handle removing an existing connection - FIX: This function was not working correctly
 export const removeConnection = async (userId: string, connectionId: string) => {
-  const { error: deleteError } = await supabase
-    .from('connections_v2')
-    .delete()
-    .or(`sender_id.eq.${userId}.and.receiver_id.eq.${connectionId},sender_id.eq.${connectionId}.and.receiver_id.eq.${userId}`)
-    .eq('status', 'accepted');
+  try {
+    console.log(`Attempting to remove connection between ${userId} and ${connectionId}`);
     
-  if (deleteError) {
-    console.error("Error removing connection:", deleteError);
-    throw deleteError;
+    // First try to delete where the current user is the sender
+    const { data: senderData, error: senderError } = await supabase
+      .from('connections_v2')
+      .delete()
+      .match({
+        sender_id: userId,
+        receiver_id: connectionId,
+        status: 'accepted'
+      })
+      .select();
+      
+    if (senderError) {
+      console.error("Error removing connection as sender:", senderError);
+      // Don't throw here, try the other direction
+    }
+    
+    // If no rows were deleted as sender, try as receiver
+    if (!senderData || senderData.length === 0) {
+      const { error: receiverError } = await supabase
+        .from('connections_v2')
+        .delete()
+        .match({
+          sender_id: connectionId,
+          receiver_id: userId,
+          status: 'accepted'
+        });
+        
+      if (receiverError) {
+        console.error("Error removing connection as receiver:", receiverError);
+        throw receiverError;
+      }
+    }
+    
+    console.log(`Connection removed successfully`);
+    return true;
+  } catch (error) {
+    console.error("Connection removal failed:", error);
+    throw error;
   }
-  
-  console.log(`Connection removed successfully`);
-  return true;
 };

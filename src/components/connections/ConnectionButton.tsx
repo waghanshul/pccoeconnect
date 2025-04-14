@@ -73,6 +73,7 @@ export const ConnectionButton = ({
           return;
         }
         
+        console.log("About to remove connection with:", connection.id);
         await removeConnection(userId, connection.id);
         toast.success(`You are no longer connected with ${connection.full_name}`);
         setIsDialogOpen(false);
@@ -88,6 +89,7 @@ export const ConnectionButton = ({
     }
   };
 
+  // Ensure the button displays correctly based on the connection state
   const buttonText = () => {
     if (isConnected) return "Connected";
     if (hasPendingRequest) return "Requested";
@@ -102,23 +104,28 @@ export const ConnectionButton = ({
     return <UserPlus className="h-4 w-4 mr-1" />;
   };
 
+  // Use correct button variant based on connection state
+  const buttonVariant = () => {
+    if (isConnected) return "default";
+    if (hasReceivedRequest) return "default";
+    return "outline";
+  };
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-      <DialogTrigger asChild>
-        <Button 
-          onClick={handleConnectionAction} 
-          variant={isConnected ? "default" : hasReceivedRequest ? "default" : "outline"}
-          size="sm" 
-          className="flex-1"
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Loading</>
-          ) : (
-            <>{buttonIcon()} {buttonText()}</>
-          )}
-        </Button>
-      </DialogTrigger>
+      <Button 
+        onClick={handleConnectionAction} 
+        variant={buttonVariant()}
+        size="sm" 
+        className="flex-1"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Loading</>
+        ) : (
+          <>{buttonIcon()} {buttonText()}</>
+        )}
+      </Button>
       
       <DialogContent>
         <DialogHeader>

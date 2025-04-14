@@ -44,27 +44,33 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
 
   const fetchConnectionCount = async () => {
     try {
-      const { count, error } = await supabase
-        .from('connections')
-        .select('*', { count: 'exact', head: true })
-        .eq('following_id', user.id);
+      // Update to use connections_v2 table with accepted status for proper counting
+      const { data, error } = await supabase
+        .from('connections_v2')
+        .select('sender_id, receiver_id')
+        .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+        .eq('status', 'accepted');
       
       if (error) throw error;
-      setConnectionCount(count || 0);
+      
+      const count = data?.length || 0;
+      console.log(`Found ${count} connections for user ${user.id}`);
+      setConnectionCount(count);
     } catch (error) {
       console.error("Error fetching connection count:", error);
     }
   };
 
   const checkConnection = async () => {
-    if (!authUser) return;
+    if (!authUser || authUser.id === user.id) return;
     
     try {
+      // Check if there's an accepted connection between the two users
       const { data, error } = await supabase
-        .from('connections')
+        .from('connections_v2')
         .select('*')
-        .eq('follower_id', authUser.id)
-        .eq('following_id', user.id);
+        .or(`sender_id.eq.${authUser.id}.and.receiver_id.eq.${user.id},sender_id.eq.${user.id}.and.receiver_id.eq.${authUser.id}`)
+        .eq('status', 'accepted');
       
       if (error) throw error;
       setIsConnected(data && data.length > 0);
