@@ -109,11 +109,14 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     
     try {
       if (isConnected) {
-        // Use the new connections_v2 table
-        await supabase.rpc('remove_connection', {
-          user_one: authUser.id,
-          user_two: user.id
-        });
+        // Fix: Call the from connections_v2 table directly instead of using RPC
+        const { error: deleteError } = await supabase
+          .from('connections_v2')
+          .delete()
+          .or(`sender_id.eq.${authUser.id}.and.receiver_id.eq.${user.id},sender_id.eq.${user.id}.and.receiver_id.eq.${authUser.id}`)
+          .eq('status', 'accepted');
+        
+        if (deleteError) throw deleteError;
         
         setIsConnected(false);
         setConnectionCount(prev => Math.max(0, prev - 1));
