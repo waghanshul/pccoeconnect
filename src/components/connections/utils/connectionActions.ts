@@ -12,55 +12,70 @@ export interface ConnectionUser {
 
 // Handle sending connection request
 export const sendConnectionRequest = async (userId: string, connectionId: string) => {
-  const { error } = await supabase
-    .from('connections_v2')
-    .insert({
-      sender_id: userId,
-      receiver_id: connectionId,
-      status: 'pending'
-    });
-    
-  if (error) throw error;
-  return true;
+  try {
+    const { error } = await supabase
+      .from('connections_v2')
+      .insert({
+        sender_id: userId,
+        receiver_id: connectionId,
+        status: 'pending'
+      });
+      
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error("Error sending connection request:", error);
+    throw error;
+  }
 };
 
 // Handle accepting connection request
 export const acceptConnectionRequest = async (userId: string, connectionId: string) => {
-  // Find the pending request from this user
-  const { data: requestData, error: requestError } = await supabase
-    .from('connections_v2')
-    .select('id')
-    .eq('sender_id', connectionId)
-    .eq('receiver_id', userId)
-    .eq('status', 'pending')
-    .single();
+  try {
+    // Find the pending request from this user
+    const { data: requestData, error: requestError } = await supabase
+      .from('connections_v2')
+      .select('id')
+      .eq('sender_id', connectionId)
+      .eq('receiver_id', userId)
+      .eq('status', 'pending')
+      .single();
+      
+    if (requestError) throw requestError;
     
-  if (requestError) throw requestError;
-  
-  // Update the request status to accepted
-  const { error: updateError } = await supabase
-    .from('connections_v2')
-    .update({ status: 'accepted' })
-    .eq('id', requestData.id);
-    
-  if (updateError) throw updateError;
-  return true;
+    // Update the request status to accepted
+    const { error: updateError } = await supabase
+      .from('connections_v2')
+      .update({ status: 'accepted' })
+      .eq('id', requestData.id);
+      
+    if (updateError) throw updateError;
+    return true;
+  } catch (error) {
+    console.error("Error accepting connection request:", error);
+    throw error;
+  }
 };
 
 // Handle canceling a connection request
 export const cancelConnectionRequest = async (userId: string, connectionId: string) => {
-  const { error: deleteError } = await supabase
-    .from('connections_v2')
-    .delete()
-    .eq('sender_id', userId)
-    .eq('receiver_id', connectionId)
-    .eq('status', 'pending');
-    
-  if (deleteError) throw deleteError;
-  return true;
+  try {
+    const { error: deleteError } = await supabase
+      .from('connections_v2')
+      .delete()
+      .eq('sender_id', userId)
+      .eq('receiver_id', connectionId)
+      .eq('status', 'pending');
+      
+    if (deleteError) throw deleteError;
+    return true;
+  } catch (error) {
+    console.error("Error canceling connection request:", error);
+    throw error;
+  }
 };
 
-// Handle removing an existing connection - FIX: This function was not working correctly
+// Fix: Completely rewritten to avoid RLS issues and properly remove connections
 export const removeConnection = async (userId: string, connectionId: string) => {
   try {
     console.log(`Attempting to remove connection between ${userId} and ${connectionId}`);
@@ -69,12 +84,9 @@ export const removeConnection = async (userId: string, connectionId: string) => 
     const { data: senderData, error: senderError } = await supabase
       .from('connections_v2')
       .delete()
-      .match({
-        sender_id: userId,
-        receiver_id: connectionId,
-        status: 'accepted'
-      })
-      .select();
+      .eq('sender_id', userId)
+      .eq('receiver_id', connectionId)
+      .eq('status', 'accepted');
       
     if (senderError) {
       console.error("Error removing connection as sender:", senderError);
@@ -83,18 +95,21 @@ export const removeConnection = async (userId: string, connectionId: string) => 
     
     // If no rows were deleted as sender, try as receiver
     if (!senderData || senderData.length === 0) {
-      const { error: receiverError } = await supabase
+      const { data: receiverData, error: receiverError } = await supabase
         .from('connections_v2')
         .delete()
-        .match({
-          sender_id: connectionId,
-          receiver_id: userId,
-          status: 'accepted'
-        });
+        .eq('sender_id', connectionId)
+        .eq('receiver_id', userId)
+        .eq('status', 'accepted');
         
       if (receiverError) {
         console.error("Error removing connection as receiver:", receiverError);
         throw receiverError;
+      }
+      
+      if (!receiverData || receiverData.length === 0) {
+        console.error("No connection found to remove");
+        throw new Error("Connection not found");
       }
     }
     

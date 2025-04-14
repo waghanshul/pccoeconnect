@@ -41,6 +41,8 @@ export const ConnectionButton = ({
     
     setIsLoading(true);
     try {
+      console.log("Connection state:", { isConnected, hasPendingRequest, hasReceivedRequest });
+      
       // Case 1: Not connected and no pending request - Send connection request
       if (!isConnected && !hasPendingRequest && !hasReceivedRequest) {
         await sendConnectionRequest(userId, connection.id);

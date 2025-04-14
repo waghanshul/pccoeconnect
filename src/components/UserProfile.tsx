@@ -44,14 +44,17 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
 
   const fetchConnectionCount = async () => {
     try {
-      // Update to use connections_v2 table with accepted status for proper counting
+      // Use connections_v2 table with accepted status for proper counting
       const { data, error } = await supabase
         .from('connections_v2')
         .select('sender_id, receiver_id')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq('status', 'accepted');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching connection count:", error);
+        throw error;
+      }
       
       const count = data?.length || 0;
       console.log(`Found ${count} connections for user ${user.id}`);
@@ -65,15 +68,20 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     if (!authUser || authUser.id === user.id) return;
     
     try {
-      // Check if there's an accepted connection between the two users
+      // Check if there's an accepted connection between the two users in connections_v2
       const { data, error } = await supabase
         .from('connections_v2')
         .select('*')
         .or(`sender_id.eq.${authUser.id}.and.receiver_id.eq.${user.id},sender_id.eq.${user.id}.and.receiver_id.eq.${authUser.id}`)
         .eq('status', 'accepted');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error checking connection:", error);
+        throw error;
+      }
+      
       setIsConnected(data && data.length > 0);
+      console.log("Connection check result:", data);
     } catch (error) {
       console.error("Error checking connection:", error);
     }
@@ -101,30 +109,27 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     
     try {
       if (isConnected) {
-        // Disconnect
-        const { error } = await supabase
-          .from('connections')
-          .delete()
-          .eq('follower_id', authUser.id)
-          .eq('following_id', user.id);
+        // Use the new connections_v2 table
+        await supabase.rpc('remove_connection', {
+          user_one: authUser.id,
+          user_two: user.id
+        });
         
-        if (error) throw error;
         setIsConnected(false);
         setConnectionCount(prev => Math.max(0, prev - 1));
         toast.success(`Disconnected from ${user.name}`);
       } else {
-        // Connect
+        // Create a new connection request
         const { error } = await supabase
-          .from('connections')
+          .from('connections_v2')
           .insert({
-            follower_id: authUser.id,
-            following_id: user.id
+            sender_id: authUser.id,
+            receiver_id: user.id,
+            status: 'pending'
           });
         
         if (error) throw error;
-        setIsConnected(true);
-        setConnectionCount(prev => prev + 1);
-        toast.success(`Connected with ${user.name}`);
+        toast.success(`Connection request sent to ${user.name}`);
       }
     } catch (error) {
       console.error("Error updating connection:", error);

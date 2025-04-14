@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Search, Loader2 } from "lucide-react";
@@ -34,8 +35,8 @@ export const ConnectionsList = () => {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'connections_v2' },
-          () => {
-            console.log("Connection change detected, refreshing status...");
+          (payload) => {
+            console.log("Connection change detected:", payload);
             fetchUserConnectionStatus();
           }
         )
@@ -51,6 +52,8 @@ export const ConnectionsList = () => {
     if (!user) return;
     
     try {
+      console.log("Fetching connection status for user:", user.id);
+      
       // Get accepted connections
       const { data: connectedData, error: connectedError } = await supabase
         .from('connections_v2')
@@ -58,7 +61,10 @@ export const ConnectionsList = () => {
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq('status', 'accepted');
         
-      if (connectedError) throw connectedError;
+      if (connectedError) {
+        console.error("Error fetching connected users:", connectedError);
+        throw connectedError;
+      }
       
       // Extract connected user IDs
       const connected = (connectedData || []).map(conn => 
@@ -74,7 +80,10 @@ export const ConnectionsList = () => {
         .eq('sender_id', user.id)
         .eq('status', 'pending');
         
-      if (sentError) throw sentError;
+      if (sentError) {
+        console.error("Error fetching sent requests:", sentError);
+        throw sentError;
+      }
       
       const pendingIds = (sentData || []).map(req => req.receiver_id);
       setPendingRequestIds(pendingIds);
@@ -87,7 +96,10 @@ export const ConnectionsList = () => {
         .eq('receiver_id', user.id)
         .eq('status', 'pending');
         
-      if (receivedError) throw receivedError;
+      if (receivedError) {
+        console.error("Error fetching received requests:", receivedError);
+        throw receivedError;
+      }
       
       const receivedIds = (receivedData || []).map(req => req.sender_id);
       setReceivedRequestIds(receivedIds);
