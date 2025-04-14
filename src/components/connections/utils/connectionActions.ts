@@ -93,8 +93,9 @@ export const removeConnection = async (userId: string, connectionId: string) => 
       // Don't throw here, try the other direction
     }
     
-    // Type safety: explicitly handle the response types
-    if (!senderData || !Array.isArray(senderData) || senderData.length === 0) {
+    // Type safety: Use a proper type assertion to handle the Supabase response
+    // The delete operation returns an array of the deleted records
+    if (!senderData || (Array.isArray(senderData) && senderData.length === 0)) {
       // If no rows were affected as sender, try as receiver
       const { data: receiverData, error: receiverError } = await supabase
         .from('connections_v2')
@@ -108,7 +109,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
         throw receiverError;
       }
       
-      if (!receiverData || !Array.isArray(receiverData) || receiverData.length === 0) {
+      if (!receiverData || (Array.isArray(receiverData) && receiverData.length === 0)) {
         console.error("No connection found to remove");
         throw new Error("Connection not found");
       }
