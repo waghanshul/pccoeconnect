@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   User,
   Settings,
@@ -15,6 +17,7 @@ import {
   Home,
   Users
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Custom hook to detect mobile view
 const useIsMobile = () => {
@@ -39,11 +42,53 @@ export const Navigation = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location]);
+
+  useEffect(() => {
+    if (user) {
+      fetchNotificationCount();
+      
+      // Setup realtime subscription for notifications
+      const channel = supabase
+        .channel('navigation-notifications')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'connections_v2' },
+          () => {
+            fetchNotificationCount();
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
+  
+  const fetchNotificationCount = async () => {
+    if (!user) return;
+    
+    try {
+      // Count pending connection requests
+      const { count, error } = await supabase
+        .from('connections_v2')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiver_id', user.id)
+        .eq('status', 'pending');
+        
+      if (error) throw error;
+      
+      setNotificationCount(count || 0);
+    } catch (error) {
+      console.error("Error fetching notification count:", error);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -140,7 +185,14 @@ export const Navigation = () => {
             }`}
             onClick={() => setIsMenuOpen(false)}
           >
-            <Bell size={20} />
+            <div className="relative">
+              <Bell size={20} />
+              {notificationCount > 0 && (
+                <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center" variant="destructive">
+                  {notificationCount}
+                </Badge>
+              )}
+            </div>
             <span>Notifications</span>
           </Link>
           <Link
@@ -220,7 +272,14 @@ export const Navigation = () => {
               : "hover:bg-gray-800"
           }`}
         >
-          <Bell size={18} />
+          <div className="relative">
+            <Bell size={18} />
+            {notificationCount > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center" variant="destructive">
+                {notificationCount}
+              </Badge>
+            )}
+          </div>
           <span>Notifications</span>
         </Link>
         <Link

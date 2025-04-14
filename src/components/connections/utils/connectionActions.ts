@@ -29,9 +29,11 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
     }
     
     console.log("Connection request sent successfully");
+    toast.success("Connection request sent!");
     return true;
   } catch (error) {
     console.error("Error sending connection request:", error);
+    toast.error("Failed to send connection request");
     throw error;
   }
 };
@@ -41,31 +43,17 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Accepting connection request from ${connectionId} to ${userId}`);
     
-    // Find the pending request from this user
-    const { data: requestData, error: requestError } = await supabase
-      .from('connections_v2')
-      .select('id')
-      .eq('sender_id', connectionId)
-      .eq('receiver_id', userId)
-      .eq('status', 'pending')
-      .single();
+    // Use the secure function we created to accept the connection request
+    const { data, error } = await supabase
+      .rpc('accept_connection_request', {
+        current_user_id: userId,
+        sender_id: connectionId
+      });
       
-    if (requestError) {
-      console.error("Error finding request to accept:", requestError);
-      toast.error("Could not find the connection request");
-      throw requestError;
-    }
-    
-    // Update the request status to accepted
-    const { error: updateError } = await supabase
-      .from('connections_v2')
-      .update({ status: 'accepted' })
-      .eq('id', requestData.id);
-      
-    if (updateError) {
-      console.error("Error updating request status:", updateError);
+    if (error) {
+      console.error("Error accepting connection request:", error);
       toast.error("Failed to accept connection request");
-      throw updateError;
+      throw error;
     }
     
     console.log("Connection request accepted successfully");
@@ -73,6 +61,7 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
     return true;
   } catch (error) {
     console.error("Error accepting connection request:", error);
+    toast.error("Failed to accept connection request");
     throw error;
   }
 };
@@ -91,13 +80,16 @@ export const cancelConnectionRequest = async (userId: string, connectionId: stri
       
     if (deleteError) {
       console.error("Error deleting connection request:", deleteError);
+      toast.error("Failed to cancel connection request");
       throw deleteError;
     }
     
     console.log("Connection request canceled successfully");
+    toast.success("Connection request canceled");
     return true;
   } catch (error) {
     console.error("Error canceling connection request:", error);
+    toast.error("Failed to cancel connection request");
     throw error;
   }
 };
@@ -136,6 +128,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
         
       if (receiverError) {
         console.error("Error removing connection as receiver:", receiverError);
+        toast.error("Failed to remove connection");
         throw receiverError;
       }
       
@@ -144,14 +137,17 @@ export const removeConnection = async (userId: string, connectionId: string) => 
       
       if (!isDeletedAsReceiver) {
         console.error("No connection found to remove");
+        toast.error("Connection not found");
         throw new Error("Connection not found");
       }
     }
     
     console.log(`Connection removed successfully`);
+    toast.success("Connection removed");
     return true;
   } catch (error) {
     console.error("Connection removal failed:", error);
+    toast.error("Failed to remove connection");
     throw error;
   }
 };

@@ -22,7 +22,7 @@ interface Notification {
     full_name: string;
   };
   isConnectionRequest?: boolean;
-  requestId?: string;
+  connectionId?: string;
 }
 
 const Notifications = () => {
@@ -46,7 +46,7 @@ const Notifications = () => {
         )
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'connection_requests' },
+          { event: '*', schema: 'public', table: 'connections_v2' },
           () => {
             fetchNotifications();
           }
@@ -77,38 +77,38 @@ const Notifications = () => {
 
       if (notificationError) throw notificationError;
       
-      // Fetch connection requests with explicit profile data for requester
+      // Fetch connection requests
       const { data: connectionRequests, error: connectionError } = await supabase
-        .from('connection_requests')
+        .from('connections_v2')
         .select(`
           id, 
           created_at, 
-          requester_id,
-          requester:profiles!requester_id(
+          sender_id,
+          sender:profiles!sender_id(
             avatar_url, 
             full_name
           )
         `)
-        .eq('recipient_id', user?.id)
+        .eq('receiver_id', user?.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
         
       if (connectionError) throw connectionError;
       
-      // Convert connection requests to notification format with explicit typing
+      // Convert connection requests to notification format
       const connectionNotifications: Notification[] = connectionRequests.map(request => ({
         id: `connection-${request.id}`,
         title: 'Connection Request',
-        content: `${request.requester?.full_name || 'Someone'} wants to connect with you`,
+        content: `${request.sender?.full_name || 'Someone'} wants to connect with you`,
         category: 'connections',
         created_at: request.created_at,
-        sender_id: request.requester_id,
+        sender_id: request.sender_id,
         sender: {
-          avatar_url: request.requester?.avatar_url,
-          full_name: request.requester?.full_name || 'Unknown User'
+          avatar_url: request.sender?.avatar_url,
+          full_name: request.sender?.full_name || 'Unknown User'
         },
         isConnectionRequest: true,
-        requestId: request.id
+        connectionId: request.sender_id
       }));
       
       // Combine both types of notifications and sort by date
@@ -123,46 +123,30 @@ const Notifications = () => {
     }
   };
 
-  // Function to handle connection request response - Fixed to bypass RLS issues
-  const handleConnectionRequest = async (requestId: string, accept: boolean) => {
+  // Function to handle connection request response
+  const handleConnectionRequest = async (connectionId: string, accept: boolean) => {
     try {
+      if (!user) return;
+      
       if (accept) {
-        // First update the request status
-        const { error: updateError } = await supabase
-          .from('connection_requests')
-          .update({ status: 'accepted' })
-          .eq('id', requestId);
+        // Use our updated function to accept the request
+        const { data, error } = await supabase
+          .rpc('accept_connection_request', {
+            current_user_id: user.id,
+            sender_id: connectionId
+          });
           
-        if (updateError) throw updateError;
-        
-        // Get the request details to create the connection
-        const { data: requestData, error: requestError } = await supabase
-          .from('connection_requests')
-          .select('requester_id, recipient_id')
-          .eq('id', requestId)
-          .single();
-          
-        if (requestError) throw requestError;
-        
-        // Use a Supabase function to handle the connection creation
-        // This bypasses RLS and creates the connection securely
-        const { error: connectionError } = await supabase.rpc('create_connection', {
-          follower: requestData.requester_id,
-          following: requestData.recipient_id
-        });
-          
-        if (connectionError) {
-          console.error("Create connection error:", connectionError);
-          throw connectionError;
-        }
+        if (error) throw error;
         
         toast.success("Connection request accepted");
       } else {
-        // Reject the request
+        // Reject the request (delete it)
         const { error } = await supabase
-          .from('connection_requests')
-          .update({ status: 'rejected' })
-          .eq('id', requestId);
+          .from('connections_v2')
+          .delete()
+          .eq('sender_id', connectionId)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending');
           
         if (error) throw error;
         
@@ -232,12 +216,12 @@ const Notifications = () => {
                             {formatDate(notification.created_at)}
                           </p>
                           
-                          {notification.isConnectionRequest && notification.requestId && (
+                          {notification.isConnectionRequest && notification.connectionId && (
                             <div className="flex gap-2 mt-4">
                               <Button 
                                 variant="default" 
                                 size="sm"
-                                onClick={() => handleConnectionRequest(notification.requestId!, true)}
+                                onClick={() => handleConnectionRequest(notification.connectionId!, true)}
                                 className="flex items-center gap-1"
                               >
                                 <Check className="h-4 w-4" />
@@ -246,7 +230,7 @@ const Notifications = () => {
                               <Button 
                                 variant="outline" 
                                 size="sm"
-                                onClick={() => handleConnectionRequest(notification.requestId!, false)}
+                                onClick={() => handleConnectionRequest(notification.connectionId!, false)}
                                 className="flex items-center gap-1"
                               >
                                 <X className="h-4 w-4" />

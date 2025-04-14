@@ -89,7 +89,7 @@ export const ConnectionsList = () => {
       setPendingRequestIds(pendingIds);
       console.log("Pending request IDs:", pendingIds);
       
-      // Get pending requests received by user
+      // Get pending requests received by user - not showing in connection list, moving to notifications
       const { data: receivedData, error: receivedError } = await supabase
         .from('connections_v2')
         .select('sender_id')
@@ -200,16 +200,17 @@ export const ConnectionsList = () => {
     fetchUserConnectionStatus();
   };
 
-  const filteredConnections = searchQuery 
-    ? connections 
-    : connections.sort((a, b) => {
-        // Sort by connection status first, then by name
-        const aConnected = connectedIds.includes(a.id);
-        const bConnected = connectedIds.includes(b.id);
-        if (aConnected && !bConnected) return -1;
-        if (!aConnected && bConnected) return 1;
-        return a.full_name.localeCompare(b.full_name);
-      });
+  // Filter out users with received connection requests since they'll be shown in Notifications
+  const filteredConnections = connections.filter(connection => 
+    !receivedRequestIds.includes(connection.id)
+  ).sort((a, b) => {
+    // Sort by connection status first, then by name
+    const aConnected = connectedIds.includes(a.id);
+    const bConnected = connectedIds.includes(b.id);
+    if (aConnected && !bConnected) return -1;
+    if (!aConnected && bConnected) return 1;
+    return a.full_name.localeCompare(b.full_name);
+  });
 
   return (
     <div className="space-y-4">
@@ -235,7 +236,8 @@ export const ConnectionsList = () => {
               connection={connection}
               isConnected={connectedIds.includes(connection.id)}
               hasPendingRequest={pendingRequestIds.includes(connection.id)}
-              hasReceivedRequest={receivedRequestIds.includes(connection.id)}
+              // We're now hiding received requests from the connections list
+              hasReceivedRequest={false}
               onConnectionUpdate={handleConnectionUpdate}
             />
           ))}
