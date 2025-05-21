@@ -26,6 +26,11 @@ interface Notification {
   connectionId?: string;
 }
 
+interface SenderProfile {
+  avatar_url?: string;
+  full_name: string;
+}
+
 const Notifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -88,33 +93,51 @@ const Notifications = () => {
         
       if (connectionError) throw connectionError;
       
-      // Then get the profile information separately for each sender
+      // Create an array to store connection notifications
       const connectionNotifications: Notification[] = [];
       
       // Process each connection request
-      for (const request of connectionRequests || []) {
-        // Get the sender profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('avatar_url, full_name')
-          .eq('id', request.sender_id)
-          .single();
+      if (connectionRequests && connectionRequests.length > 0) {
+        // Get all sender IDs
+        const senderIds = connectionRequests.map(request => request.sender_id);
         
-        // Create a notification object with the sender profile info
-        connectionNotifications.push({
-          id: `connection-${request.id}`,
-          title: 'Connection Request',
-          content: `${profileData?.full_name || 'Someone'} wants to connect with you`,
-          category: 'connections',
-          created_at: request.created_at,
-          sender_id: request.sender_id,
-          sender: {
-            avatar_url: profileData?.avatar_url,
-            full_name: profileData?.full_name || 'Unknown User'
-          },
-          isConnectionRequest: true,
-          connectionId: request.sender_id
-        });
+        // Fetch all profiles in one query
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, avatar_url, full_name')
+          .in('id', senderIds);
+          
+        if (profilesError) throw profilesError;
+        
+        // Create a map of profiles by ID for easy lookup
+        const profilesMap = new Map();
+        if (profilesData) {
+          profilesData.forEach(profile => {
+            profilesMap.set(profile.id, profile);
+          });
+        }
+        
+        // Create a notification for each connection request
+        for (const request of connectionRequests) {
+          const profile = profilesMap.get(request.sender_id);
+          
+          if (profile) {
+            connectionNotifications.push({
+              id: `connection-${request.id}`,
+              title: 'Connection Request',
+              content: `${profile.full_name || 'Someone'} wants to connect with you`,
+              category: 'connections',
+              created_at: request.created_at,
+              sender_id: request.sender_id,
+              sender: {
+                avatar_url: profile.avatar_url,
+                full_name: profile.full_name || 'Unknown User'
+              },
+              isConnectionRequest: true,
+              connectionId: request.sender_id
+            });
+          }
+        }
       }
       
       // Combine both types of notifications and sort by date
@@ -139,7 +162,7 @@ const Notifications = () => {
         const success = await acceptConnectionRequest(user.id, connectionId);
         
         if (success) {
-          toast.success("Connection request accepted");
+          console.log("Connection request accepted successfully");
           // Refresh notifications
           fetchNotifications();
         }

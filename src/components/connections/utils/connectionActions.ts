@@ -43,13 +43,17 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Accepting connection request from ${connectionId} to ${userId}`);
     
-    // Use a direct update approach 
+    // Use a direct update approach
     const { data, error } = await supabase
       .from('connections_v2')
-      .update({ status: 'accepted', updated_at: new Date().toISOString() })
+      .update({ 
+        status: 'accepted', 
+        updated_at: new Date().toISOString() 
+      })
       .eq('receiver_id', userId)
       .eq('sender_id', connectionId)
-      .eq('status', 'pending');
+      .eq('status', 'pending')
+      .select();
       
     if (error) {
       console.error("Error accepting connection request:", error);
@@ -57,7 +61,14 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
       throw error;
     }
     
-    console.log("Connection request accepted successfully");
+    // Check if any rows were updated
+    if (!data || data.length === 0) {
+      console.error("No connection request found to accept");
+      toast.error("Connection request not found");
+      throw new Error("Connection request not found");
+    }
+    
+    console.log("Connection request accepted successfully:", data);
     toast.success("Connection request accepted");
     return true;
   } catch (error) {
