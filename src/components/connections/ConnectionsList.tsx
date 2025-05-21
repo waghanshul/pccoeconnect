@@ -89,7 +89,7 @@ export const ConnectionsList = () => {
       setPendingRequestIds(pendingIds);
       console.log("Pending request IDs:", pendingIds);
       
-      // Get pending requests received by user - not showing in connection list, moving to notifications
+      // Get pending requests received by user
       const { data: receivedData, error: receivedError } = await supabase
         .from('connections_v2')
         .select('sender_id')
@@ -200,11 +200,11 @@ export const ConnectionsList = () => {
     fetchUserConnectionStatus();
   };
 
-  // Filter out users with received connection requests since they'll be shown in Notifications
+  // Filter connections based on connection status
   const filteredConnections = connections.filter(connection => 
     !receivedRequestIds.includes(connection.id)
   ).sort((a, b) => {
-    // Sort by connection status first, then by name
+    // Sort by connection status first (connected users first), then by name
     const aConnected = connectedIds.includes(a.id);
     const bConnected = connectedIds.includes(b.id);
     if (aConnected && !bConnected) return -1;
@@ -236,8 +236,7 @@ export const ConnectionsList = () => {
               connection={connection}
               isConnected={connectedIds.includes(connection.id)}
               hasPendingRequest={pendingRequestIds.includes(connection.id)}
-              // We're now hiding received requests from the connections list
-              hasReceivedRequest={false}
+              hasReceivedRequest={receivedRequestIds.includes(connection.id)}
               onConnectionUpdate={handleConnectionUpdate}
             />
           ))}

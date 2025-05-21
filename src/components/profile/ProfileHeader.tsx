@@ -2,9 +2,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Cpu, Users } from "lucide-react";
+import { MessageSquare, Cpu, Users, UserPlus, UserCheck, UserMinus, Loader2 } from "lucide-react";
 import { ProfileStatus } from "./ProfileStatus";
 import { UserStatus } from "@/services/user";
+import { useState } from "react";
 
 interface ProfileHeaderProps {
   name: string;
@@ -31,6 +32,23 @@ export const ProfileHeader = ({
   onConnectClick,
   onStatusChange
 }: ProfileHeaderProps) => {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const handleConnect = async () => {
+    setIsLoading(true);
+    try {
+      await onConnectClick();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const getConnectionIcon = () => {
+    if (isLoading) return <Loader2 className="w-4 h-4 animate-spin" />;
+    if (isConnected) return <UserCheck className="w-4 h-4" />;
+    return <UserPlus className="w-4 h-4" />;
+  };
+
   return (
     <CardHeader className="flex flex-col items-center space-y-4">
       <div className="relative">
@@ -70,9 +88,10 @@ export const ProfileHeader = ({
             <Button 
               variant={isConnected ? "default" : "outline"}
               className="gap-2"
-              onClick={onConnectClick}
+              onClick={handleConnect}
+              disabled={isLoading}
             >
-              <Users className="w-4 h-4" />
+              {getConnectionIcon()}
               {isConnected ? "Connected" : "Connect"}
             </Button>
           )}

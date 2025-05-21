@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { UserPlus, UserMinus, Clock, CheckCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import {
   DialogFooter, 
   DialogClose 
 } from "@/components/ui/dialog";
+import { useAuth } from "@/context/AuthContext";
 import { ConnectionUser, sendConnectionRequest, acceptConnectionRequest, cancelConnectionRequest, removeConnection } from "./utils/connectionActions";
 
 interface ConnectionButtonProps {
@@ -19,7 +21,6 @@ interface ConnectionButtonProps {
   isConnected: boolean;
   hasPendingRequest: boolean;
   hasReceivedRequest: boolean;
-  userId: string | undefined;
   onConnectionUpdate: () => void;
 }
 
@@ -28,9 +29,9 @@ export const ConnectionButton = ({
   isConnected,
   hasPendingRequest,
   hasReceivedRequest,
-  userId,
   onConnectionUpdate
 }: ConnectionButtonProps) => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogAction, setDialogAction] = useState<'remove' | 'cancel'>('remove');
@@ -40,9 +41,18 @@ export const ConnectionButton = ({
     hasReceivedRequest
   });
 
+  // Update local state when props change
+  useEffect(() => {
+    setLocalConnectionState({
+      isConnected,
+      hasPendingRequest,
+      hasReceivedRequest
+    });
+  }, [isConnected, hasPendingRequest, hasReceivedRequest]);
+
   // Handle connection actions with optimistic UI updates
   const handleConnectionAction = async () => {
-    if (!userId) return;
+    if (!user) return;
     
     setIsLoading(true);
     try {
@@ -53,7 +63,8 @@ export const ConnectionButton = ({
         // Optimistic UI update
         setLocalConnectionState(prev => ({ ...prev, hasPendingRequest: true }));
         
-        await sendConnectionRequest(userId, connection.id);
+        await sendConnectionRequest(user.id, connection.id);
+        onConnectionUpdate();
       }
       // Case 2: Request received - Accept connection
       else if (localConnectionState.hasReceivedRequest) {
@@ -64,7 +75,8 @@ export const ConnectionButton = ({
           hasReceivedRequest: false 
         }));
         
-        await acceptConnectionRequest(userId, connection.id);
+        await acceptConnectionRequest(user.id, connection.id);
+        onConnectionUpdate();
       }
       // Case 3: Pending request sent - Cancel request (requires dialog)
       else if (localConnectionState.hasPendingRequest) {
@@ -81,8 +93,9 @@ export const ConnectionButton = ({
           hasReceivedRequest: false 
         }));
         
-        await cancelConnectionRequest(userId, connection.id);
+        await cancelConnectionRequest(user.id, connection.id);
         setIsDialogOpen(false);
+        onConnectionUpdate();
       }
       // Case 4: Connected - Remove connection (requires dialog)
       else if (localConnectionState.isConnected) {
@@ -99,11 +112,10 @@ export const ConnectionButton = ({
           hasReceivedRequest: false 
         }));
         
-        await removeConnection(userId, connection.id);
+        await removeConnection(user.id, connection.id);
         setIsDialogOpen(false);
+        onConnectionUpdate();
       }
-      
-      onConnectionUpdate();
     } catch (error) {
       console.error("Error managing connection:", error);
       // Revert to original state on error
@@ -116,17 +128,6 @@ export const ConnectionButton = ({
       setIsLoading(false);
     }
   };
-
-  // Update local state when props change
-  if (isConnected !== localConnectionState.isConnected ||
-      hasPendingRequest !== localConnectionState.hasPendingRequest ||
-      hasReceivedRequest !== localConnectionState.hasReceivedRequest) {
-    setLocalConnectionState({
-      isConnected,
-      hasPendingRequest,
-      hasReceivedRequest
-    });
-  }
 
   // Ensure the button displays correctly based on the connection state
   const buttonText = () => {

@@ -47,8 +47,8 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
     const { data, error } = await supabase
       .from('connections_v2')
       .update({ 
-        status: 'accepted', 
-        updated_at: new Date().toISOString() 
+        status: 'accepted',
+        updated_at: new Date().toISOString()
       })
       .eq('receiver_id', userId)
       .eq('sender_id', connectionId)

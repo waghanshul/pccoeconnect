@@ -5,6 +5,9 @@ import { useAuth } from "@/context/AuthContext";
 import { NotificationTabs } from "@/components/notifications/NotificationTabs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useConnectionRequests } from "@/hooks/useConnectionRequests";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -14,6 +17,27 @@ const Notifications = () => {
     user?.id, 
     refreshNotifications
   );
+
+  useEffect(() => {
+    if (user) {
+      // Enable database realtime subscriptions for connection changes
+      const channel = supabase
+        .channel('notification-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'connections_v2' },
+          (payload) => {
+            console.log("Connection change detected:", payload);
+            refreshNotifications();
+          }
+        )
+        .subscribe();
+        
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user, refreshNotifications]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -28,8 +52,24 @@ const Notifications = () => {
         ) : (
           <NotificationTabs
             notifications={notifications}
-            onAcceptConnection={handleAcceptConnection}
-            onRejectConnection={handleRejectConnection}
+            onAcceptConnection={async (connectionId) => {
+              try {
+                await handleAcceptConnection(connectionId);
+                toast.success("Connection request accepted");
+              } catch (error) {
+                console.error("Error accepting connection:", error);
+                toast.error("Failed to accept connection");
+              }
+            }}
+            onRejectConnection={async (connectionId) => {
+              try {
+                await handleRejectConnection(connectionId);
+                toast.success("Connection request rejected");
+              } catch (error) {
+                console.error("Error rejecting connection:", error);
+                toast.error("Failed to reject connection");
+              }
+            }}
           />
         )}
       </div>

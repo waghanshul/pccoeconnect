@@ -1,9 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Check, X, Loader2 } from "lucide-react";
 
 interface SenderProfile {
   avatar_url?: string;
@@ -32,11 +32,35 @@ export const NotificationItem = ({
   onAcceptConnection,
   onRejectConnection
 }: NotificationItemProps) => {
+  const [isAccepting, setIsAccepting] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
   
   // Format date to a readable format
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     return format(new Date(dateString), "MMM d, yyyy • h:mm a");
+  };
+  
+  const handleAccept = async () => {
+    if (!connectionId) return;
+    
+    setIsAccepting(true);
+    try {
+      await onAcceptConnection(connectionId);
+    } finally {
+      setIsAccepting(false);
+    }
+  };
+  
+  const handleReject = async () => {
+    if (!connectionId) return;
+    
+    setIsRejecting(true);
+    try {
+      await onRejectConnection(connectionId);
+    } finally {
+      setIsRejecting(false);
+    }
   };
 
   return (
@@ -63,19 +87,29 @@ export const NotificationItem = ({
               <Button 
                 variant="default" 
                 size="sm"
-                onClick={() => onAcceptConnection(connectionId)}
+                onClick={handleAccept}
+                disabled={isAccepting || isRejecting}
                 className="flex items-center gap-1"
               >
-                <Check className="h-4 w-4" />
+                {isAccepting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
                 Accept
               </Button>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => onRejectConnection(connectionId)}
+                onClick={handleReject}
+                disabled={isAccepting || isRejecting}
                 className="flex items-center gap-1"
               >
-                <X className="h-4 w-4" />
+                {isRejecting ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
                 Reject
               </Button>
             </div>

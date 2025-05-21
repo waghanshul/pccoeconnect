@@ -63,6 +63,13 @@ export const Navigation = () => {
             fetchNotificationCount();
           }
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications' },
+          () => {
+            fetchNotificationCount();
+          }
+        )
         .subscribe();
         
       return () => {
@@ -76,15 +83,23 @@ export const Navigation = () => {
     
     try {
       // Count pending connection requests
-      const { count, error } = await supabase
+      const { count: connectionCount, error: connectionError } = await supabase
         .from('connections_v2')
         .select('id', { count: 'exact', head: true })
         .eq('receiver_id', user.id)
         .eq('status', 'pending');
         
-      if (error) throw error;
+      if (connectionError) throw connectionError;
       
-      setNotificationCount(count || 0);
+      // Count regular notifications (if applicable)
+      const { count: notificationsCount, error: notificationsError } = await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true });
+        
+      if (notificationsError) throw notificationsError;
+      
+      const totalCount = (connectionCount || 0) + (notificationsCount || 0);
+      setNotificationCount(totalCount);
     } catch (error) {
       console.error("Error fetching notification count:", error);
     }

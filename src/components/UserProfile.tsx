@@ -34,6 +34,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
   const { user: authUser } = useAuth();
   const [connectionCount, setConnectionCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
+  const [isPendingRequest, setIsPendingRequest] = useState(false);
 
   useEffect(() => {
     if (user.id) {
@@ -69,21 +70,37 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     
     try {
       // Check if there's an accepted connection between the two users in connections_v2
-      const { data, error } = await supabase
+      const { data: acceptedData, error: acceptedError } = await supabase
         .from('connections_v2')
         .select('*')
         .or(`sender_id.eq.${authUser.id}.and.receiver_id.eq.${user.id},sender_id.eq.${user.id}.and.receiver_id.eq.${authUser.id}`)
         .eq('status', 'accepted');
       
-      if (error) {
-        console.error("Error checking connection:", error);
-        throw error;
+      if (acceptedError) {
+        console.error("Error checking connection:", acceptedError);
+        throw acceptedError;
       }
       
-      setIsConnected(data && data.length > 0);
-      console.log("Connection check result:", data);
+      setIsConnected(acceptedData && acceptedData.length > 0);
+      
+      // Also check for pending connection requests
+      if (!isConnected) {
+        const { data: pendingData, error: pendingError } = await supabase
+          .from('connections_v2')
+          .select('*')
+          .eq('sender_id', authUser.id)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending');
+          
+        if (pendingError) {
+          console.error("Error checking pending requests:", pendingError);
+          throw pendingError;
+        }
+        
+        setIsPendingRequest(pendingData && pendingData.length > 0);
+      }
     } catch (error) {
-      console.error("Error checking connection:", error);
+      console.error("Error checking connection status:", error);
     }
   };
 
@@ -109,7 +126,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     
     try {
       if (isConnected) {
-        // Fix: Call the from connections_v2 table directly instead of using RPC
+        // Remove connection
         const { error: deleteError } = await supabase
           .from('connections_v2')
           .delete()
@@ -121,6 +138,19 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
         setIsConnected(false);
         setConnectionCount(prev => Math.max(0, prev - 1));
         toast.success(`Disconnected from ${user.name}`);
+      } else if (isPendingRequest) {
+        // Cancel pending request
+        const { error } = await supabase
+          .from('connections_v2')
+          .delete()
+          .eq('sender_id', authUser.id)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending');
+          
+        if (error) throw error;
+        
+        setIsPendingRequest(false);
+        toast.success(`Connection request canceled`);
       } else {
         // Create a new connection request
         const { error } = await supabase
@@ -132,6 +162,8 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
           });
         
         if (error) throw error;
+        
+        setIsPendingRequest(true);
         toast.success(`Connection request sent to ${user.name}`);
       }
     } catch (error) {
