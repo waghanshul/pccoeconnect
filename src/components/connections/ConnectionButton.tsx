@@ -13,7 +13,6 @@ import {
   DialogFooter, 
   DialogClose 
 } from "@/components/ui/dialog";
-import { useAuth } from "@/context/AuthContext";
 import { ConnectionUser, sendConnectionRequest, acceptConnectionRequest, cancelConnectionRequest, removeConnection } from "./utils/connectionActions";
 
 interface ConnectionButtonProps {
@@ -21,6 +20,7 @@ interface ConnectionButtonProps {
   isConnected: boolean;
   hasPendingRequest: boolean;
   hasReceivedRequest: boolean;
+  userId?: string; // Make userId optional
   onConnectionUpdate: () => void;
 }
 
@@ -29,9 +29,9 @@ export const ConnectionButton = ({
   isConnected,
   hasPendingRequest,
   hasReceivedRequest,
+  userId,
   onConnectionUpdate
 }: ConnectionButtonProps) => {
-  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogAction, setDialogAction] = useState<'remove' | 'cancel'>('remove');
@@ -52,7 +52,7 @@ export const ConnectionButton = ({
 
   // Handle connection actions with optimistic UI updates
   const handleConnectionAction = async () => {
-    if (!user) return;
+    if (!userId) return;
     
     setIsLoading(true);
     try {
@@ -63,7 +63,7 @@ export const ConnectionButton = ({
         // Optimistic UI update
         setLocalConnectionState(prev => ({ ...prev, hasPendingRequest: true }));
         
-        await sendConnectionRequest(user.id, connection.id);
+        await sendConnectionRequest(userId, connection.id);
         onConnectionUpdate();
       }
       // Case 2: Request received - Accept connection
@@ -75,7 +75,7 @@ export const ConnectionButton = ({
           hasReceivedRequest: false 
         }));
         
-        await acceptConnectionRequest(user.id, connection.id);
+        await acceptConnectionRequest(userId, connection.id);
         onConnectionUpdate();
       }
       // Case 3: Pending request sent - Cancel request (requires dialog)
@@ -93,7 +93,7 @@ export const ConnectionButton = ({
           hasReceivedRequest: false 
         }));
         
-        await cancelConnectionRequest(user.id, connection.id);
+        await cancelConnectionRequest(userId, connection.id);
         setIsDialogOpen(false);
         onConnectionUpdate();
       }
@@ -112,7 +112,7 @@ export const ConnectionButton = ({
           hasReceivedRequest: false 
         }));
         
-        await removeConnection(user.id, connection.id);
+        await removeConnection(userId, connection.id);
         setIsDialogOpen(false);
         onConnectionUpdate();
       }
