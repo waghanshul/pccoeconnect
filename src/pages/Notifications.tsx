@@ -78,47 +78,47 @@ const Notifications = () => {
 
       if (notificationError) throw notificationError;
       
-      // Fetch connection requests with explicit join
+      // First get connection requests
       const { data: connectionRequests, error: connectionError } = await supabase
         .from('connections_v2')
-        .select(`
-          id, 
-          created_at,
-          sender_id,
-          profiles!sender_id(
-            avatar_url, 
-            full_name
-          )
-        `)
+        .select('id, created_at, sender_id')
         .eq('receiver_id', user?.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
         
       if (connectionError) throw connectionError;
       
-      // Convert connection requests to notification format
-      const connectionNotifications: Notification[] = connectionRequests.map(request => {
-        // Get sender info from the joined profiles table
-        const profile = request.profiles as { avatar_url?: string, full_name: string } | null;
+      // Then get the profile information separately for each sender
+      const connectionNotifications: Notification[] = [];
+      
+      // Process each connection request
+      for (const request of connectionRequests || []) {
+        // Get the sender profile
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name')
+          .eq('id', request.sender_id)
+          .single();
         
-        return {
+        // Create a notification object with the sender profile info
+        connectionNotifications.push({
           id: `connection-${request.id}`,
           title: 'Connection Request',
-          content: `${profile?.full_name || 'Someone'} wants to connect with you`,
+          content: `${profileData?.full_name || 'Someone'} wants to connect with you`,
           category: 'connections',
           created_at: request.created_at,
           sender_id: request.sender_id,
           sender: {
-            avatar_url: profile?.avatar_url,
-            full_name: profile?.full_name || 'Unknown User'
+            avatar_url: profileData?.avatar_url,
+            full_name: profileData?.full_name || 'Unknown User'
           },
           isConnectionRequest: true,
           connectionId: request.sender_id
-        };
-      });
+        });
+      }
       
       // Combine both types of notifications and sort by date
-      const allNotifications: Notification[] = [...notificationData, ...connectionNotifications]
+      const allNotifications: Notification[] = [...(notificationData || []), ...connectionNotifications]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       setNotifications(allNotifications);
@@ -135,7 +135,7 @@ const Notifications = () => {
       if (!user) return;
       
       if (accept) {
-        // Use the updated function to accept the request
+        // Use the acceptConnectionRequest function from the imported module
         const success = await acceptConnectionRequest(user.id, connectionId);
         
         if (success) {
