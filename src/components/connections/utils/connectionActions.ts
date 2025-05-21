@@ -43,7 +43,7 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Accepting connection request from ${connectionId} to ${userId}`);
     
-    // Use a direct update approach instead of the RPC function
+    // Use a direct update approach 
     const { data, error } = await supabase
       .from('connections_v2')
       .update({ status: 'accepted', updated_at: new Date().toISOString() })
