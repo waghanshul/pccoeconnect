@@ -12,7 +12,7 @@ const Notifications = () => {
   const { user } = useAuth();
   
   const { notifications, isLoading, refreshNotifications } = useNotifications(user?.id);
-  const { handleAcceptConnection, handleRejectConnection } = useConnectionRequests(
+  const { handleAcceptConnection, handleRejectConnection, isProcessing } = useConnectionRequests(
     user?.id, 
     refreshNotifications
   );
@@ -52,22 +52,10 @@ const Notifications = () => {
           <NotificationTabs
             notifications={notifications}
             onAcceptConnection={async (connectionId) => {
-              try {
-                await handleAcceptConnection(connectionId);
-                // Refresh to ensure UI is up to date
-                refreshNotifications();
-              } catch (error) {
-                console.error("Error accepting connection:", error);
-              }
+              await handleAcceptConnection(connectionId);
             }}
             onRejectConnection={async (connectionId) => {
-              try {
-                await handleRejectConnection(connectionId);
-                // Refresh to ensure UI is up to date
-                refreshNotifications();
-              } catch (error) {
-                console.error("Error rejecting connection:", error);
-              }
+              await handleRejectConnection(connectionId);
             }}
           />
         )}
