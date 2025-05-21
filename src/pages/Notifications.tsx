@@ -7,7 +7,6 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { useConnectionRequests } from "@/hooks/useConnectionRequests";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -55,19 +54,19 @@ const Notifications = () => {
             onAcceptConnection={async (connectionId) => {
               try {
                 await handleAcceptConnection(connectionId);
-                toast.success("Connection request accepted");
+                // Refresh to ensure UI is up to date
+                refreshNotifications();
               } catch (error) {
                 console.error("Error accepting connection:", error);
-                toast.error("Failed to accept connection");
               }
             }}
             onRejectConnection={async (connectionId) => {
               try {
                 await handleRejectConnection(connectionId);
-                toast.success("Connection request rejected");
+                // Refresh to ensure UI is up to date
+                refreshNotifications();
               } catch (error) {
                 console.error("Error rejecting connection:", error);
-                toast.error("Failed to reject connection");
               }
             }}
           />

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface Notification {
@@ -21,7 +21,7 @@ export const useNotifications = (userId: string | undefined) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!userId) {
       setIsLoading(false);
       return;
@@ -111,7 +111,7 @@ export const useNotifications = (userId: string | undefined) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     if (userId) {
@@ -130,7 +130,8 @@ export const useNotifications = (userId: string | undefined) => {
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'connections_v2' },
-          () => {
+          (payload) => {
+            console.log("Connection change detected:", payload);
             fetchNotifications();
           }
         )
@@ -140,7 +141,7 @@ export const useNotifications = (userId: string | undefined) => {
         supabase.removeChannel(channel);
       };
     }
-  }, [userId]);
+  }, [userId, fetchNotifications]);
 
   return {
     notifications,

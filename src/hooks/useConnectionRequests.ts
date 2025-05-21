@@ -13,15 +13,18 @@ export const useConnectionRequests = (userId: string | undefined, onUpdate: () =
     try {
       setIsProcessing(prev => ({ ...prev, [connectionId]: true }));
       
-      const success = await acceptConnectionRequest(userId, connectionId);
+      // Use the connection utility to accept the request
+      await acceptConnectionRequest(userId, connectionId);
       
-      if (success) {
-        console.log("Connection request accepted successfully");
-        onUpdate();
-      }
+      // Force refresh of notifications after status change
+      onUpdate();
+      
+      console.log("Connection request accepted successfully");
+      return true;
     } catch (error) {
       console.error("Error accepting connection request:", error);
       toast.error("Failed to accept connection request");
+      throw error;
     } finally {
       setIsProcessing(prev => ({ ...prev, [connectionId]: false }));
     }
@@ -43,11 +46,15 @@ export const useConnectionRequests = (userId: string | undefined, onUpdate: () =
         
       if (error) throw error;
       
-      toast.success("Connection request rejected");
+      // Force refresh of notifications after deletion
       onUpdate();
+      
+      console.log("Connection request rejected successfully");
+      return true;
     } catch (error) {
       console.error("Error rejecting connection request:", error);
       toast.error("Failed to reject connection request");
+      throw error;
     } finally {
       setIsProcessing(prev => ({ ...prev, [connectionId]: false }));
     }

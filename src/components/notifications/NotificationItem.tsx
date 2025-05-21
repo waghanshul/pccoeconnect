@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Check, X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface SenderProfile {
   avatar_url?: string;
@@ -23,6 +24,7 @@ export interface NotificationItemProps {
 }
 
 export const NotificationItem = ({
+  id,
   title,
   content,
   created_at,
@@ -34,6 +36,7 @@ export const NotificationItem = ({
 }: NotificationItemProps) => {
   const [isAccepting, setIsAccepting] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   
   // Format date to a readable format
   const formatDate = (dateString: string) => {
@@ -47,6 +50,11 @@ export const NotificationItem = ({
     setIsAccepting(true);
     try {
       await onAcceptConnection(connectionId);
+      setIsHidden(true); // Hide the notification after successful acceptance
+      toast.success("Connection request accepted");
+    } catch (error) {
+      console.error("Error accepting connection:", error);
+      toast.error("Failed to accept connection");
     } finally {
       setIsAccepting(false);
     }
@@ -58,10 +66,20 @@ export const NotificationItem = ({
     setIsRejecting(true);
     try {
       await onRejectConnection(connectionId);
+      setIsHidden(true); // Hide the notification after successful rejection
+      toast.success("Connection request rejected");
+    } catch (error) {
+      console.error("Error rejecting connection:", error);
+      toast.error("Failed to reject connection");
     } finally {
       setIsRejecting(false);
     }
   };
+
+  // If notification is hidden (after action), don't render anything
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
