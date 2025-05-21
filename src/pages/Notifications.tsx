@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { acceptConnectionRequest } from "@/components/connections/utils/connectionActions";
 
 interface Notification {
   id: string;
@@ -84,7 +85,7 @@ const Notifications = () => {
           id, 
           created_at,
           sender_id,
-          sender:sender_id(
+          profiles!sender_id(
             avatar_url, 
             full_name
           )
@@ -97,19 +98,19 @@ const Notifications = () => {
       
       // Convert connection requests to notification format
       const connectionNotifications: Notification[] = connectionRequests.map(request => {
-        // Safely access the sender properties with proper type checking
-        const sender = request.sender as { avatar_url?: string, full_name: string } | null;
+        // Get sender info from the joined profiles table
+        const profile = request.profiles as { avatar_url?: string, full_name: string } | null;
         
         return {
           id: `connection-${request.id}`,
           title: 'Connection Request',
-          content: `${sender?.full_name || 'Someone'} wants to connect with you`,
+          content: `${profile?.full_name || 'Someone'} wants to connect with you`,
           category: 'connections',
           created_at: request.created_at,
           sender_id: request.sender_id,
           sender: {
-            avatar_url: sender?.avatar_url,
-            full_name: sender?.full_name || 'Unknown User'
+            avatar_url: profile?.avatar_url,
+            full_name: profile?.full_name || 'Unknown User'
           },
           isConnectionRequest: true,
           connectionId: request.sender_id
@@ -162,9 +163,6 @@ const Notifications = () => {
       toast.error("Failed to process connection request");
     }
   };
-
-  // Import the acceptConnectionRequest function
-  const { acceptConnectionRequest } = await import("@/components/connections/utils/connectionActions");
 
   // Function to group notifications by category
   const getNotificationsByCategory = (category: string) => {
