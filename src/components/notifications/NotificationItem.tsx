@@ -51,7 +51,6 @@ export const NotificationItem = ({
     try {
       await onAcceptConnection(connectionId);
       setIsHidden(true); // Hide the notification after successful acceptance
-      toast.success("Connection request accepted");
     } catch (error) {
       console.error("Error accepting connection:", error);
       toast.error("Failed to accept connection");
@@ -67,7 +66,6 @@ export const NotificationItem = ({
     try {
       await onRejectConnection(connectionId);
       setIsHidden(true); // Hide the notification after successful rejection
-      toast.success("Connection request rejected");
     } catch (error) {
       console.error("Error rejecting connection:", error);
       toast.error("Failed to reject connection");

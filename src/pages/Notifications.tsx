@@ -26,7 +26,7 @@ const Notifications = () => {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'connections_v2' },
           (payload) => {
-            console.log("Connection change detected:", payload);
+            console.log("Connection change detected in Notifications page:", payload);
             refreshNotifications();
           }
         )

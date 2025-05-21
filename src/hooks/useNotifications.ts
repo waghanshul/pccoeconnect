@@ -29,6 +29,7 @@ export const useNotifications = (userId: string | undefined) => {
 
     try {
       setIsLoading(true);
+      console.log("Fetching notifications for user:", userId);
       
       // Fetch regular notifications with explicit join on sender profiles
       const { data: notificationData, error: notificationError } = await supabase
@@ -44,6 +45,8 @@ export const useNotifications = (userId: string | undefined) => {
 
       if (notificationError) throw notificationError;
       
+      console.log("Regular notifications fetched:", notificationData?.length || 0);
+      
       // First get connection requests
       const { data: connectionRequests, error: connectionError } = await supabase
         .from('connections_v2')
@@ -53,6 +56,8 @@ export const useNotifications = (userId: string | undefined) => {
         .order('created_at', { ascending: false });
         
       if (connectionError) throw connectionError;
+      
+      console.log("Connection requests fetched:", connectionRequests?.length || 0);
       
       // Create an array to store connection notifications
       const connectionNotifications: Notification[] = [];
@@ -101,9 +106,13 @@ export const useNotifications = (userId: string | undefined) => {
         }
       }
       
+      console.log("Connection notifications created:", connectionNotifications.length);
+      
       // Combine both types of notifications and sort by date
       const allNotifications: Notification[] = [...(notificationData || []), ...connectionNotifications]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      console.log("Total notifications after combining:", allNotifications.length);
       
       setNotifications(allNotifications);
     } catch (error) {
@@ -124,6 +133,7 @@ export const useNotifications = (userId: string | undefined) => {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'notifications' },
           () => {
+            console.log("Notification change detected, refreshing...");
             fetchNotifications();
           }
         )
