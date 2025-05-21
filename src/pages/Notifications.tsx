@@ -77,14 +77,14 @@ const Notifications = () => {
 
       if (notificationError) throw notificationError;
       
-      // Fetch connection requests
+      // Fetch connection requests with explicit join
       const { data: connectionRequests, error: connectionError } = await supabase
         .from('connections_v2')
         .select(`
           id, 
-          created_at, 
+          created_at,
           sender_id,
-          sender:profiles!sender_id(
+          sender:sender_id(
             avatar_url, 
             full_name
           )
@@ -96,20 +96,25 @@ const Notifications = () => {
       if (connectionError) throw connectionError;
       
       // Convert connection requests to notification format
-      const connectionNotifications: Notification[] = connectionRequests.map(request => ({
-        id: `connection-${request.id}`,
-        title: 'Connection Request',
-        content: `${request.sender?.full_name || 'Someone'} wants to connect with you`,
-        category: 'connections',
-        created_at: request.created_at,
-        sender_id: request.sender_id,
-        sender: {
-          avatar_url: request.sender?.avatar_url,
-          full_name: request.sender?.full_name || 'Unknown User'
-        },
-        isConnectionRequest: true,
-        connectionId: request.sender_id
-      }));
+      const connectionNotifications: Notification[] = connectionRequests.map(request => {
+        // Safely access the sender properties with proper type checking
+        const sender = request.sender as { avatar_url?: string, full_name: string } | null;
+        
+        return {
+          id: `connection-${request.id}`,
+          title: 'Connection Request',
+          content: `${sender?.full_name || 'Someone'} wants to connect with you`,
+          category: 'connections',
+          created_at: request.created_at,
+          sender_id: request.sender_id,
+          sender: {
+            avatar_url: sender?.avatar_url,
+            full_name: sender?.full_name || 'Unknown User'
+          },
+          isConnectionRequest: true,
+          connectionId: request.sender_id
+        };
+      });
       
       // Combine both types of notifications and sort by date
       const allNotifications: Notification[] = [...notificationData, ...connectionNotifications]
@@ -129,16 +134,14 @@ const Notifications = () => {
       if (!user) return;
       
       if (accept) {
-        // Use our updated function to accept the request
-        const { data, error } = await supabase
-          .rpc('accept_connection_request', {
-            current_user_id: user.id,
-            sender_id: connectionId
-          });
-          
-        if (error) throw error;
+        // Use the updated function to accept the request
+        const success = await acceptConnectionRequest(user.id, connectionId);
         
-        toast.success("Connection request accepted");
+        if (success) {
+          toast.success("Connection request accepted");
+          // Refresh notifications
+          fetchNotifications();
+        }
       } else {
         // Reject the request (delete it)
         const { error } = await supabase
@@ -151,15 +154,17 @@ const Notifications = () => {
         if (error) throw error;
         
         toast.success("Connection request rejected");
+        // Refresh notifications
+        fetchNotifications();
       }
-      
-      // Refresh notifications
-      fetchNotifications();
     } catch (error) {
       console.error("Error handling connection request:", error);
       toast.error("Failed to process connection request");
     }
   };
+
+  // Import the acceptConnectionRequest function
+  const { acceptConnectionRequest } = await import("@/components/connections/utils/connectionActions");
 
   // Function to group notifications by category
   const getNotificationsByCategory = (category: string) => {

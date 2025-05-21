@@ -43,12 +43,13 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Accepting connection request from ${connectionId} to ${userId}`);
     
-    // Use the secure function we created to accept the connection request
+    // Use a direct update approach instead of the RPC function
     const { data, error } = await supabase
-      .rpc('accept_connection_request', {
-        current_user_id: userId,
-        sender_id: connectionId
-      });
+      .from('connections_v2')
+      .update({ status: 'accepted', updated_at: new Date().toISOString() })
+      .eq('receiver_id', userId)
+      .eq('sender_id', connectionId)
+      .eq('status', 'pending');
       
     if (error) {
       console.error("Error accepting connection request:", error);
