@@ -30,6 +30,14 @@ const Notifications = () => {
             refreshNotifications();
           }
         )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'notifications' },
+          (payload) => {
+            console.log("Notification change detected in Notifications page:", payload);
+            refreshNotifications();
+          }
+        )
         .subscribe();
         
       return () => {
@@ -51,12 +59,8 @@ const Notifications = () => {
         ) : (
           <NotificationTabs
             notifications={notifications}
-            onAcceptConnection={async (connectionId) => {
-              await handleAcceptConnection(connectionId);
-            }}
-            onRejectConnection={async (connectionId) => {
-              await handleRejectConnection(connectionId);
-            }}
+            onAcceptConnection={handleAcceptConnection}
+            onRejectConnection={handleRejectConnection}
           />
         )}
       </div>

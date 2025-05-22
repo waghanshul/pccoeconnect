@@ -15,17 +15,21 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
   try {
     console.log(`Sending connection request from ${userId} to ${connectionId}`);
     
-    const { error } = await supabase
-      .from('connections_v2')
-      .insert({
-        sender_id: userId,
-        receiver_id: connectionId,
-        status: 'pending'
+    const { data, error } = await supabase
+      .rpc('send_connection_request', {
+        sender_user_id: userId,
+        receiver_user_id: connectionId
       });
       
     if (error) {
       console.error("Error in sendConnectionRequest:", error);
       throw error;
+    }
+    
+    if (data && !data.success) {
+      console.warn("Request unsuccessful:", data.error);
+      toast.error(data.error || "Failed to send connection request");
+      return false;
     }
     
     console.log("Connection request sent successfully");
@@ -43,17 +47,11 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Accepting connection request from ${connectionId} to ${userId}`);
     
-    // Use a direct update approach
     const { data, error } = await supabase
-      .from('connections_v2')
-      .update({ 
-        status: 'accepted',
-        updated_at: new Date().toISOString()
-      })
-      .eq('receiver_id', userId)
-      .eq('sender_id', connectionId)
-      .eq('status', 'pending')
-      .select();
+      .rpc('accept_connection_request', {
+        receiver_user_id: userId,
+        sender_user_id: connectionId
+      });
       
     if (error) {
       console.error("Error accepting connection request:", error);
@@ -61,11 +59,10 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
       throw error;
     }
     
-    // Check if any rows were updated
-    if (!data || data.length === 0) {
-      console.error("No connection request found to accept");
-      toast.error("Connection request not found");
-      throw new Error("Connection request not found");
+    if (data && !data.success) {
+      console.warn("Request unsuccessful:", data.error);
+      toast.error(data.error || "Failed to accept connection request");
+      return false;
     }
     
     console.log("Connection request accepted successfully:", data);
@@ -78,11 +75,45 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
   }
 };
 
+// Handle rejecting a connection request
+export const rejectConnectionRequest = async (userId: string, connectionId: string) => {
+  try {
+    console.log(`Rejecting connection request from ${connectionId} to ${userId}`);
+    
+    const { data, error } = await supabase
+      .rpc('reject_connection_request', {
+        receiver_user_id: userId,
+        sender_user_id: connectionId
+      });
+      
+    if (error) {
+      console.error("Error rejecting connection request:", error);
+      toast.error("Failed to reject connection request");
+      throw error;
+    }
+    
+    if (data && !data.success) {
+      console.warn("Request unsuccessful:", data.error);
+      toast.error(data.error || "Failed to reject connection request");
+      return false;
+    }
+    
+    console.log("Connection request rejected successfully");
+    toast.success("Connection request rejected");
+    return true;
+  } catch (error) {
+    console.error("Error rejecting connection request:", error);
+    toast.error("Failed to reject connection request");
+    throw error;
+  }
+};
+
 // Handle canceling a connection request
 export const cancelConnectionRequest = async (userId: string, connectionId: string) => {
   try {
     console.log(`Canceling connection request from ${userId} to ${connectionId}`);
     
+    // Since we don't have a specific function for cancellation, we'll use a direct delete
     const { error: deleteError } = await supabase
       .from('connections_v2')
       .delete()
@@ -111,7 +142,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
   try {
     console.log(`Attempting to remove connection between ${userId} and ${connectionId}`);
     
-    // First try to delete where the current user is the sender
+    // Try both directions of the connection
     const { data: senderData, error: senderError } = await supabase
       .from('connections_v2')
       .delete()
@@ -125,7 +156,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
     }
     
     // Check if anything was deleted
-    const isDeletedAsSender = senderData !== null && senderData !== undefined;
+    const isDeletedAsSender = senderData !== null && senderData.length > 0;
     
     if (!isDeletedAsSender) {
       console.log("No connection found as sender, trying as receiver");
@@ -145,7 +176,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
       }
       
       // Check if anything was deleted
-      const isDeletedAsReceiver = receiverData !== null && receiverData !== undefined;
+      const isDeletedAsReceiver = receiverData !== null && receiverData.length > 0;
       
       if (!isDeletedAsReceiver) {
         console.error("No connection found to remove");

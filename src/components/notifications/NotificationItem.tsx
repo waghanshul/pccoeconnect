@@ -45,7 +45,10 @@ export const NotificationItem = ({
   };
   
   const handleAccept = async () => {
-    if (!connectionId) return;
+    if (!connectionId) {
+      console.error("Cannot accept connection: connectionId is missing");
+      return;
+    }
     
     setIsAccepting(true);
     try {
@@ -60,7 +63,10 @@ export const NotificationItem = ({
   };
   
   const handleReject = async () => {
-    if (!connectionId) return;
+    if (!connectionId) {
+      console.error("Cannot reject connection: connectionId is missing");
+      return;
+    }
     
     setIsRejecting(true);
     try {

@@ -607,15 +607,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      user_connections_view: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          receiver_avatar: string | null
+          receiver_email: string | null
+          receiver_id: string | null
+          receiver_name: string | null
+          sender_avatar: string | null
+          sender_email: string | null
+          sender_id: string | null
+          sender_name: string | null
+          status: Database["public"]["Enums"]["connection_status"] | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      accept_connection_request: {
+        Args: { receiver_user_id: string; sender_user_id: string }
+        Returns: Json
+      }
       create_connection: {
         Args: { follower: string; following: string }
         Returns: boolean
       }
+      get_user_connection_counts: {
+        Args: { user_id: string }
+        Returns: Json
+      }
       get_user_connections: {
         Args: { user_id: string }
+        Returns: Json
+      }
+      reject_connection_request: {
+        Args: { receiver_user_id: string; sender_user_id: string }
+        Returns: Json
+      }
+      send_connection_request: {
+        Args: { sender_user_id: string; receiver_user_id: string }
         Returns: Json
       }
     }

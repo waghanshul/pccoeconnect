@@ -1,73 +1,66 @@
 
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { acceptConnectionRequest, rejectConnectionRequest } from "@/components/connections/utils/connectionActions";
 import { toast } from "sonner";
 
 export const useConnectionRequests = (userId: string | undefined, onUpdate: () => void) => {
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
 
   const handleAcceptConnection = async (connectionId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("You must be logged in to accept connections");
+      return;
+    }
     
     try {
       setIsProcessing(prev => ({ ...prev, [connectionId]: true }));
       
-      // Update connection status to accepted
-      const { error } = await supabase
-        .from('connections_v2')
-        .update({ 
-          status: 'accepted',
-          updated_at: new Date().toISOString()
-        })
-        .eq('sender_id', connectionId)
-        .eq('receiver_id', userId)
-        .eq('status', 'pending');
+      // Use the enhanced function that calls the database function
+      const result = await acceptConnectionRequest(userId, connectionId);
+      
+      if (result) {
+        console.log("Connection accepted successfully");
         
-      if (error) throw error;
+        // Force refresh of notifications after status change
+        onUpdate();
+        
+        return true;
+      }
       
-      console.log("Connection request accepted successfully");
-      toast.success("Connection request accepted");
-      
-      // Force refresh of notifications after status change
-      onUpdate();
-      
-      return true;
+      return false;
     } catch (error) {
       console.error("Error accepting connection request:", error);
-      toast.error("Failed to accept connection request");
-      throw error;
+      return false;
     } finally {
       setIsProcessing(prev => ({ ...prev, [connectionId]: false }));
     }
   };
 
   const handleRejectConnection = async (connectionId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("You must be logged in to reject connections");
+      return;
+    }
     
     try {
       setIsProcessing(prev => ({ ...prev, [connectionId]: true }));
       
-      // Reject the request (delete it)
-      const { error } = await supabase
-        .from('connections_v2')
-        .delete()
-        .eq('sender_id', connectionId)
-        .eq('receiver_id', userId)
-        .eq('status', 'pending');
+      // Use the enhanced function that calls the database function
+      const result = await rejectConnectionRequest(userId, connectionId);
+      
+      if (result) {
+        console.log("Connection rejected successfully");
         
-      if (error) throw error;
+        // Force refresh of notifications after rejection
+        onUpdate();
+        
+        return true;
+      }
       
-      console.log("Connection request rejected successfully");
-      toast.success("Connection request rejected");
-      
-      // Force refresh of notifications after deletion
-      onUpdate();
-      
-      return true;
+      return false;
     } catch (error) {
       console.error("Error rejecting connection request:", error);
-      toast.error("Failed to reject connection request");
-      throw error;
+      return false;
     } finally {
       setIsProcessing(prev => ({ ...prev, [connectionId]: false }));
     }

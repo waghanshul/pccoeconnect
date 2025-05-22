@@ -23,6 +23,7 @@ export const useNotifications = (userId: string | undefined) => {
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) {
+      setNotifications([]);
       setIsLoading(false);
       return;
     }
@@ -47,7 +48,7 @@ export const useNotifications = (userId: string | undefined) => {
       
       console.log("Regular notifications fetched:", notificationData?.length || 0);
       
-      // First get connection requests
+      // Fetch connection requests
       const { data: connectionRequests, error: connectionError } = await supabase
         .from('connections_v2')
         .select('id, created_at, sender_id')
@@ -117,6 +118,7 @@ export const useNotifications = (userId: string | undefined) => {
       setNotifications(allNotifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      setNotifications([]);
     } finally {
       setIsLoading(false);
     }
