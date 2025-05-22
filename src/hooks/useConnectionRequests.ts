@@ -15,7 +15,6 @@ export const useConnectionRequests = (userId: string | undefined, onUpdate: () =
     try {
       setIsProcessing(prev => ({ ...prev, [connectionId]: true }));
       
-      // Use the enhanced function that calls the database function
       const result = await acceptConnectionRequest(userId, connectionId);
       
       if (result) {
@@ -40,7 +39,6 @@ export const useConnectionRequests = (userId: string | undefined, onUpdate: () =
     try {
       setIsProcessing(prev => ({ ...prev, [connectionId]: true }));
       
-      // Use the enhanced function that calls the database function
       const result = await rejectConnectionRequest(userId, connectionId);
       
       if (result) {

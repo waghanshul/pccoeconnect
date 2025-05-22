@@ -22,6 +22,45 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
   try {
     console.log(`Sending connection request from ${userId} to ${connectionId}`);
     
+    // First check if there's already a connection (in either direction)
+    const { data: existingConnection, error: checkError } = await supabase
+      .from('connections_v2')
+      .select('id, status')
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${connectionId}),and(sender_id.eq.${connectionId},receiver_id.eq.${userId})`)
+      .maybeSingle();
+    
+    if (checkError) {
+      console.error("Error checking existing connections:", checkError);
+      throw checkError;
+    }
+    
+    // If there's an existing rejected or pending connection, delete it first
+    if (existingConnection) {
+      if (existingConnection.status === 'rejected') {
+        const { error: deleteError } = await supabase
+          .from('connections_v2')
+          .delete()
+          .eq('id', existingConnection.id);
+          
+        if (deleteError) {
+          console.error("Error deleting rejected connection:", deleteError);
+          throw deleteError;
+        }
+        
+        console.log("Deleted rejected connection before sending new request");
+      } else {
+        // If already connected or pending
+        const statusMessage = existingConnection.status === 'accepted' 
+          ? "You are already connected with this user" 
+          : "A connection request already exists";
+        
+        console.warn(statusMessage);
+        toast.error(statusMessage);
+        return false;
+      }
+    }
+    
+    // Now send the connection request using the RPC function
     const { data, error } = await supabase
       .rpc('send_connection_request', {
         sender_user_id: userId,
@@ -93,6 +132,26 @@ export const rejectConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Rejecting connection request from ${connectionId} to ${userId}`);
     
+    // First verify that there is a pending request
+    const { data: checkData, error: checkError } = await supabase
+      .from('connections_v2')
+      .select('id')
+      .eq('sender_id', connectionId)
+      .eq('receiver_id', userId)
+      .eq('status', 'pending')
+      .maybeSingle();
+      
+    if (checkError) {
+      console.error("Error checking pending request:", checkError);
+      throw checkError;
+    }
+    
+    if (!checkData) {
+      console.warn("No pending request found to reject");
+      toast.error("No pending connection request found");
+      return false;
+    }
+    
     const { data, error } = await supabase
       .rpc('reject_connection_request', {
         receiver_user_id: userId,
@@ -129,13 +188,31 @@ export const cancelConnectionRequest = async (userId: string, connectionId: stri
   try {
     console.log(`Canceling connection request from ${userId} to ${connectionId}`);
     
-    // Since we don't have a specific function for cancellation, we'll use a direct delete
+    // Verify that there is a pending request
+    const { data: checkData, error: checkError } = await supabase
+      .from('connections_v2')
+      .select('id')
+      .eq('sender_id', userId)
+      .eq('receiver_id', connectionId)
+      .eq('status', 'pending')
+      .maybeSingle();
+      
+    if (checkError) {
+      console.error("Error checking pending request:", checkError);
+      throw checkError;
+    }
+    
+    if (!checkData) {
+      console.warn("No pending request found to cancel");
+      toast.error("No pending connection request found");
+      return false;
+    }
+    
+    // Delete the pending request
     const { error: deleteError } = await supabase
       .from('connections_v2')
       .delete()
-      .eq('sender_id', userId)
-      .eq('receiver_id', connectionId)
-      .eq('status', 'pending');
+      .eq('id', checkData.id);
       
     if (deleteError) {
       console.error("Error deleting connection request:", deleteError);
@@ -158,74 +235,39 @@ export const removeConnection = async (userId: string, connectionId: string) => 
   try {
     console.log(`Attempting to remove connection between ${userId} and ${connectionId}`);
     
-    // First check if connection exists as sender
-    const { data: checkSender, error: checkSenderError } = await supabase
+    // Check if connection exists in either direction
+    const { data: connection, error: checkError } = await supabase
       .from('connections_v2')
       .select('id')
-      .eq('sender_id', userId)
-      .eq('receiver_id', connectionId)
-      .eq('status', 'accepted')
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${connectionId},status.eq.accepted),and(sender_id.eq.${connectionId},receiver_id.eq.${userId},status.eq.accepted)`)
       .maybeSingle();
       
-    if (checkSenderError) {
-      console.error("Error checking connection as sender:", checkSenderError);
-      // Don't throw here, try the other direction
+    if (checkError) {
+      console.error("Error checking connection:", checkError);
+      throw checkError;
     }
     
-    if (checkSender) {
-      // Connection exists with user as sender
-      const { error: deleteError } = await supabase
-        .from('connections_v2')
-        .delete()
-        .eq('id', checkSender.id);
-        
-      if (deleteError) {
-        console.error("Error removing connection as sender:", deleteError);
-        toast.error("Failed to remove connection");
-        throw deleteError;
-      }
-      
-      console.log(`Connection removed successfully`);
-      toast.success("Connection removed");
-      return true;
+    if (!connection) {
+      console.error("No connection found to remove");
+      toast.error("Connection not found");
+      return false;
     }
     
-    // If not found as sender, check as receiver
-    const { data: checkReceiver, error: checkReceiverError } = await supabase
+    // Delete the connection using the ID
+    const { error: deleteError } = await supabase
       .from('connections_v2')
-      .select('id')
-      .eq('sender_id', connectionId)
-      .eq('receiver_id', userId)
-      .eq('status', 'accepted')
-      .maybeSingle();
+      .delete()
+      .eq('id', connection.id);
       
-    if (checkReceiverError) {
-      console.error("Error checking connection as receiver:", checkReceiverError);
-      // Don't throw yet
+    if (deleteError) {
+      console.error("Error removing connection:", deleteError);
+      toast.error("Failed to remove connection");
+      throw deleteError;
     }
     
-    if (checkReceiver) {
-      // Connection exists with user as receiver
-      const { error: deleteError } = await supabase
-        .from('connections_v2')
-        .delete()
-        .eq('id', checkReceiver.id);
-        
-      if (deleteError) {
-        console.error("Error removing connection as receiver:", deleteError);
-        toast.error("Failed to remove connection");
-        throw deleteError;
-      }
-      
-      console.log(`Connection removed successfully`);
-      toast.success("Connection removed");
-      return true;
-    }
-    
-    // No connection found in either direction
-    console.error("No connection found to remove");
-    toast.error("Connection not found");
-    return false;
+    console.log(`Connection removed successfully`);
+    toast.success("Connection removed");
+    return true;
   } catch (error) {
     console.error("Connection removal failed:", error);
     toast.error("Failed to remove connection");
