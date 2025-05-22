@@ -158,54 +158,74 @@ export const removeConnection = async (userId: string, connectionId: string) => 
   try {
     console.log(`Attempting to remove connection between ${userId} and ${connectionId}`);
     
-    // Try both directions of the connection
-    const { data: senderData, error: senderError } = await supabase
+    // First check if connection exists as sender
+    const { data: checkSender, error: checkSenderError } = await supabase
       .from('connections_v2')
-      .delete()
+      .select('id')
       .eq('sender_id', userId)
       .eq('receiver_id', connectionId)
-      .eq('status', 'accepted');
+      .eq('status', 'accepted')
+      .maybeSingle();
       
-    if (senderError) {
-      console.error("Error removing connection as sender:", senderError);
+    if (checkSenderError) {
+      console.error("Error checking connection as sender:", checkSenderError);
       // Don't throw here, try the other direction
     }
     
-    // Explicitly type and check senderData to fix the TypeScript error
-    const senderArray = senderData as any[] | null;
-    const isDeletedAsSender = senderArray && senderArray.length > 0;
-    
-    if (!isDeletedAsSender) {
-      console.log("No connection found as sender, trying as receiver");
-      
-      // If no rows were affected as sender, try as receiver
-      const { data: receiverData, error: receiverError } = await supabase
+    if (checkSender) {
+      // Connection exists with user as sender
+      const { error: deleteError } = await supabase
         .from('connections_v2')
         .delete()
-        .eq('sender_id', connectionId)
-        .eq('receiver_id', userId)
-        .eq('status', 'accepted');
+        .eq('id', checkSender.id);
         
-      if (receiverError) {
-        console.error("Error removing connection as receiver:", receiverError);
+      if (deleteError) {
+        console.error("Error removing connection as sender:", deleteError);
         toast.error("Failed to remove connection");
-        throw receiverError;
+        throw deleteError;
       }
       
-      // Explicitly type and check receiverData to fix the TypeScript error
-      const receiverArray = receiverData as any[] | null;
-      const isDeletedAsReceiver = receiverArray && receiverArray.length > 0;
-      
-      if (!isDeletedAsReceiver) {
-        console.error("No connection found to remove");
-        toast.error("Connection not found");
-        throw new Error("Connection not found");
-      }
+      console.log(`Connection removed successfully`);
+      toast.success("Connection removed");
+      return true;
     }
     
-    console.log(`Connection removed successfully`);
-    toast.success("Connection removed");
-    return true;
+    // If not found as sender, check as receiver
+    const { data: checkReceiver, error: checkReceiverError } = await supabase
+      .from('connections_v2')
+      .select('id')
+      .eq('sender_id', connectionId)
+      .eq('receiver_id', userId)
+      .eq('status', 'accepted')
+      .maybeSingle();
+      
+    if (checkReceiverError) {
+      console.error("Error checking connection as receiver:", checkReceiverError);
+      // Don't throw yet
+    }
+    
+    if (checkReceiver) {
+      // Connection exists with user as receiver
+      const { error: deleteError } = await supabase
+        .from('connections_v2')
+        .delete()
+        .eq('id', checkReceiver.id);
+        
+      if (deleteError) {
+        console.error("Error removing connection as receiver:", deleteError);
+        toast.error("Failed to remove connection");
+        throw deleteError;
+      }
+      
+      console.log(`Connection removed successfully`);
+      toast.success("Connection removed");
+      return true;
+    }
+    
+    // No connection found in either direction
+    console.error("No connection found to remove");
+    toast.error("Connection not found");
+    return false;
   } catch (error) {
     console.error("Connection removal failed:", error);
     toast.error("Failed to remove connection");
