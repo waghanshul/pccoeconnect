@@ -10,6 +10,13 @@ export interface ConnectionUser {
   role?: string;
 }
 
+// Define a type for the RPC function responses
+interface RPCResponse {
+  success: boolean;
+  error?: string;
+  connection_id?: string;
+}
+
 // Handle sending connection request
 export const sendConnectionRequest = async (userId: string, connectionId: string) => {
   try {
@@ -26,9 +33,12 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
       throw error;
     }
     
-    if (data && !data.success) {
-      console.warn("Request unsuccessful:", data.error);
-      toast.error(data.error || "Failed to send connection request");
+    // Type assertion to handle the RPC response properly
+    const response = data as unknown as RPCResponse;
+    
+    if (!response.success) {
+      console.warn("Request unsuccessful:", response.error);
+      toast.error(response.error || "Failed to send connection request");
       return false;
     }
     
@@ -59,9 +69,12 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
       throw error;
     }
     
-    if (data && !data.success) {
-      console.warn("Request unsuccessful:", data.error);
-      toast.error(data.error || "Failed to accept connection request");
+    // Type assertion to handle the RPC response properly
+    const response = data as unknown as RPCResponse;
+    
+    if (!response.success) {
+      console.warn("Request unsuccessful:", response.error);
+      toast.error(response.error || "Failed to accept connection request");
       return false;
     }
     
@@ -92,9 +105,12 @@ export const rejectConnectionRequest = async (userId: string, connectionId: stri
       throw error;
     }
     
-    if (data && !data.success) {
-      console.warn("Request unsuccessful:", data.error);
-      toast.error(data.error || "Failed to reject connection request");
+    // Type assertion to handle the RPC response properly
+    const response = data as unknown as RPCResponse;
+    
+    if (!response.success) {
+      console.warn("Request unsuccessful:", response.error);
+      toast.error(response.error || "Failed to reject connection request");
       return false;
     }
     
@@ -156,7 +172,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
     }
     
     // Check if anything was deleted
-    const isDeletedAsSender = senderData !== null && senderData.length > 0;
+    const isDeletedAsSender = senderData !== null && Array.isArray(senderData) && senderData.length > 0;
     
     if (!isDeletedAsSender) {
       console.log("No connection found as sender, trying as receiver");
@@ -176,7 +192,7 @@ export const removeConnection = async (userId: string, connectionId: string) => 
       }
       
       // Check if anything was deleted
-      const isDeletedAsReceiver = receiverData !== null && receiverData.length > 0;
+      const isDeletedAsReceiver = receiverData !== null && Array.isArray(receiverData) && receiverData.length > 0;
       
       if (!isDeletedAsReceiver) {
         console.error("No connection found to remove");

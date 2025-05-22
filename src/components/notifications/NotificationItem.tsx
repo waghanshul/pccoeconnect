@@ -140,4 +140,4 @@ export const NotificationItem = ({
       </div>
     </div>
   );
-};
+}

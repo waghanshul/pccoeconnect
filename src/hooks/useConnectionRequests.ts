@@ -6,7 +6,7 @@ import { toast } from "sonner";
 export const useConnectionRequests = (userId: string | undefined, onUpdate: () => void) => {
   const [isProcessing, setIsProcessing] = useState<Record<string, boolean>>({});
 
-  const handleAcceptConnection = async (connectionId: string) => {
+  const handleAcceptConnection = async (connectionId: string): Promise<void> => {
     if (!userId) {
       toast.error("You must be logged in to accept connections");
       return;
@@ -23,20 +23,15 @@ export const useConnectionRequests = (userId: string | undefined, onUpdate: () =
         
         // Force refresh of notifications after status change
         onUpdate();
-        
-        return true;
       }
-      
-      return false;
     } catch (error) {
       console.error("Error accepting connection request:", error);
-      return false;
     } finally {
       setIsProcessing(prev => ({ ...prev, [connectionId]: false }));
     }
   };
 
-  const handleRejectConnection = async (connectionId: string) => {
+  const handleRejectConnection = async (connectionId: string): Promise<void> => {
     if (!userId) {
       toast.error("You must be logged in to reject connections");
       return;
@@ -53,14 +48,9 @@ export const useConnectionRequests = (userId: string | undefined, onUpdate: () =
         
         // Force refresh of notifications after rejection
         onUpdate();
-        
-        return true;
       }
-      
-      return false;
     } catch (error) {
       console.error("Error rejecting connection request:", error);
-      return false;
     } finally {
       setIsProcessing(prev => ({ ...prev, [connectionId]: false }));
     }
