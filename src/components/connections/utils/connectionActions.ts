@@ -171,8 +171,9 @@ export const removeConnection = async (userId: string, connectionId: string) => 
       // Don't throw here, try the other direction
     }
     
-    // Check if anything was deleted - Fix for TS18047: 'senderData' is possibly 'null'
-    const isDeletedAsSender = senderData && Array.isArray(senderData) && senderData.length > 0;
+    // Explicitly type and check senderData to fix the TypeScript error
+    const senderArray = senderData as any[] | null;
+    const isDeletedAsSender = senderArray && senderArray.length > 0;
     
     if (!isDeletedAsSender) {
       console.log("No connection found as sender, trying as receiver");
@@ -191,8 +192,9 @@ export const removeConnection = async (userId: string, connectionId: string) => 
         throw receiverError;
       }
       
-      // Check if anything was deleted - Fix for TS18047: 'receiverData' is possibly 'null'
-      const isDeletedAsReceiver = receiverData && Array.isArray(receiverData) && receiverData.length > 0;
+      // Explicitly type and check receiverData to fix the TypeScript error
+      const receiverArray = receiverData as any[] | null;
+      const isDeletedAsReceiver = receiverArray && receiverArray.length > 0;
       
       if (!isDeletedAsReceiver) {
         console.error("No connection found to remove");
