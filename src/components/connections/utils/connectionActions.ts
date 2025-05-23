@@ -34,9 +34,10 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
       throw checkError;
     }
     
-    // If there's an existing rejected or pending connection, delete it first
+    // If there's an existing connection, handle it based on status
     if (existingConnection) {
       if (existingConnection.status === 'rejected') {
+        // Delete the rejected connection first
         const { error: deleteError } = await supabase
           .from('connections_v2')
           .delete()
@@ -48,40 +49,34 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
         }
         
         console.log("Deleted rejected connection before sending new request");
-      } else {
-        // If already connected or pending
-        const statusMessage = existingConnection.status === 'accepted' 
-          ? "You are already connected with this user" 
-          : "A connection request already exists";
-        
-        console.warn(statusMessage);
-        toast.error(statusMessage);
+      } else if (existingConnection.status === 'pending') {
+        console.warn("A connection request already exists");
+        toast.error("A connection request already exists");
+        return false;
+      } else if (existingConnection.status === 'accepted') {
+        console.warn("You are already connected with this user");
+        toast.error("You are already connected with this user");
         return false;
       }
     }
     
-    // Now send the connection request using the RPC function
+    // Now send the connection request using direct insert instead of RPC
     const { data, error } = await supabase
-      .rpc('send_connection_request', {
-        sender_user_id: userId,
-        receiver_user_id: connectionId
-      });
+      .from('connections_v2')
+      .insert({
+        sender_id: userId,
+        receiver_id: connectionId,
+        status: 'pending'
+      })
+      .select()
+      .single();
       
     if (error) {
-      console.error("Error in sendConnectionRequest:", error);
+      console.error("Error inserting connection request:", error);
       throw error;
     }
     
-    // Type assertion to handle the RPC response properly
-    const response = data as unknown as RPCResponse;
-    
-    if (!response.success) {
-      console.warn("Request unsuccessful:", response.error);
-      toast.error(response.error || "Failed to send connection request");
-      return false;
-    }
-    
-    console.log("Connection request sent successfully");
+    console.log("Connection request sent successfully:", data);
     toast.success("Connection request sent!");
     return true;
   } catch (error) {
@@ -152,25 +147,16 @@ export const rejectConnectionRequest = async (userId: string, connectionId: stri
       return false;
     }
     
-    const { data, error } = await supabase
-      .rpc('reject_connection_request', {
-        receiver_user_id: userId,
-        sender_user_id: connectionId
-      });
+    // Delete the pending request instead of marking as rejected
+    const { error: deleteError } = await supabase
+      .from('connections_v2')
+      .delete()
+      .eq('id', checkData.id);
       
-    if (error) {
-      console.error("Error rejecting connection request:", error);
+    if (deleteError) {
+      console.error("Error deleting connection request:", deleteError);
       toast.error("Failed to reject connection request");
-      throw error;
-    }
-    
-    // Type assertion to handle the RPC response properly
-    const response = data as unknown as RPCResponse;
-    
-    if (!response.success) {
-      console.warn("Request unsuccessful:", response.error);
-      toast.error(response.error || "Failed to reject connection request");
-      return false;
+      throw deleteError;
     }
     
     console.log("Connection request rejected successfully");
