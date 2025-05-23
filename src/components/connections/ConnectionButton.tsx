@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { UserPlus, UserMinus, Clock, CheckCheck, Loader2 } from "lucide-react";
+import { UserPlus, Clock, CheckCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -13,14 +13,14 @@ import {
   DialogFooter, 
   DialogClose 
 } from "@/components/ui/dialog";
-import { ConnectionUser, sendConnectionRequest, acceptConnectionRequest, cancelConnectionRequest, removeConnection } from "./utils/connectionActions";
+import { ConnectionUser, sendConnectionRequest, acceptConnectionRequest, cancelConnectionRequest } from "./utils/connectionActions";
 
 interface ConnectionButtonProps {
   connection: ConnectionUser;
   isConnected: boolean;
   hasPendingRequest: boolean;
   hasReceivedRequest: boolean;
-  userId?: string; // Make userId optional
+  userId?: string;
   onConnectionUpdate: () => void;
 }
 
@@ -34,7 +34,6 @@ export const ConnectionButton = ({
 }: ConnectionButtonProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogAction, setDialogAction] = useState<'remove' | 'cancel'>('remove');
   const [localConnectionState, setLocalConnectionState] = useState({
     isConnected,
     hasPendingRequest,
@@ -81,7 +80,6 @@ export const ConnectionButton = ({
       // Case 3: Pending request sent - Cancel request (requires dialog)
       else if (localConnectionState.hasPendingRequest) {
         if (!isDialogOpen) {
-          setDialogAction('cancel');
           setIsDialogOpen(true);
           setIsLoading(false);
           return;
@@ -97,24 +95,10 @@ export const ConnectionButton = ({
         setIsDialogOpen(false);
         onConnectionUpdate();
       }
-      // Case 4: Connected - Remove connection (requires dialog)
+      // Case 4: Connected - Show connected status (no action)
       else if (localConnectionState.isConnected) {
-        if (!isDialogOpen) {
-          setDialogAction('remove');
-          setIsDialogOpen(true);
-          setIsLoading(false);
-          return;
-        }
-        
-        setLocalConnectionState(prev => ({ 
-          isConnected: false, 
-          hasPendingRequest: false, 
-          hasReceivedRequest: false 
-        }));
-        
-        await removeConnection(userId, connection.id);
-        setIsDialogOpen(false);
-        onConnectionUpdate();
+        // Connections are now permanent, no action needed
+        console.log("Already connected - connections are permanent");
       }
     } catch (error) {
       console.error("Error managing connection:", error);
@@ -151,6 +135,9 @@ export const ConnectionButton = ({
     return "outline";
   };
 
+  // Don't show dialog for connected users since connections are permanent
+  const showDialog = localConnectionState.hasPendingRequest && !localConnectionState.isConnected;
+
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <Button 
@@ -158,7 +145,7 @@ export const ConnectionButton = ({
         variant={buttonVariant()}
         size="sm" 
         className="flex-1"
-        disabled={isLoading}
+        disabled={isLoading || localConnectionState.isConnected}
       >
         {isLoading ? (
           <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Loading</>
@@ -167,32 +154,28 @@ export const ConnectionButton = ({
         )}
       </Button>
       
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
-            {dialogAction === 'remove' ? 'Remove Connection' : 'Cancel Request'}
-          </DialogTitle>
-          <DialogDescription>
-            {dialogAction === 'remove' 
-              ? `Are you sure you want to remove ${connection.full_name} from your connections?` 
-              : `Are you sure you want to cancel your connection request to ${connection.full_name}?`
-            }
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter className="flex gap-2 sm:justify-start">
-          <Button 
-            onClick={handleConnectionAction} 
-            variant="destructive"
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserMinus className="h-4 w-4 mr-1" />}
-            {dialogAction === 'remove' ? 'Remove' : 'Cancel Request'}
-          </Button>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
+      {showDialog && (
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cancel Request</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel your connection request to {connection.full_name}?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 sm:justify-start">
+            <Button 
+              onClick={handleConnectionAction} 
+              variant="destructive"
+              disabled={isLoading}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Cancel Request"}
+            </Button>
+            <DialogClose asChild>
+              <Button variant="outline">Keep Request</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      )}
     </Dialog>
   );
 };

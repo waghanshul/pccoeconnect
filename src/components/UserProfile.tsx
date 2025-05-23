@@ -126,18 +126,9 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     
     try {
       if (isConnected) {
-        // Remove connection
-        const { error: deleteError } = await supabase
-          .from('connections_v2')
-          .delete()
-          .or(`sender_id.eq.${authUser.id}.and.receiver_id.eq.${user.id},sender_id.eq.${user.id}.and.receiver_id.eq.${authUser.id}`)
-          .eq('status', 'accepted');
-        
-        if (deleteError) throw deleteError;
-        
-        setIsConnected(false);
-        setConnectionCount(prev => Math.max(0, prev - 1));
-        toast.success(`Disconnected from ${user.name}`);
+        // Connections are now permanent - no removal allowed
+        toast.info("Connections are permanent and cannot be removed");
+        return;
       } else if (isPendingRequest) {
         // Cancel pending request
         const { error } = await supabase
