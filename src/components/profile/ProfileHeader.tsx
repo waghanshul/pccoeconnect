@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Cpu, Users, UserPlus, UserCheck, UserMinus, Loader2 } from "lucide-react";
+import { MessageSquare, Cpu, Users, UserPlus, UserCheck, Loader2 } from "lucide-react";
 import { ProfileStatus } from "./ProfileStatus";
 import { UserStatus } from "@/services/user";
 import { useState } from "react";
@@ -89,7 +89,7 @@ export const ProfileHeader = ({
               variant={isConnected ? "default" : "outline"}
               className="gap-2"
               onClick={handleConnect}
-              disabled={isLoading}
+              disabled={isLoading || isConnected}
             >
               {getConnectionIcon()}
               {isConnected ? "Connected" : "Connect"}

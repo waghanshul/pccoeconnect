@@ -53,12 +53,17 @@ export const ConnectionButton = ({
   const handleConnectionAction = async () => {
     if (!userId) return;
     
+    // If already connected, do nothing - connections are permanent
+    if (localConnectionState.isConnected) {
+      return;
+    }
+    
     setIsLoading(true);
     try {
       console.log("Connection state:", { isConnected: localConnectionState.isConnected, hasPendingRequest: localConnectionState.hasPendingRequest, hasReceivedRequest: localConnectionState.hasReceivedRequest });
       
       // Case 1: Not connected and no pending request - Send connection request
-      if (!localConnectionState.isConnected && !localConnectionState.hasPendingRequest && !localConnectionState.hasReceivedRequest) {
+      if (!localConnectionState.hasPendingRequest && !localConnectionState.hasReceivedRequest) {
         // Optimistic UI update
         setLocalConnectionState(prev => ({ ...prev, hasPendingRequest: true }));
         
@@ -95,11 +100,6 @@ export const ConnectionButton = ({
         setIsDialogOpen(false);
         onConnectionUpdate();
       }
-      // Case 4: Connected - Show connected status (no action)
-      else if (localConnectionState.isConnected) {
-        // Connections are now permanent, no action needed
-        console.log("Already connected - connections are permanent");
-      }
     } catch (error) {
       console.error("Error managing connection:", error);
       // Revert to original state on error
@@ -113,7 +113,7 @@ export const ConnectionButton = ({
     }
   };
 
-  // Ensure the button displays correctly based on the connection state
+  // Button display logic
   const buttonText = () => {
     if (localConnectionState.isConnected) return "Connected";
     if (localConnectionState.hasPendingRequest) return "Requested";
@@ -128,15 +128,14 @@ export const ConnectionButton = ({
     return <UserPlus className="h-4 w-4 mr-1" />;
   };
 
-  // Use correct button variant based on connection state
   const buttonVariant = () => {
     if (localConnectionState.isConnected) return "default";
     if (localConnectionState.hasReceivedRequest) return "default";
     return "outline";
   };
 
-  // Don't show dialog for connected users since connections are permanent
-  const showDialog = localConnectionState.hasPendingRequest && !localConnectionState.isConnected;
+  // Only show dialog for canceling pending requests
+  const showCancelDialog = localConnectionState.hasPendingRequest && !localConnectionState.isConnected;
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -154,7 +153,7 @@ export const ConnectionButton = ({
         )}
       </Button>
       
-      {showDialog && (
+      {showCancelDialog && (
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cancel Request</DialogTitle>

@@ -126,7 +126,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     
     try {
       if (isConnected) {
-        // Connections are now permanent - no removal allowed
+        // Connections are permanent - show info message
         toast.info("Connections are permanent and cannot be removed");
         return;
       } else if (isPendingRequest) {
