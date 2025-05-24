@@ -6,80 +6,65 @@ import { Conversation } from "./types";
 export const createConversation = async (
   friendId: string, 
   userId: string | undefined, 
-  conversations: Conversation[]
-): Promise<string> => {
+  existingConversations: Conversation[]
+): Promise<string | null> => {
   try {
     if (!userId) {
-      throw new Error("User not authenticated");
+      console.error("No user ID provided");
+      return null;
     }
-    
-    // Check if conversation already exists with this friend
-    let existingConversationId = "";
-    
-    for (const conv of conversations) {
-      const isFriendInConv = conv.participants.some(p => p.id === friendId);
-      if (isFriendInConv) {
-        existingConversationId = conv.id;
-        break;
-      }
+
+    console.log("Creating conversation between:", userId, "and", friendId);
+
+    // Check if conversation already exists
+    const existingConversation = existingConversations.find(conv => 
+      conv.participants.some(p => p.id === friendId)
+    );
+
+    if (existingConversation) {
+      console.log("Conversation already exists:", existingConversation.id);
+      return existingConversation.id;
     }
-    
-    // If no existing conversation, create one
-    if (!existingConversationId) {
-      console.log("Creating new conversation");
-      
-      // First create the conversation
-      const { data: newConv, error: convError } = await supabase
-        .from('conversations')
-        .insert({})
-        .select()
-        .single();
-        
-      if (convError) {
-        console.error("Error creating conversation:", convError);
-        throw convError;
-      }
-      
-      console.log("Created conversation:", newConv);
-      existingConversationId = newConv.id;
-      
-      // Then add current user as participant
-      const { error: currentUserPartError } = await supabase
-        .from('conversation_participants')
-        .insert({
-          conversation_id: existingConversationId,
-          profile_id: userId
-        });
-        
-      if (currentUserPartError) {
-        console.error("Error adding current user as participant:", currentUserPartError);
-        throw currentUserPartError;
-      }
-      
-      // Then add friend as participant
-      const { error: friendPartError } = await supabase
-        .from('conversation_participants')
-        .insert({
-          conversation_id: existingConversationId,
-          profile_id: friendId
-        });
-        
-      if (friendPartError) {
-        console.error("Error adding friend as participant:", friendPartError);
-        throw friendPartError;
-      }
-      
-      console.log("Added participants to conversation");
+
+    // Create new conversation
+    const { data: conversationData, error: conversationError } = await supabase
+      .from('conversations')
+      .insert({})
+      .select()
+      .single();
+
+    if (conversationError) {
+      console.error("Error creating conversation:", conversationError);
+      throw conversationError;
     }
-    
-    return existingConversationId;
+
+    console.log("Created conversation:", conversationData.id);
+
+    // Add participants
+    const participants = [
+      { conversation_id: conversationData.id, profile_id: userId },
+      { conversation_id: conversationData.id, profile_id: friendId }
+    ];
+
+    const { error: participantsError } = await supabase
+      .from('conversation_participants')
+      .insert(participants);
+
+    if (participantsError) {
+      console.error("Error adding participants:", participantsError);
+      throw participantsError;
+    }
+
+    console.log("Added participants to conversation");
+    return conversationData.id;
+
   } catch (error) {
-    console.error("Error creating conversation:", error);
+    console.error("Error in createConversation:", error);
     toast({
       title: "Error",
-      description: "Failed to start conversation",
+      description: "Failed to create conversation",
       variant: "destructive",
     });
-    throw error;
+    return null;
   }
 };

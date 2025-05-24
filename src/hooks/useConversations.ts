@@ -31,19 +31,26 @@ export const useConversations = () => {
   };
 
   const fetchContactsData = async () => {
+    console.log("Fetching contacts data...");
     const result = await fetchContacts(user?.id);
+    console.log("Contacts fetched:", result);
     setFriends(result);
   };
 
   const searchUsers = async (query: string) => {
+    console.log("Searching users with query:", query);
     const result = await searchUsersService(query, user?.id);
+    console.log("Search results:", result);
     setFriends(result);
   };
 
   const createConversation = async (friendId: string) => {
+    console.log("Creating conversation with friend:", friendId);
     const conversationId = await createConversationService(friendId, user?.id, conversations);
-    // Refresh conversations to include the new one
-    await fetchConversationsData();
+    if (conversationId) {
+      // Refresh conversations to include the new one
+      await fetchConversationsData();
+    }
     return conversationId;
   };
 
