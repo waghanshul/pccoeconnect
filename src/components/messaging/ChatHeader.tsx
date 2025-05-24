@@ -20,8 +20,9 @@ const ChatHeader = ({ receiverProfile }: ChatHeaderProps) => {
         </AvatarFallback>
       </Avatar>
       <div>
-        <h2 className="font-semibold dark:text-white">{receiverProfile?.full_name || 'Loading...'}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">Online</p>
+        <h2 className="font-semibold dark:text-white">
+          {receiverProfile?.full_name || 'Select a conversation'}
+        </h2>
       </div>
     </div>
   );
