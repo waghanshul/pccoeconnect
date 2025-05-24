@@ -1,9 +1,9 @@
-
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useUserStore } from "@/services/user";
+import { toast } from "sonner";
 
 type AuthContextType = {
   session: Session | null;
@@ -49,9 +49,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state change listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Handle different auth events with notifications
+      if (event === 'SIGNED_IN') {
+        toast.success("Welcome back! You've been signed in.");
+      } else if (event === 'SIGNED_OUT') {
+        toast.success("You've been signed out successfully.");
+      }
       
       // If user is logged in, fetch their profile data
       if (session?.user) {
@@ -122,6 +129,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         },
       });
       if (error) throw error;
+      
+      // Show notification for new account creation
+      if (data.user) {
+        toast.success("Account created successfully! Welcome to PCCOE Connect!");
+      }
       
       return { data, error: null };
     } catch (error) {

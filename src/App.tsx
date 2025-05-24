@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
@@ -7,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import Index from "./pages/Index";
@@ -138,6 +138,7 @@ function App() {
             }
           />
         </Routes>
+        <Toaster />
       </AuthProvider>
     </Router>
   );
