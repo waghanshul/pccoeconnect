@@ -6,9 +6,14 @@ import MessageInput from "@/components/messaging/MessageInput";
 
 interface ChatWindowProps {
   conversationId: string;
+  selectedUser?: {
+    id: string;
+    full_name: string;
+    avatar_url?: string;
+  } | null;
 }
 
-const ChatWindow = ({ conversationId }: ChatWindowProps) => {
+const ChatWindow = ({ conversationId, selectedUser }: ChatWindowProps) => {
   const { messages, receiverProfile, isLoading, sendMessage } = useMessages(conversationId);
 
   if (!conversationId) {
@@ -19,9 +24,12 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
     );
   }
 
+  // Use selectedUser if provided (for new conversations), otherwise use receiverProfile
+  const displayProfile = selectedUser || receiverProfile;
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow">
-      <ChatHeader receiverProfile={receiverProfile} />
+      <ChatHeader receiverProfile={displayProfile} />
       <MessagesList messages={messages} isLoading={isLoading} />
       <MessageInput onSendMessage={sendMessage} />
     </div>

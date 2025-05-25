@@ -46,12 +46,19 @@ export const useConversations = () => {
 
   const createConversation = async (friendId: string) => {
     console.log("Creating conversation with friend:", friendId);
-    const conversationId = await createConversationService(friendId, user?.id, conversations);
-    if (conversationId) {
-      // Refresh conversations to include the new one
-      await fetchConversationsData();
+    
+    try {
+      const conversationId = await createConversationService(friendId, user?.id, conversations);
+      if (conversationId) {
+        // Refresh conversations to include the new one
+        await fetchConversationsData();
+        return conversationId;
+      }
+      return null;
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      return null;
     }
-    return conversationId;
   };
 
   return {

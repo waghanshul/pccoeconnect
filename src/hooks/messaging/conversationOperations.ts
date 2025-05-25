@@ -56,6 +56,21 @@ export const createConversation = async (
     }
 
     console.log("Added participants to conversation");
+    
+    // Send an initial system message to establish the conversation
+    const { error: messageError } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationData.id,
+        sender_id: userId,
+        content: 'Conversation started'
+      });
+
+    if (messageError) {
+      console.error("Error creating initial message:", messageError);
+      // Don't throw here as the conversation is already created
+    }
+
     return conversationData.id;
 
   } catch (error) {

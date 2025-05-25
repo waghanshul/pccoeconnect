@@ -6,7 +6,7 @@ interface ChatHeaderProps {
   receiverProfile: {
     id: string;
     full_name: string;
-    avatar_url: string | null;
+    avatar_url?: string | null;
   } | null;
 }
 
@@ -16,7 +16,9 @@ const ChatHeader = ({ receiverProfile }: ChatHeaderProps) => {
       <Avatar className="h-10 w-10">
         <AvatarImage src={receiverProfile?.avatar_url || undefined} />
         <AvatarFallback>
-          <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          {receiverProfile?.full_name?.charAt(0) || (
+            <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          )}
         </AvatarFallback>
       </Avatar>
       <div>
