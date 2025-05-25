@@ -120,7 +120,7 @@ const Messages = () => {
                       placeholder="Type a message..."
                       className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       onKeyPress={(e) => {
-                        if (e.key === 'Enter' && e.target.value.trim()) {
+                        if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) {
                           handleFriendSelect(selectedUserForNewChat.id);
                         }
                       }}
