@@ -6,6 +6,7 @@ import ChatWindow from "@/components/ChatWindow";
 import ConversationsList from "@/components/messaging/ConversationsList";
 import NewMessageDialog from "@/components/messaging/NewMessageDialog";
 import { useConversations } from "@/hooks/useConversations";
+import { useAuth } from "@/context/AuthContext";
 
 const Messages = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Messages = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedUserForNewChat, setSelectedUserForNewChat] = useState(null);
+  const { user } = useAuth();
   
   const {
     conversations,
@@ -24,17 +26,29 @@ const Messages = () => {
     createConversation
   } = useConversations();
 
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
-    setIsSearching(true);
     
-    // Debounce search
-    const handler = setTimeout(() => {
-      searchUsers(query).finally(() => setIsSearching(false));
-    }, 300);
-    
-    return () => clearTimeout(handler);
+    if (query.trim()) {
+      setIsSearching(true);
+      
+      // Debounce search
+      const handler = setTimeout(() => {
+        searchUsers(query).finally(() => setIsSearching(false));
+      }, 300);
+      
+      return () => clearTimeout(handler);
+    } else {
+      setIsSearching(false);
+    }
   };
 
   const handleFriendSelect = async (friendId: string) => {
@@ -42,10 +56,16 @@ const Messages = () => {
     
     // Find the selected friend's profile
     const selectedFriend = friends.find(friend => friend.id === friendId);
+    if (!selectedFriend) {
+      console.error("Selected friend not found in friends list");
+      return;
+    }
+    
     setSelectedUserForNewChat(selectedFriend);
     setIsOpen(false);
     
     try {
+      console.log("Creating conversation for friend:", friendId);
       const newConversationId = await createConversation(friendId);
       console.log("Created/found conversation:", newConversationId);
       
@@ -53,6 +73,8 @@ const Messages = () => {
         navigate(`/messages/${newConversationId}`);
         // Clear the selected user since we now have a real conversation
         setSelectedUserForNewChat(null);
+      } else {
+        console.error("Failed to create conversation");
       }
     } catch (error) {
       console.error("Error in handleFriendSelect:", error);
@@ -79,6 +101,10 @@ const Messages = () => {
       setSelectedUserForNewChat(null);
     }
   }, [conversationId]);
+
+  if (!user) {
+    return null; // Will redirect to login
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">

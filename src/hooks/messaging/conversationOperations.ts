@@ -11,6 +11,11 @@ export const createConversation = async (
   try {
     if (!userId) {
       console.error("No user ID provided");
+      toast({
+        title: "Error",
+        description: "You must be logged in to create a conversation",
+        variant: "destructive",
+      });
       return null;
     }
 
@@ -27,6 +32,7 @@ export const createConversation = async (
     }
 
     // Create new conversation
+    console.log("Creating new conversation...");
     const { data: conversationData, error: conversationError } = await supabase
       .from('conversations')
       .insert({})
@@ -35,27 +41,63 @@ export const createConversation = async (
 
     if (conversationError) {
       console.error("Error creating conversation:", conversationError);
-      throw conversationError;
+      toast({
+        title: "Error",
+        description: `Failed to create conversation: ${conversationError.message}`,
+        variant: "destructive",
+      });
+      return null;
     }
 
     console.log("Created conversation:", conversationData.id);
 
-    // Add participants - both users
-    const participants = [
-      { conversation_id: conversationData.id, profile_id: userId },
-      { conversation_id: conversationData.id, profile_id: friendId }
-    ];
-
-    const { error: participantsError } = await supabase
+    // Add participants - current user first
+    console.log("Adding current user as participant...");
+    const { error: currentUserError } = await supabase
       .from('conversation_participants')
-      .insert(participants);
+      .insert({
+        conversation_id: conversationData.id,
+        profile_id: userId
+      });
 
-    if (participantsError) {
-      console.error("Error adding participants:", participantsError);
-      throw participantsError;
+    if (currentUserError) {
+      console.error("Error adding current user:", currentUserError);
+      toast({
+        title: "Error",
+        description: `Failed to add you to conversation: ${currentUserError.message}`,
+        variant: "destructive",
+      });
+      return null;
     }
 
-    console.log("Added participants to conversation");
+    console.log("Added current user to conversation");
+
+    // Add friend as participant
+    console.log("Adding friend as participant...");
+    const { error: friendError } = await supabase
+      .from('conversation_participants')
+      .insert({
+        conversation_id: conversationData.id,
+        profile_id: friendId
+      });
+
+    if (friendError) {
+      console.error("Error adding friend:", friendError);
+      toast({
+        title: "Error",
+        description: `Failed to add friend to conversation: ${friendError.message}`,
+        variant: "destructive",
+      });
+      return null;
+    }
+
+    console.log("Added friend to conversation");
+    console.log("Conversation created successfully:", conversationData.id);
+    
+    toast({
+      title: "Success",
+      description: "Conversation created successfully!",
+    });
     
     return conversationData.id;
 
@@ -63,7 +105,7 @@ export const createConversation = async (
     console.error("Error in createConversation:", error);
     toast({
       title: "Error",
-      description: "Failed to create conversation",
+      description: `Failed to create conversation: ${error instanceof Error ? error.message : 'Unknown error'}`,
       variant: "destructive",
     });
     return null;
