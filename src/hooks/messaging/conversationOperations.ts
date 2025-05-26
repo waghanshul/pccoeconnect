@@ -16,7 +16,7 @@ export const createConversation = async (
 
     console.log("Creating conversation between:", userId, "and", friendId);
 
-    // Check if conversation already exists
+    // Check if conversation already exists between these two users
     const existingConversation = existingConversations.find(conv => 
       conv.participants.some(p => p.id === friendId)
     );
@@ -40,7 +40,7 @@ export const createConversation = async (
 
     console.log("Created conversation:", conversationData.id);
 
-    // Add participants
+    // Add participants - both users
     const participants = [
       { conversation_id: conversationData.id, profile_id: userId },
       { conversation_id: conversationData.id, profile_id: friendId }
@@ -57,20 +57,6 @@ export const createConversation = async (
 
     console.log("Added participants to conversation");
     
-    // Send an initial system message to establish the conversation
-    const { error: messageError } = await supabase
-      .from('messages')
-      .insert({
-        conversation_id: conversationData.id,
-        sender_id: userId,
-        content: 'Conversation started'
-      });
-
-    if (messageError) {
-      console.error("Error creating initial message:", messageError);
-      // Don't throw here as the conversation is already created
-    }
-
     return conversationData.id;
 
   } catch (error) {

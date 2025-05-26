@@ -107,7 +107,8 @@ export const sendMessage = async (
       throw error;
     }
     
-    // Add sender info to the message
+    console.log("Message sent successfully:", data);
+    
     return {
       id: data.id,
       sender_id: data.sender_id,

@@ -642,6 +642,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: Json
       }
+      is_conversation_participant: {
+        Args: { conversation_id: string; user_id: string }
+        Returns: boolean
+      }
       reject_connection_request: {
         Args: { receiver_user_id: string; sender_user_id: string }
         Returns: Json

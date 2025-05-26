@@ -38,6 +38,8 @@ const Messages = () => {
   };
 
   const handleFriendSelect = async (friendId: string) => {
+    console.log("Friend selected:", friendId);
+    
     // Find the selected friend's profile
     const selectedFriend = friends.find(friend => friend.id === friendId);
     setSelectedUserForNewChat(selectedFriend);
@@ -45,6 +47,8 @@ const Messages = () => {
     
     try {
       const newConversationId = await createConversation(friendId);
+      console.log("Created/found conversation:", newConversationId);
+      
       if (newConversationId) {
         navigate(`/messages/${newConversationId}`);
         // Clear the selected user since we now have a real conversation
@@ -52,6 +56,20 @@ const Messages = () => {
       }
     } catch (error) {
       console.error("Error in handleFriendSelect:", error);
+    }
+  };
+
+  const handleSendFirstMessage = async (content: string) => {
+    if (!selectedUserForNewChat || !content.trim()) return;
+    
+    try {
+      const newConversationId = await createConversation(selectedUserForNewChat.id);
+      if (newConversationId) {
+        navigate(`/messages/${newConversationId}`);
+        setSelectedUserForNewChat(null);
+      }
+    } catch (error) {
+      console.error("Error sending first message:", error);
     }
   };
 
@@ -121,12 +139,17 @@ const Messages = () => {
                       className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
                       onKeyPress={(e) => {
                         if (e.key === 'Enter' && (e.target as HTMLInputElement).value.trim()) {
-                          handleFriendSelect(selectedUserForNewChat.id);
+                          handleSendFirstMessage((e.target as HTMLInputElement).value);
                         }
                       }}
                     />
                     <button
-                      onClick={() => handleFriendSelect(selectedUserForNewChat.id)}
+                      onClick={() => {
+                        const input = document.querySelector('input[placeholder="Type a message..."]') as HTMLInputElement;
+                        if (input?.value.trim()) {
+                          handleSendFirstMessage(input.value);
+                        }
+                      }}
                       className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                     >
                       Send
