@@ -51,47 +51,39 @@ export const createConversation = async (
 
     console.log("Created conversation:", conversationData.id);
 
-    // Add participants - current user first
-    console.log("Adding current user as participant...");
-    const { error: currentUserError } = await supabase
+    // Add participants using batch insert for better performance
+    console.log("Adding participants...");
+    const { error: participantsError } = await supabase
       .from('conversation_participants')
-      .insert({
-        conversation_id: conversationData.id,
-        profile_id: userId
-      });
+      .insert([
+        {
+          conversation_id: conversationData.id,
+          profile_id: userId
+        },
+        {
+          conversation_id: conversationData.id,
+          profile_id: friendId
+        }
+      ]);
 
-    if (currentUserError) {
-      console.error("Error adding current user:", currentUserError);
+    if (participantsError) {
+      console.error("Error adding participants:", participantsError);
+      
+      // Clean up the conversation if participant addition fails
+      await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationData.id);
+        
       toast({
         title: "Error",
-        description: `Failed to add you to conversation: ${currentUserError.message}`,
+        description: `Failed to add participants: ${participantsError.message}`,
         variant: "destructive",
       });
       return null;
     }
 
-    console.log("Added current user to conversation");
-
-    // Add friend as participant
-    console.log("Adding friend as participant...");
-    const { error: friendError } = await supabase
-      .from('conversation_participants')
-      .insert({
-        conversation_id: conversationData.id,
-        profile_id: friendId
-      });
-
-    if (friendError) {
-      console.error("Error adding friend:", friendError);
-      toast({
-        title: "Error",
-        description: `Failed to add friend to conversation: ${friendError.message}`,
-        variant: "destructive",
-      });
-      return null;
-    }
-
-    console.log("Added friend to conversation");
+    console.log("Participants added successfully");
     console.log("Conversation created successfully:", conversationData.id);
     
     toast({

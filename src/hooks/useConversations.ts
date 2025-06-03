@@ -14,37 +14,74 @@ export const useConversations = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user) {
+    if (user?.id) {
+      console.log("User authenticated, setting up conversations");
       fetchConversationsData();
       fetchContactsData();
-      const cleanup = setupRealtimeSubscription(user?.id, fetchConversationsData);
+      const cleanup = setupRealtimeSubscription(user.id, fetchConversationsData);
       
       return cleanup;
+    } else {
+      console.log("No authenticated user, clearing conversations");
+      setConversations([]);
+      setFriends([]);
+      setIsLoading(false);
     }
   }, [user]);
 
   const fetchConversationsData = async () => {
-    if (!user?.id) return;
-    setIsLoading(true);
-    const result = await fetchConversations(user.id);
-    setConversations(result);
-    setIsLoading(false);
+    if (!user?.id) {
+      console.log("No user ID for fetching conversations");
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      console.log("Fetching conversations for user:", user.id);
+      const result = await fetchConversations(user.id);
+      console.log("Fetched conversations:", result);
+      setConversations(result);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      setConversations([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fetchContactsData = async () => {
-    if (!user?.id) return;
-    console.log("Fetching contacts data...");
-    const result = await fetchContacts(user.id);
-    console.log("Contacts fetched:", result);
-    setFriends(result);
+    if (!user?.id) {
+      console.log("No user ID for fetching contacts");
+      return;
+    }
+    
+    try {
+      console.log("Fetching contacts data for user:", user.id);
+      const result = await fetchContacts(user.id);
+      console.log("Contacts fetched:", result);
+      setFriends(result);
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      setFriends([]);
+    }
   };
 
   const searchUsers = async (query: string) => {
-    if (!user?.id) return;
-    console.log("Searching users with query:", query);
-    const result = await searchUsersService(query, user.id);
-    console.log("Search results:", result);
-    setFriends(result);
+    if (!user?.id) {
+      console.log("No user ID for searching users");
+      return;
+    }
+    
+    try {
+      console.log("Searching users with query:", query);
+      const result = await searchUsersService(query, user.id);
+      console.log("Search results:", result);
+      setFriends(result);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      setFriends([]);
+    }
   };
 
   const createConversation = async (friendId: string) => {
@@ -58,10 +95,12 @@ export const useConversations = () => {
     try {
       const conversationId = await createConversationService(friendId, user.id, conversations);
       if (conversationId) {
+        console.log("Conversation created/found:", conversationId);
         // Refresh conversations to include the new one
         await fetchConversationsData();
         return conversationId;
       }
+      console.error("Failed to create conversation - no ID returned");
       return null;
     } catch (error) {
       console.error("Error creating conversation:", error);
