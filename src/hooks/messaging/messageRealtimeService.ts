@@ -10,6 +10,11 @@ export const setupMessageRealtimeSubscription = (
 ) => {
   console.log("Setting up realtime subscription for conversation:", conversationId);
   
+  if (!conversationId || !userId) {
+    console.log("Invalid parameters for realtime subscription");
+    return () => {};
+  }
+  
   const channel = supabase
     .channel(`chat-${conversationId}`)
     .on('postgres_changes', 

@@ -19,6 +19,16 @@ export const createConversation = async (
       return null;
     }
 
+    if (friendId === userId) {
+      console.error("Cannot create conversation with yourself");
+      toast({
+        title: "Error",
+        description: "Cannot create conversation with yourself",
+        variant: "destructive",
+      });
+      return null;
+    }
+
     console.log("Creating conversation between:", userId, "and", friendId);
 
     // Check if conversation already exists between these two users

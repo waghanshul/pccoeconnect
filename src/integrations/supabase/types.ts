@@ -647,7 +647,7 @@ export type Database = {
         Returns: boolean
       }
       is_conversation_participant_safe: {
-        Args: { conversation_id: string; user_id: string }
+        Args: { conv_id: string; user_id: string }
         Returns: boolean
       }
       reject_connection_request: {

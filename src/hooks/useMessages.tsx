@@ -17,7 +17,7 @@ export const useMessages = (conversationId: string) => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (conversationId) {
+    if (conversationId && conversationId !== 'null') {
       fetchMessagesData();
       fetchConversationParticipantsData();
       const cleanup = setupRealtimeSubscription();
@@ -25,10 +25,16 @@ export const useMessages = (conversationId: string) => {
       return () => {
         cleanup();
       };
+    } else {
+      setMessages([]);
+      setReceiverProfile(null);
+      setIsLoading(false);
     }
-  }, [conversationId]);
+  }, [conversationId, user?.id]);
 
   const fetchMessagesData = async () => {
+    if (!conversationId || conversationId === 'null') return;
+    
     try {
       setIsLoading(true);
       const messagesData = await fetchMessages(conversationId);
@@ -44,11 +50,17 @@ export const useMessages = (conversationId: string) => {
   };
 
   const fetchConversationParticipantsData = async () => {
+    if (!conversationId || conversationId === 'null') return;
+    
     const profileData = await fetchConversationParticipants(conversationId, user?.id);
     setReceiverProfile(profileData);
   };
 
   const setupRealtimeSubscription = () => {
+    if (!conversationId || conversationId === 'null' || !user?.id) {
+      return () => {};
+    }
+    
     return setupMessageRealtimeSubscription(
       conversationId,
       user?.id,
@@ -60,7 +72,7 @@ export const useMessages = (conversationId: string) => {
   };
 
   const sendMessage = async (content: string) => {
-    if (!content.trim() || !user) return;
+    if (!content.trim() || !user || !conversationId || conversationId === 'null') return;
     
     try {
       const newMessage = await sendMessageService(content, conversationId, user.id);
