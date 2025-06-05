@@ -15,7 +15,7 @@ export const useConversations = () => {
 
   useEffect(() => {
     if (user?.id) {
-      console.log("User authenticated, setting up conversations");
+      console.log("User authenticated, setting up conversations for user:", user.id);
       fetchConversationsData();
       fetchContactsData();
       const cleanup = setupRealtimeSubscription(user.id, fetchConversationsData);
@@ -90,13 +90,17 @@ export const useConversations = () => {
       return null;
     }
     
-    console.log("Creating conversation with friend:", friendId);
+    console.log("=== useConversations.createConversation called ===");
+    console.log("Friend ID:", friendId);
+    console.log("User ID:", user.id);
+    console.log("Current conversations count:", conversations.length);
     
     try {
       const conversationId = await createConversationService(friendId, user.id, conversations);
       if (conversationId) {
         console.log("Conversation created/found:", conversationId);
         // Refresh conversations to include the new one
+        console.log("Refreshing conversations list...");
         await fetchConversationsData();
         return conversationId;
       }

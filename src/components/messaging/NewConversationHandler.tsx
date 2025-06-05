@@ -19,6 +19,7 @@ const NewConversationHandler = ({
 
   const handleSendMessage = () => {
     if (messageContent.trim() && !isCreatingConversation) {
+      console.log("Sending first message:", messageContent);
       onSendFirstMessage(messageContent);
       setMessageContent("");
     }
@@ -42,6 +43,9 @@ const NewConversationHandler = ({
           <h2 className="font-semibold dark:text-white">
             {selectedUser.full_name}
           </h2>
+          {isCreatingConversation && (
+            <p className="text-sm text-blue-500">Setting up conversation...</p>
+          )}
         </div>
       </div>
       <div className="flex-1 flex items-center justify-center">
@@ -53,12 +57,12 @@ const NewConversationHandler = ({
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Type a message..."
+            placeholder={isCreatingConversation ? "Setting up conversation..." : "Type a message..."}
             value={messageContent}
             onChange={(e) => setMessageContent(e.target.value)}
             onKeyPress={handleKeyPress}
             disabled={isCreatingConversation}
-            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50"
           />
           <button
             onClick={handleSendMessage}

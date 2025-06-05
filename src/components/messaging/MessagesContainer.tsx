@@ -39,6 +39,13 @@ const MessagesContainer = () => {
       setIsSearching(true);
       try {
         await searchUsers(query);
+      } catch (error) {
+        console.error("Error searching users:", error);
+        toast({
+          title: "Search Error",
+          description: "Failed to search users. Please try again.",
+          variant: "destructive",
+        });
       } finally {
         setIsSearching(false);
       }
@@ -46,10 +53,12 @@ const MessagesContainer = () => {
   };
 
   const handleFriendSelect = async (friendId: string) => {
-    console.log("Friend selected:", friendId);
+    console.log("=== handleFriendSelect called ===");
+    console.log("Friend ID:", friendId);
+    console.log("Is creating conversation:", isCreatingConversation);
     
     if (isCreatingConversation) {
-      console.log("Already creating conversation, ignoring");
+      console.log("Already creating conversation, ignoring request");
       return;
     }
     
@@ -58,22 +67,25 @@ const MessagesContainer = () => {
     if (!selectedFriend) {
       console.error("Selected friend not found in friends list");
       toast({
-        title: "Error",
-        description: "Selected user not found. Please try again.",
+        title: "User Not Found",
+        description: "Selected user not found. Please try searching again.",
         variant: "destructive",
       });
       return;
     }
     
+    console.log("Selected friend:", selectedFriend);
+    
     setSelectedUserForNewChat(selectedFriend);
     setIsCreatingConversation(true);
     
     try {
-      console.log("Creating conversation for friend:", friendId);
+      console.log("Starting conversation creation...");
       const newConversationId = await createConversation(friendId);
-      console.log("Created/found conversation:", newConversationId);
+      console.log("Conversation creation result:", newConversationId);
       
       if (newConversationId) {
+        console.log("Successfully created/found conversation, navigating to:", newConversationId);
         navigate(`/messages/${newConversationId}`);
         // Clear the selected user since we now have a real conversation
         setSelectedUserForNewChat(null);
@@ -82,10 +94,10 @@ const MessagesContainer = () => {
           description: "Conversation started successfully!",
         });
       } else {
-        console.error("Failed to create conversation");
+        console.error("Failed to create conversation - no ID returned");
         toast({
-          title: "Error",
-          description: "Failed to create conversation. Please try again.",
+          title: "Creation Failed",
+          description: "Failed to create conversation. Please check your connection and try again.",
           variant: "destructive",
         });
         setSelectedUserForNewChat(null);
@@ -93,8 +105,8 @@ const MessagesContainer = () => {
     } catch (error) {
       console.error("Error in handleFriendSelect:", error);
       toast({
-        title: "Error",
-        description: "Failed to start conversation. Please try again.",
+        title: "Unexpected Error",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
       setSelectedUserForNewChat(null);
@@ -104,6 +116,10 @@ const MessagesContainer = () => {
   };
 
   const handleSendFirstMessage = async (content: string) => {
+    console.log("=== handleSendFirstMessage called ===");
+    console.log("Content:", content);
+    console.log("Selected user:", selectedUserForNewChat);
+    
     if (!selectedUserForNewChat || !content.trim()) {
       console.log("Invalid parameters for sending first message");
       return;
@@ -117,25 +133,29 @@ const MessagesContainer = () => {
     setIsCreatingConversation(true);
     
     try {
+      console.log("Creating conversation for first message...");
       const newConversationId = await createConversation(selectedUserForNewChat.id);
+      
       if (newConversationId) {
+        console.log("Conversation created, navigating to send message...");
         navigate(`/messages/${newConversationId}`);
         setSelectedUserForNewChat(null);
         toast({
           title: "Success",
-          description: "Message sent successfully!",
+          description: "Conversation created! You can now send your message.",
         });
       } else {
+        console.error("Failed to create conversation for first message");
         toast({
-          title: "Error",
-          description: "Failed to send message. Please try again.",
+          title: "Creation Failed",
+          description: "Failed to create conversation. Please try again.",
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Error sending first message:", error);
       toast({
-        title: "Error",
+        title: "Unexpected Error",
         description: "Failed to send message. Please try again.",
         variant: "destructive",
       });
