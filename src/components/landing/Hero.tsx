@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
@@ -39,8 +40,8 @@ export const Hero = ({ setStep }: HeroProps) => {
       <div className="w-full lg:w-1/2 flex justify-center">
         <div className="relative w-full max-w-lg">
           <img
-            src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80"
-            alt="Students"
+            src="/lovable-uploads/632cb8a0-bd7f-4e2a-a647-734d748778ca.png"
+            alt="PCCOE Campus - Aerial View"
             className="rounded-2xl shadow-2xl"
           />
         </div>
