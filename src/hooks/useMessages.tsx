@@ -65,7 +65,14 @@ export const useMessages = (conversationId: string) => {
       conversationId,
       user?.id,
       (newMessage) => {
-        setMessages(current => [...current, newMessage]);
+        setMessages(current => {
+          // Check if message already exists to prevent duplicates
+          const messageExists = current.some(msg => msg.id === newMessage.id);
+          if (messageExists) {
+            return current;
+          }
+          return [...current, newMessage];
+        });
       },
       (messagesToMark) => markMessagesAsRead(messagesToMark, user?.id)
     );
@@ -78,16 +85,9 @@ export const useMessages = (conversationId: string) => {
       const newMessage = await sendMessageService(content, conversationId, user.id);
       
       if (newMessage) {
-        // Add sender info to the message with proper typing
-        const newMessageWithSender: Message = {
-          ...newMessage,
-          sender: {
-            full_name: user?.user_metadata?.full_name || user?.email || 'You',
-            avatar_url: user?.user_metadata?.avatar_url || null
-          }
-        };
-        
-        setMessages(current => [...current, newMessageWithSender]);
+        console.log("Message sent successfully, realtime will handle adding to list");
+        // Don't add the message to the local state here
+        // Let the realtime subscription handle it to avoid duplicates
       }
     } catch (error) {
       console.error("Error in sendMessage:", error);
