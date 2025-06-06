@@ -38,7 +38,7 @@ export const AdminLoginForm = () => {
       navigate("/admin/dashboard");
     } catch (error) {
       console.error("Admin login error:", error);
-      toast.error("An unexpected error occurred");
+      toast.error("Invalid email or password");
     } finally {
       setIsLoading(false);
     }

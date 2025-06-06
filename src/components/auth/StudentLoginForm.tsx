@@ -21,7 +21,7 @@ export const StudentLoginForm = () => {
     try {
       const { error } = await signIn(credentials.email, credentials.password);
       if (error) {
-        toast.error(error.message || "Invalid email or password");
+        toast.error("Invalid email or password");
         return;
       }
       
@@ -29,7 +29,7 @@ export const StudentLoginForm = () => {
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("An unexpected error occurred");
+      toast.error("Invalid email or password");
     } finally {
       setIsLoading(false);
     }
