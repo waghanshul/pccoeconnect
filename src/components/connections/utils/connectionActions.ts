@@ -51,11 +51,11 @@ export const sendConnectionRequest = async (userId: string, connectionId: string
         console.log("Deleted rejected connection before sending new request");
       } else if (existingConnection.status === 'pending') {
         console.warn("A connection request already exists");
-        toast.error("A connection request already exists");
+        toast.error("Connection request already sent");
         return false;
       } else if (existingConnection.status === 'accepted') {
         console.warn("You are already connected with this user");
-        toast.error("You are already connected with this user");
+        toast.error("Already connected with this user");
         return false;
       }
     }
@@ -113,7 +113,7 @@ export const acceptConnectionRequest = async (userId: string, connectionId: stri
     }
     
     console.log("Connection request accepted successfully:", data);
-    toast.success("Connection request accepted");
+    toast.success("Connection request accepted!");
     return true;
   } catch (error) {
     console.error("Error accepting connection request:", error);

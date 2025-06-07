@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SocialPost } from "./types";
 import { createDefaultAuthor } from "./types";
+import { toast } from "sonner";
 
 export const setupRealtimeSubscriptions = (
   onNewPost: (post: SocialPost) => void,
@@ -59,6 +60,14 @@ export const setupRealtimeSubscriptions = (
               };
               
               onNewPost(newPost);
+              
+              // Show notification for new post (except from current user)
+              supabase.auth.getUser().then(({ data: { user } }) => {
+                if (user && newPostUserId !== user.id) {
+                  const authorName = profileData?.full_name || "Someone";
+                  toast.success(`${authorName} created a new post`);
+                }
+              });
             });
         });
     })
@@ -94,6 +103,22 @@ export const setupRealtimeSubscriptions = (
       // Update comments for the post
       const postId = payload.new.post_id;
       onNewComment(postId);
+      
+      // Show notification for new comment
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user && payload.new.user_id !== user.id) {
+          // Fetch commenter's profile
+          supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', payload.new.user_id)
+            .single()
+            .then(({ data: profileData }) => {
+              const commenterName = profileData?.full_name || "Someone";
+              toast.success(`${commenterName} commented on a post`);
+            });
+        }
+      });
     })
     .on('postgres_changes', { 
       event: 'INSERT', 

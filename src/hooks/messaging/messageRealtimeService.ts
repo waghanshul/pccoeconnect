@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Message } from "./types";
+import { toast } from "sonner";
 
 export const setupMessageRealtimeSubscription = (
   conversationId: string,
@@ -52,8 +53,10 @@ export const setupMessageRealtimeSubscription = (
           console.log("Processed new message:", newMessage);
           onNewMessage(newMessage);
           
-          // Only mark as read if message is from another user
+          // Show notification if message is from another user
           if (payload.new.sender_id !== userId) {
+            const senderName = profileData?.full_name || "Someone";
+            toast.success(`New message from ${senderName}`);
             console.log("Marking new message as read");
             markMessagesAsRead([payload.new]);
           }

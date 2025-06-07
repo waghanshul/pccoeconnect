@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { SocialPost } from "./types";
 import { isValidProfile, createDefaultAuthor } from "./types";
 
@@ -65,11 +65,7 @@ export const fetchPosts = async (): Promise<SocialPost[]> => {
     return formattedPosts;
   } catch (error) {
     console.error("Error fetching posts:", error);
-    toast({
-      title: "Error",
-      description: "Failed to fetch posts",
-      variant: "destructive",
-    });
+    toast.error("Failed to fetch posts");
     return [];
   }
 };
@@ -101,19 +97,12 @@ export const createPost = async (
     
     if (error) throw error;
     
-    toast({
-      title: "Success",
-      description: "Post created successfully",
-    });
+    toast.success("Post created successfully!");
     
     return data?.id || null;
   } catch (error) {
     console.error("Error creating post:", error);
-    toast({
-      title: "Error",
-      description: "Failed to create post",
-      variant: "destructive",
-    });
+    toast.error("Failed to create post");
     return null;
   }
 };
@@ -127,19 +116,12 @@ export const deletePost = async (postId: string): Promise<boolean> => {
     
     if (error) throw error;
     
-    toast({
-      title: "Success",
-      description: "Post deleted successfully",
-    });
+    toast.success("Post deleted successfully!");
     
     return true;
   } catch (error) {
     console.error("Error deleting post:", error);
-    toast({
-      title: "Error",
-      description: "Failed to delete post",
-      variant: "destructive",
-    });
+    toast.error("Failed to delete post");
     return false;
   }
 };
@@ -158,14 +140,12 @@ export const likePost = async (postId: string): Promise<boolean> => {
       });
     
     if (error) throw error;
+    
+    toast.success("Post liked!");
     return true;
   } catch (error) {
     console.error("Error liking post:", error);
-    toast({
-      title: "Error",
-      description: "Failed to like post",
-      variant: "destructive",
-    });
+    toast.error("Failed to like post");
     return false;
   }
 };
@@ -182,14 +162,12 @@ export const unlikePost = async (postId: string): Promise<boolean> => {
       .eq('user_id', user.id);
     
     if (error) throw error;
+    
+    toast.success("Post unliked");
     return true;
   } catch (error) {
     console.error("Error unliking post:", error);
-    toast({
-      title: "Error",
-      description: "Failed to unlike post",
-      variant: "destructive",
-    });
+    toast.error("Failed to unlike post");
     return false;
   }
 };

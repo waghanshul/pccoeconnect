@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export interface Notification {
   id: string;
@@ -141,9 +142,47 @@ export const useNotifications = (userId: string | undefined) => {
         )
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'connections_v2' },
+          { event: 'INSERT', schema: 'public', table: 'connections_v2' },
           (payload) => {
             console.log("Connection change detected in useNotifications:", payload);
+            
+            // Show toast notification for new connection request
+            if (payload.new.receiver_id === userId && payload.new.status === 'pending') {
+              // Fetch sender profile for the toast
+              supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', payload.new.sender_id)
+                .single()
+                .then(({ data: profileData }) => {
+                  const senderName = profileData?.full_name || "Someone";
+                  toast.success(`${senderName} sent you a connection request`);
+                });
+            }
+            
+            fetchNotifications();
+          }
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'connections_v2' },
+          (payload) => {
+            console.log("Connection update detected:", payload);
+            
+            // Show toast notification for accepted connection request
+            if (payload.new.sender_id === userId && payload.new.status === 'accepted') {
+              // Fetch receiver profile for the toast
+              supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', payload.new.receiver_id)
+                .single()
+                .then(({ data: profileData }) => {
+                  const receiverName = profileData?.full_name || "Someone";
+                  toast.success(`${receiverName} accepted your connection request!`);
+                });
+            }
+            
             fetchNotifications();
           }
         )
