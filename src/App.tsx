@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
 import Index from "./pages/Index";
@@ -139,6 +140,17 @@ function App() {
           />
         </Routes>
         <Toaster />
+        <SonnerToaster 
+          theme="dark"
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: '#1f2937',
+              border: '1px solid #374151',
+              color: '#f9fafb',
+            },
+          }}
+        />
       </AuthProvider>
     </Router>
   );
