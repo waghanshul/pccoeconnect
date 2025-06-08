@@ -607,23 +607,7 @@ export type Database = {
       }
     }
     Views: {
-      user_connections_view: {
-        Row: {
-          created_at: string | null
-          id: string | null
-          receiver_avatar: string | null
-          receiver_email: string | null
-          receiver_id: string | null
-          receiver_name: string | null
-          sender_avatar: string | null
-          sender_email: string | null
-          sender_id: string | null
-          sender_name: string | null
-          status: Database["public"]["Enums"]["connection_status"] | null
-          updated_at: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_connection_request: {
