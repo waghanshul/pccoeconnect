@@ -53,6 +53,7 @@ interface UserStore {
   updateUserInterests: (userId: string, interests: string[]) => Promise<void>;
   updateUserPhone: (userId: string, phone: string) => Promise<void>;
   updateUserStatus: (status: UserStatus) => Promise<void>;
+  updateUserAvatar: (avatarUrl: string) => void;
 }
 
 export const useUserStore = create<UserStore>((set, get) => ({
@@ -282,5 +283,12 @@ export const useUserStore = create<UserStore>((set, get) => ({
         variant: "destructive",
       });
     }
+  },
+
+  updateUserAvatar: (avatarUrl: string) => {
+    set((state) => ({
+      user: state.user ? { ...state.user, avatar: avatarUrl } : null,
+      userData: state.userData ? { ...state.userData, avatar: avatarUrl } : null
+    }));
   }
 }));

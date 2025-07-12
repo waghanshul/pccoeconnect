@@ -30,7 +30,7 @@ interface UserProfileProps {
 
 export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) => {
   const navigate = useNavigate();
-  const { updateUserStatus } = useUserStore();
+  const { updateUserStatus, updateUserAvatar } = useUserStore();
   const { user: authUser } = useAuth();
   const [connectionCount, setConnectionCount] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
@@ -121,6 +121,10 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     toast.success(`Status updated to ${availabilityLabels[newStatus]}`);
   };
 
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    updateUserAvatar(newAvatarUrl);
+  };
+
   const handleConnect = async () => {
     if (!authUser || isOwnProfile) return;
     
@@ -176,6 +180,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
         onMessageClick={handleMessage}
         onConnectClick={handleConnect}
         onStatusChange={handleAvailabilityChange}
+        onAvatarUpdate={isOwnProfile ? handleAvatarUpdate : undefined}
       />
       <ProfileDetails 
         department={user.department}
