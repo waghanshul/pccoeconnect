@@ -2,7 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Cpu, Users, UserPlus, UserCheck, Loader2 } from "lucide-react";
+import { MessageSquare, Cpu, Users, UserPlus, UserCheck, Loader2, GraduationCap } from "lucide-react";
 import { ProfileStatus } from "./ProfileStatus";
 import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
 import { UserStatus } from "@/services/user";
@@ -77,7 +77,7 @@ export const ProfileHeader = ({
       <div className="text-center space-y-2">
         <CardTitle className="text-2xl font-bold dark:text-white">{name}</CardTitle>
         <div className="flex items-center justify-center gap-2 text-primary">
-          <Cpu className="w-4 h-4" />
+          {role === 'student' ? <GraduationCap className="w-4 h-4" /> : <Cpu className="w-4 h-4" />}
           <p className="text-muted-foreground dark:text-gray-400">{role}</p>
         </div>
         <div className="flex items-center justify-center gap-2 text-primary">
