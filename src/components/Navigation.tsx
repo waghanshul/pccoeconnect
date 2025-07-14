@@ -117,7 +117,7 @@ export const Navigation = () => {
         </div>
       </div>
       
-      <div className={`absolute top-full left-0 w-full bg-gray-900 border-b border-gray-800 p-4 md:hidden transform transition-transform duration-300 ease-in-out ${isMenuOpen ? "translate-y-0" : "-translate-y-full"} z-50`}>
+      <div className={`absolute top-full left-0 w-full bg-gray-900 border-b border-gray-800 p-4 md:hidden transition-all duration-300 ease-in-out z-50 ${isMenuOpen ? "block opacity-100" : "hidden opacity-0"}`}>
         <div className="flex flex-col space-y-4">
           <Link to="/home" className={`flex items-center space-x-2 px-4 py-2 rounded-lg ${currentPath === "/home" ? "bg-gray-800 text-primary" : "hover:bg-gray-800"}`} onClick={() => setIsMenuOpen(false)}>
             <Home size={20} />

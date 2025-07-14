@@ -25,5 +25,16 @@ export const ProfileStatus = ({
   showTooltip = true,
   className = ""
 }: ProfileStatusProps) => {
-  return;
+  const icon = availabilityIcons[status];
+  const label = availabilityLabels[status];
+
+  return (
+    <div 
+      className={`cursor-pointer ${className}`}
+      onClick={onClick}
+      title={showTooltip ? label : undefined}
+    >
+      {icon}
+    </div>
+  );
 };
