@@ -7,38 +7,64 @@ import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { AdminRegisterForm } from "./AdminRegisterForm";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { validatePCCOEEmail, checkRateLimit, logSecurityEvent } from "@/services/security";
 
 export const AdminLoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { signIn, userRole } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      if (!credentials.email.endsWith("@pccoepune.org")) {
+      // Rate limiting check
+      if (!checkRateLimit(`admin_login_${credentials.email}`, 3, 15 * 60 * 1000)) {
+        toast.error("Too many login attempts. Please try again in 15 minutes.");
+        return;
+      }
+
+      // Enhanced validation
+      if (!validatePCCOEEmail(credentials.email)) {
         toast.error("Please use your PCCOE email address");
+        await logSecurityEvent('invalid_email_attempt', { email: credentials.email });
         return;
       }
       
-      // Since this is a demo admin login, we'll simulate validation
       if (credentials.password.length < 6) {
-        toast.error("Invalid email or password");
+        toast.error("Password must be at least 6 characters");
         return;
       }
       
-      // Log the login attempt (for development purposes)
-      console.log("Admin login attempt with email:", credentials.email);
+      // Authenticate with Supabase
+      const { error } = await signIn(credentials.email, credentials.password);
       
-      // Show success message
-      toast.success("Signed in!");
+      if (error) {
+        toast.error("Invalid email or password");
+        await logSecurityEvent('failed_admin_login', { 
+          email: credentials.email, 
+          error: error.message 
+        });
+        return;
+      }
+      
+      // Log successful admin login
+      await logSecurityEvent('admin_login_success', { email: credentials.email });
+      
+      toast.success("Signed in successfully!");
       navigate("/admin/dashboard");
+      
     } catch (error) {
       console.error("Admin login error:", error);
-      toast.error("Invalid email or password");
+      await logSecurityEvent('admin_login_error', { 
+        email: credentials.email, 
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      toast.error("Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -27,7 +27,11 @@ export const ProtectedRoute = ({ children, requiredRole }: ProtectedRouteProps) 
 
   // Check user role if a specific role is required
   if (requiredRole && userRole !== requiredRole) {
-    return <Navigate to="/home" />;
+    // If user is authenticated but doesn't have the required role
+    if (requiredRole === 'admin') {
+      return <Navigate to="/" replace />;
+    }
+    return <Navigate to="/home" replace />;
   }
 
   // Render children if authenticated and authorized
