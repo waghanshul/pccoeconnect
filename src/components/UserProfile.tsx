@@ -173,13 +173,11 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
         name={user.name}
         avatar={user.avatar}
         role={user.role}
-        status={user.status}
         connectionCount={connectionCount}
         isOwnProfile={isOwnProfile}
         isConnected={isConnected}
         onMessageClick={handleMessage}
         onConnectClick={handleConnect}
-        onStatusChange={handleAvailabilityChange}
         onAvatarUpdate={isOwnProfile ? handleAvatarUpdate : undefined}
       />
       <ProfileDetails 

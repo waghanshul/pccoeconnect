@@ -3,22 +3,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Cpu, Users, UserPlus, UserCheck, Loader2, GraduationCap } from "lucide-react";
-import { ProfileStatus } from "./ProfileStatus";
 import { ProfilePhotoUpload } from "./ProfilePhotoUpload";
-import { UserStatus } from "@/services/user";
 import { useState } from "react";
 
 interface ProfileHeaderProps {
   name: string;
   avatar: string;
   role: string;
-  status: UserStatus;
   connectionCount: number;
   isOwnProfile: boolean;
   isConnected: boolean;
   onMessageClick: () => void;
   onConnectClick: () => void;
-  onStatusChange: () => void;
   onAvatarUpdate?: (newAvatarUrl: string) => void;
 }
 
@@ -26,13 +22,11 @@ export const ProfileHeader = ({
   name,
   avatar,
   role,
-  status,
   connectionCount,
   isOwnProfile,
   isConnected,
   onMessageClick,
   onConnectClick,
-  onStatusChange,
   onAvatarUpdate
 }: ProfileHeaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
@@ -64,13 +58,6 @@ export const ProfileHeader = ({
             currentAvatar={avatar}
             userName={name}
             onAvatarUpdate={onAvatarUpdate}
-          />
-        )}
-        {isOwnProfile && (
-          <ProfileStatus 
-            status={status} 
-            onClick={onStatusChange}
-            className="absolute -bottom-2 left-16" 
           />
         )}
       </div>
