@@ -6,9 +6,10 @@ import { Features } from "./Features";
 
 interface HeroProps {
   setStep: (step: "role") => void;
+  resetRole: () => void;
 }
 
-export const Hero = ({ setStep }: HeroProps) => {
+export const Hero = ({ setStep, resetRole }: HeroProps) => {
   return (
     <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-12">
       <div className="w-full lg:w-1/2 space-y-8">
@@ -29,7 +30,10 @@ export const Hero = ({ setStep }: HeroProps) => {
           <Button
             size="lg"
             className="mt-8 text-lg px-8 py-6 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => setStep("role")}
+            onClick={() => {
+              resetRole();
+              setStep("role");
+            }}
           >
             Get Started
             <ArrowRight className="ml-2 h-5 w-5" />

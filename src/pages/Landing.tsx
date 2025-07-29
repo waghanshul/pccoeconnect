@@ -22,7 +22,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-[#111827] to-gray-900 dark">
-      {step === "initial" && <Hero setStep={setStep} />}
+      {step === "initial" && <Hero setStep={setStep} resetRole={() => setRole(null)} />}
 
       {step === "role" && (
         <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
@@ -38,7 +38,10 @@ const Landing = () => {
                 variant="ghost" 
                 size="sm" 
                 className="flex items-center gap-2 text-gray-400 hover:text-white"
-                onClick={() => setStep("role")}
+                onClick={() => {
+                  setRole(null);
+                  setStep("role");
+                }}
               >
                 <ArrowLeft className="h-4 w-4" />
                 Back
