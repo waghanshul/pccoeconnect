@@ -16,7 +16,10 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
           variant="ghost" 
           size="sm" 
           className="flex items-center gap-2 text-gray-400 hover:text-white"
-          onClick={() => setStep("initial")}
+          onClick={() => {
+            setRole(null as any);
+            setStep("initial");
+          }}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
