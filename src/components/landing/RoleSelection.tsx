@@ -35,18 +35,18 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
           <Button
             size="lg"
             variant={role === "student" ? "default" : "outline"}
-            className="w-full h-auto py-8 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-transform duration-300"
+            className="w-full h-auto py-8 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-all duration-300 border-2 border-primary/30 hover:border-primary hover:shadow-lg hover:shadow-primary/25 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20"
             onClick={() => {
               setRole("student");
               setStep("auth");
             }}
           >
-            <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
-              <GraduationCap className="h-12 w-12 text-primary" />
+            <div className="p-4 bg-primary/20 rounded-full group-hover:bg-primary/30 transition-colors group-hover:shadow-lg">
+              <GraduationCap className="h-12 w-12 text-primary group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="space-y-2 text-center">
-              <h3 className="text-xl font-semibold">Student</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">Student</h3>
+              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
                 Access study materials and connect with peers
               </p>
             </div>
@@ -66,18 +66,18 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
           <Button
             size="lg"
             variant={role === "admin" ? "default" : "outline"}
-            className="w-full h-auto py-8 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-transform duration-300"
+            className="w-full h-auto py-8 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-all duration-300 border-2 border-primary/30 hover:border-primary hover:shadow-lg hover:shadow-primary/25 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20"
             onClick={() => {
               setRole("admin");
               setStep("auth");
             }}
           >
-            <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors">
-              <Shield className="h-12 w-12 text-primary" />
+            <div className="p-4 bg-primary/20 rounded-full group-hover:bg-primary/30 transition-colors group-hover:shadow-lg">
+              <Shield className="h-12 w-12 text-primary group-hover:scale-110 transition-transform duration-300" />
             </div>
             <div className="space-y-2 text-center">
-              <h3 className="text-xl font-semibold">Admin</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">Admin</h3>
+              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
                 Manage platform content and oversee activities
               </p>
             </div>
