@@ -51,9 +51,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
               </p>
             </div>
           </Button>
-          <div className="bg-gray-800/50 p-6 rounded-xl border border-primary/20">
-            <h4 className="font-semibold mb-2 text-primary">Student Features:</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+          <div className="bg-gray-900/30 p-6 rounded-xl border border-gray-700/50">
+            <h4 className="font-semibold mb-2 text-muted-foreground">Student Features:</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground/80">
               <li>• Access to academic resources</li>
               <li>• Connect with classmates</li>
               <li>• Join study groups</li>
@@ -82,9 +82,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
               </p>
             </div>
           </Button>
-          <div className="bg-gray-800/50 p-6 rounded-xl border border-primary/20">
-            <h4 className="font-semibold mb-2 text-primary">Admin Features:</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground">
+          <div className="bg-gray-900/30 p-6 rounded-xl border border-gray-700/50">
+            <h4 className="font-semibold mb-2 text-muted-foreground">Admin Features:</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground/80">
               <li>• Content moderation</li>
               <li>• User management</li>
               <li>• Analytics dashboard</li>
