@@ -168,7 +168,8 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto backdrop-blur-lg bg-white/90 dark:bg-gray-800/90 shadow-xl">
+    <div className="pt-20 pb-8 px-4">
+      <Card className="w-full max-w-3xl mx-auto backdrop-blur-lg bg-white/90 dark:bg-gray-800/90 shadow-xl">
       <ProfileHeader 
         name={user.name}
         avatar={user.avatar}
@@ -190,5 +191,6 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
         phone={user.phone}
       />
     </Card>
+    </div>
   );
 };
