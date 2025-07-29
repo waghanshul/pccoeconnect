@@ -73,7 +73,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
       const { data: acceptedData, error: acceptedError } = await supabase
         .from('connections_v2')
         .select('*')
-        .or(`sender_id.eq.${authUser.id}.and.receiver_id.eq.${user.id},sender_id.eq.${user.id}.and.receiver_id.eq.${authUser.id}`)
+        .or(`and(sender_id.eq.${authUser.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${authUser.id})`)
         .eq('status', 'accepted');
       
       if (acceptedError) {
