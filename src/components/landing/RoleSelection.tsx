@@ -4,7 +4,7 @@ import { GraduationCap, Shield, ArrowLeft } from "lucide-react";
 
 interface RoleSelectionProps {
   role: "student" | "admin" | null;
-  setRole: (role: "student" | "admin") => void;
+  setRole: (role: "student" | "admin" | null) => void;
   setStep: (step: "auth" | "initial") => void;
 }
 
@@ -17,7 +17,7 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
           size="sm" 
           className="flex items-center gap-2 text-gray-400 hover:text-white"
           onClick={() => {
-            setRole(null as any);
+            setRole(null);
             setStep("initial");
           }}
         >
