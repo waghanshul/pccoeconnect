@@ -250,27 +250,139 @@ export type Database = {
       conversations: {
         Row: {
           created_at: string | null
+          created_by: string | null
+          group_avatar_url: string | null
+          group_description: string | null
+          group_name: string | null
           id: string
+          is_group: boolean | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          created_by?: string | null
+          group_avatar_url?: string | null
+          group_description?: string | null
+          group_name?: string | null
           id?: string
+          is_group?: boolean | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          created_by?: string | null
+          group_avatar_url?: string | null
+          group_description?: string | null
+          group_name?: string | null
           id?: string
+          is_group?: boolean | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "conversations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          added_by: string | null
+          conversation_id: string
+          id: string
+          joined_at: string | null
+          profile_id: string
+          role: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          conversation_id: string
+          id?: string
+          joined_at?: string | null
+          profile_id: string
+          role?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          conversation_id?: string
+          id?: string
+          joined_at?: string | null
+          profile_id?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_read_status: {
+        Row: {
+          id: string
+          message_id: string
+          profile_id: string
+          read_at: string | null
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          profile_id: string
+          read_at?: string | null
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          profile_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_read_status_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_read_status_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
           content: string
           conversation_id: string | null
           created_at: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
+          message_type: Database["public"]["Enums"]["message_type"] | null
           read_at: string | null
           sender_id: string | null
         }
@@ -278,7 +390,11 @@ export type Database = {
           content: string
           conversation_id?: string | null
           created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
+          message_type?: Database["public"]["Enums"]["message_type"] | null
           read_at?: string | null
           sender_id?: string | null
         }
@@ -286,7 +402,11 @@ export type Database = {
           content?: string
           conversation_id?: string | null
           created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
+          message_type?: Database["public"]["Enums"]["message_type"] | null
           read_at?: string | null
           sender_id?: string | null
         }
@@ -685,6 +805,10 @@ export type Database = {
         Args: { conv_id: string; user_id: string }
         Returns: boolean
       }
+      is_group_member: {
+        Args: { conversation_id: string; user_id: string }
+        Returns: boolean
+      }
       reject_connection_request: {
         Args: { receiver_user_id: string; sender_user_id: string }
         Returns: Json
@@ -696,6 +820,7 @@ export type Database = {
     }
     Enums: {
       connection_status: "pending" | "accepted" | "rejected"
+      message_type: "text" | "file" | "image" | "video" | "pdf"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -824,6 +949,7 @@ export const Constants = {
   public: {
     Enums: {
       connection_status: ["pending", "accepted", "rejected"],
+      message_type: ["text", "file", "image", "video", "pdf"],
     },
   },
 } as const
