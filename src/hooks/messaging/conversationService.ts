@@ -61,12 +61,12 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
         
         const participantIds = participants?.map(p => p.profile_id) || [];
         
-        // Get participant profiles (excluding current user)
+        // Get participant profiles (for groups show all, for direct messages exclude current user)
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
           .select('id, full_name, avatar_url')
           .in('id', participantIds)
-          .neq('id', userId);
+          .neq('id', conv.is_group ? '' : userId); // Include all for groups, exclude current user for direct messages
           
         if (profilesError) {
           console.error("Error fetching profiles for conversation", conv.id, ":", profilesError);
@@ -93,6 +93,19 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           .eq('conversation_id', conv.id)
           .is('read_at', null)
           .neq('sender_id', userId);
+
+        // Get member count for groups
+        let memberCount;
+        if (conv.is_group) {
+          const { count: groupMemberCount, error: memberCountError } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', conv.id);
+
+          if (!memberCountError) {
+            memberCount = groupMemberCount || 0;
+          }
+        }
           
         if (countError) {
           console.error("Error counting unread messages for conversation", conv.id, ":", countError);
@@ -103,7 +116,8 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           ...conv,
           participants: profiles || [],
           last_message: messages && messages.length > 0 ? messages[0] : undefined,
-          unread_count: count || 0
+          unread_count: count || 0,
+          member_count: memberCount
         };
         
         console.log("Conversation with details:", conversationWithDetails);

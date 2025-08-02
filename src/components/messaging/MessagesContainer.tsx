@@ -22,6 +22,7 @@ const MessagesContainer = () => {
     conversations,
     friends,
     isLoading,
+    fetchConversations,
     searchUsers,
     createConversation
   } = useConversations();
@@ -177,13 +178,14 @@ const MessagesContainer = () => {
 
   return (
     <>
-      <MessagesSidebar
-        conversations={conversations}
-        friends={friends}
-        isLoading={isLoading}
-        isSearching={isSearching}
-        onFriendSelect={handleFriendSelect}
-      />
+        <MessagesSidebar 
+          conversations={conversations}
+          friends={friends}
+          isLoading={isLoading}
+          isSearching={isSearching}
+          onFriendSelect={handleFriendSelect}
+          onGroupCreated={fetchConversations}
+        />
       
       <div className="md:col-span-2">
         {conversationId && conversationId !== 'null' ? (

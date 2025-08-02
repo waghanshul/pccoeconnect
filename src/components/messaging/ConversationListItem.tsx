@@ -2,11 +2,16 @@
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
+import { Users } from "lucide-react";
 
 interface ConversationListItemProps {
   conversation: {
     id: string;
     updated_at: string;
+    is_group?: boolean;
+    group_name?: string;
+    group_description?: string;
+    group_avatar_url?: string;
     participants: {
       id: string;
       full_name: string;
@@ -18,6 +23,7 @@ interface ConversationListItemProps {
       read_at: string | null;
     };
     unread_count: number;
+    member_count?: number;
   };
   isActive: boolean;
 }
@@ -25,6 +31,15 @@ interface ConversationListItemProps {
 const ConversationListItem = ({ conversation, isActive }: ConversationListItemProps) => {
   const navigate = useNavigate();
   const participant = conversation.participants[0]; // First (or only) other participant
+  const isGroup = conversation.is_group;
+  
+  const displayName = isGroup 
+    ? conversation.group_name 
+    : participant?.full_name || 'Unknown User';
+    
+  const displayAvatar = isGroup 
+    ? conversation.group_avatar_url 
+    : participant?.avatar_url;
 
   // Format relative time (e.g., "2h ago")
   const formatRelativeTime = (dateString: string) => {
@@ -51,9 +66,13 @@ const ConversationListItem = ({ conversation, isActive }: ConversationListItemPr
     >
       <div className="flex-shrink-0 relative">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={participant?.avatar_url || undefined} />
-          <AvatarFallback>
-            {participant?.full_name?.charAt(0) || '?'}
+          <AvatarImage src={displayAvatar || undefined} />
+          <AvatarFallback className={isGroup ? "bg-primary/10" : ""}>
+            {isGroup ? (
+              <Users className="h-6 w-6" />
+            ) : (
+              displayName?.charAt(0) || '?'
+            )}
           </AvatarFallback>
         </Avatar>
         {conversation.unread_count > 0 && (
@@ -64,9 +83,16 @@ const ConversationListItem = ({ conversation, isActive }: ConversationListItemPr
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex justify-between items-baseline">
-          <h2 className="text-sm font-medium text-gray-900 dark:text-white truncate">
-            {participant?.full_name || 'Unknown User'}
-          </h2>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              {displayName}
+            </h2>
+            {isGroup && conversation.member_count && (
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {conversation.member_count} members
+              </p>
+            )}
+          </div>
           {conversation.last_message?.created_at && (
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatRelativeTime(conversation.last_message.created_at)}
