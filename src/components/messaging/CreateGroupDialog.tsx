@@ -39,7 +39,10 @@ export const CreateGroupDialog = ({ friends, onGroupCreated }: CreateGroupDialog
   };
 
   const handleCreateGroup = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      toast.error("Please log in to create a group");
+      return;
+    }
     
     if (!groupName.trim()) {
       toast.error("Please enter a group name");
@@ -53,6 +56,13 @@ export const CreateGroupDialog = ({ friends, onGroupCreated }: CreateGroupDialog
 
     setIsCreating(true);
     try {
+      console.log('Starting group creation with:', {
+        groupName: groupName.trim(),
+        description: description.trim(),
+        selectedMembers,
+        userId: user.id
+      });
+
       const conversationId = await createGroup(
         groupName.trim(),
         description.trim(),
@@ -66,11 +76,12 @@ export const CreateGroupDialog = ({ friends, onGroupCreated }: CreateGroupDialog
         setIsOpen(false);
         resetForm();
       } else {
-        toast.error("Failed to create group");
+        toast.error("Failed to create group - please try again");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating group:", error);
-      toast.error("Failed to create group");
+      const errorMessage = error?.message || "Failed to create group";
+      toast.error(errorMessage);
     } finally {
       setIsCreating(false);
     }

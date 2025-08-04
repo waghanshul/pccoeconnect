@@ -28,45 +28,94 @@ export const createGroup = async (
   initialMembers: string[],
   userId: string
 ): Promise<string | null> => {
+  console.log('=== Creating group ===');
+  console.log('Group name:', groupName);
+  console.log('Description:', description);
+  console.log('Initial members:', initialMembers);
+  console.log('User ID:', userId);
+
   try {
+    // Validate inputs
+    if (!userId) {
+      console.error('User ID is required for group creation');
+      throw new Error('User authentication required');
+    }
+
+    if (!groupName?.trim()) {
+      console.error('Group name is required');
+      throw new Error('Group name is required');
+    }
+
     // Create conversation
+    console.log('Creating conversation...');
     const { data: conversation, error: convError } = await supabase
       .from('conversations')
       .insert({
         is_group: true,
-        group_name: groupName,
-        group_description: description,
+        group_name: groupName.trim(),
+        group_description: description?.trim() || null,
         created_by: userId
       })
       .select()
       .single();
 
-    if (convError || !conversation) {
+    if (convError) {
       console.error('Error creating group conversation:', convError);
-      return null;
+      throw new Error(`Failed to create conversation: ${convError.message}`);
     }
 
-    // Add creator as lead
-    const membersToAdd = [
-      { conversation_id: conversation.id, profile_id: userId, role: 'lead', added_by: userId },
-      ...initialMembers.map(memberId => ({
+    if (!conversation) {
+      console.error('No conversation data returned');
+      throw new Error('Failed to create conversation - no data returned');
+    }
+
+    console.log('Conversation created:', conversation.id);
+
+    // Add creator as lead first
+    console.log('Adding creator as lead...');
+    const { error: leadError } = await supabase
+      .from('group_members')
+      .insert({
+        conversation_id: conversation.id,
+        profile_id: userId,
+        role: 'lead',
+        added_by: userId
+      });
+
+    if (leadError) {
+      console.error('Error adding creator as lead:', leadError);
+      // Try to clean up the conversation
+      await supabase.from('conversations').delete().eq('id', conversation.id);
+      throw new Error(`Failed to add creator as lead: ${leadError.message}`);
+    }
+
+    console.log('Creator added as lead successfully');
+
+    // Add other members if any
+    if (initialMembers.length > 0) {
+      console.log('Adding initial members...');
+      const membersToAdd = initialMembers.map(memberId => ({
         conversation_id: conversation.id,
         profile_id: memberId,
         role: 'member' as const,
         added_by: userId
-      }))
-    ];
+      }));
 
-    const { error: membersError } = await supabase
-      .from('group_members')
-      .insert(membersToAdd);
+      const { error: membersError } = await supabase
+        .from('group_members')
+        .insert(membersToAdd);
 
-    if (membersError) {
-      console.error('Error adding group members:', membersError);
-      return null;
+      if (membersError) {
+        console.error('Error adding group members:', membersError);
+        // Continue anyway - the group is created with just the creator
+        console.warn('Group created but some members could not be added');
+      } else {
+        console.log('Initial members added successfully');
+      }
     }
 
     // Add all members to conversation_participants for compatibility
+    console.log('Adding conversation participants...');
     const participantsToAdd = [userId, ...initialMembers].map(memberId => ({
       conversation_id: conversation.id,
       profile_id: memberId
@@ -78,12 +127,14 @@ export const createGroup = async (
 
     if (participantsError) {
       console.error('Error adding conversation participants:', participantsError);
+      console.warn('Group created but participants sync failed');
     }
 
+    console.log('Group creation completed successfully:', conversation.id);
     return conversation.id;
   } catch (error) {
     console.error('Error creating group:', error);
-    return null;
+    throw error; // Re-throw to allow proper error handling in the UI
   }
 };
 
