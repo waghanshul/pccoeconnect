@@ -77,8 +77,10 @@ export const useMessages = (conversationId: string) => {
           // Check if message already exists to prevent duplicates
           const messageExists = current.some(msg => msg.id === newMessage.id);
           if (messageExists) {
+            console.log("Message already exists, skipping duplicate:", newMessage.id);
             return current;
           }
+          console.log("Adding new message from realtime:", newMessage.id);
           return [...current, newMessage];
         });
       },
