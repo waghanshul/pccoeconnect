@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -805,6 +805,14 @@ export type Database = {
         Args: { conv_id: string; user_id: string }
         Returns: boolean
       }
+      is_group_lead: {
+        Args: { conversation_id: string; user_id: string }
+        Returns: boolean
+      }
+      is_group_lead_or_admin: {
+        Args: { conversation_id: string; user_id: string }
+        Returns: boolean
+      }
       is_group_member: {
         Args: { conversation_id: string; user_id: string }
         Returns: boolean
@@ -814,7 +822,7 @@ export type Database = {
         Returns: Json
       }
       send_connection_request: {
-        Args: { sender_user_id: string; receiver_user_id: string }
+        Args: { receiver_user_id: string; sender_user_id: string }
         Returns: Json
       }
     }
