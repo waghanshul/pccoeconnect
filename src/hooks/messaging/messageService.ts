@@ -7,6 +7,10 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   try {
     console.log("Fetching messages for conversation:", conversationId);
     
+    // Get current user info for debugging
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log("Current user for message fetch:", user?.id);
+    
     const { data, error } = await supabase
       .from('messages')
       .select('*')
@@ -15,9 +19,11 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
       
     if (error) {
       console.error("Error fetching messages:", error);
+      console.error("Error details:", { code: error.code, message: error.message, details: error.details });
       throw error;
     }
     
+    console.log("Fetched messages count:", data?.length);
     console.log("Fetched messages:", data);
     
     // Fetch sender profiles for each message

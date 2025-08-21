@@ -36,14 +36,22 @@ export const useMessages = (conversationId: string) => {
     if (!conversationId || conversationId === 'null') return;
     
     try {
+      console.log("Starting fetchMessagesData for conversation:", conversationId);
+      console.log("Current user in fetchMessagesData:", user?.id);
+      
       setIsLoading(true);
       const messagesData = await fetchMessages(conversationId);
+      
+      console.log("Got messages data:", messagesData.length, "messages");
       setMessages(messagesData);
       
       // Mark messages as read
       markMessagesAsRead(messagesData, user?.id);
     } catch (error) {
       console.error("Error in fetchMessagesData:", error);
+      console.error("Error details:", error);
+      // Set empty array on error to show "No messages yet" instead of loading indefinitely
+      setMessages([]);
     } finally {
       setIsLoading(false);
     }
