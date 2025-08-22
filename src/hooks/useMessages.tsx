@@ -17,7 +17,9 @@ export const useMessages = (conversationId: string) => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (conversationId && conversationId !== 'null') {
+    // Wait for user authentication before fetching messages
+    if (conversationId && conversationId !== 'null' && user?.id) {
+      console.log("User authenticated, fetching messages for conversation:", conversationId);
       fetchMessagesData();
       fetchConversationParticipantsData();
       const cleanup = setupRealtimeSubscription();
@@ -25,6 +27,9 @@ export const useMessages = (conversationId: string) => {
       return () => {
         cleanup();
       };
+    } else if (conversationId && conversationId !== 'null' && !user?.id) {
+      console.log("Waiting for user authentication before fetching messages");
+      setIsLoading(true);
     } else {
       setMessages([]);
       setReceiverProfile(null);
@@ -33,7 +38,10 @@ export const useMessages = (conversationId: string) => {
   }, [conversationId, user?.id]);
 
   const fetchMessagesData = async () => {
-    if (!conversationId || conversationId === 'null') return;
+    if (!conversationId || conversationId === 'null' || !user?.id) {
+      console.log("Cannot fetch messages: missing conversation ID or user authentication");
+      return;
+    }
     
     try {
       console.log("Starting fetchMessagesData for conversation:", conversationId);
@@ -47,13 +55,19 @@ export const useMessages = (conversationId: string) => {
       
       // Mark messages as read
       markMessagesAsRead(messagesData, user?.id);
-    } catch (error) {
-      console.error("Error in fetchMessagesData:", error);
-      console.error("Error details:", error);
-      // Set empty array on error to show "No messages yet" instead of loading indefinitely
-      setMessages([]);
-    } finally {
+      
+      // Set loading to false after successful fetch
       setIsLoading(false);
+    } catch (error: any) {
+      console.error("Error in fetchMessagesData:", error);
+      if (error?.message === "Authentication required") {
+        console.log("Authentication required, will retry when user is authenticated");
+        setIsLoading(true); // Keep loading until auth is ready
+      } else {
+        console.error("Error details:", error);
+        setMessages([]);
+        setIsLoading(false);
+      }
     }
   };
 

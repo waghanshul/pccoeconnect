@@ -7,9 +7,14 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
   try {
     console.log("Fetching messages for conversation:", conversationId);
     
-    // Get current user info for debugging
-    const { data: { user } } = await supabase.auth.getUser();
-    console.log("Current user for message fetch:", user?.id);
+    // Check authentication first
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log("No active session, cannot fetch messages");
+      throw new Error("Authentication required");
+    }
+    
+    console.log("Authenticated user for message fetch:", session.user.id);
     
     const { data, error } = await supabase
       .from('messages')
