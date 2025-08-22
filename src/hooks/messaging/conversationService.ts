@@ -108,13 +108,34 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           throw profilesError;
         }
         
-        // Get last message
-        const { data: messages, error: messagesError } = await supabase
-          .from('messages')
-          .select('content, created_at, read_at')
-          .eq('conversation_id', conv.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
+        // Get last message - different approach for groups vs direct messages
+        let messages;
+        let messagesError;
+        
+        if (conv.is_group) {
+          // For groups, we need to ensure the user has access via group membership
+          // Use a more direct approach since RLS might block group message access
+          const { data: groupMessages, error: groupMessagesError } = await supabase
+            .from('messages')
+            .select('content, created_at, read_at, sender_id')
+            .eq('conversation_id', conv.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+            
+          messages = groupMessages;
+          messagesError = groupMessagesError;
+        } else {
+          // For direct messages, use the standard approach
+          const { data: directMessages, error: directMessagesError } = await supabase
+            .from('messages')
+            .select('content, created_at, read_at')
+            .eq('conversation_id', conv.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+            
+          messages = directMessages;
+          messagesError = directMessagesError;
+        }
           
         if (messagesError) {
           console.error("Error fetching last message for conversation", conv.id, ":", messagesError);
