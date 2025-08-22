@@ -12,7 +12,7 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
     
     console.log("Fetching conversations for user:", userId);
     
-    // Get all conversations where the current user is a participant
+    // Get all conversations where the current user is a participant (direct messages)
     const { data: participations, error: participationsError } = await supabase
       .from('conversation_participants')
       .select('conversation_id')
@@ -23,19 +23,36 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
       throw participationsError;
     }
     
-    if (!participations || participations.length === 0) {
-      console.log("No participations found for user");
-      return [];
+    // Get all group conversations where the current user is a member
+    const { data: groupMemberships, error: groupMembershipsError } = await supabase
+      .from('group_members')
+      .select('conversation_id')
+      .eq('profile_id', userId);
+      
+    if (groupMembershipsError) {
+      console.error("Error fetching group memberships:", groupMembershipsError);
+      throw groupMembershipsError;
     }
     
-    const conversationIds = participations.map(p => p.conversation_id);
-    console.log("Found conversation IDs:", conversationIds);
+    // Combine both types of conversations
+    const directConversationIds = participations?.map(p => p.conversation_id) || [];
+    const groupConversationIds = groupMemberships?.map(g => g.conversation_id) || [];
+    const allConversationIds = [...new Set([...directConversationIds, ...groupConversationIds])];
+    
+    console.log("Found direct conversation IDs:", directConversationIds);
+    console.log("Found group conversation IDs:", groupConversationIds);
+    console.log("All conversation IDs:", allConversationIds);
+    
+    if (allConversationIds.length === 0) {
+      console.log("No conversations found for user");
+      return [];
+    }
     
     // Get basic conversation data
     const { data: convsData, error: convsError } = await supabase
       .from('conversations')
       .select('*')
-      .in('id', conversationIds)
+      .in('id', allConversationIds)
       .order('updated_at', { ascending: false });
       
     if (convsError) {
@@ -48,18 +65,36 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
     // For each conversation, get participants and last message
     const conversationsWithDetails = await Promise.all((convsData || []).map(async (conv) => {
       try {
-        // Get participants
-        const { data: participants, error: participantsError } = await supabase
-          .from('conversation_participants')
-          .select('profile_id')
-          .eq('conversation_id', conv.id);
-          
-        if (participantsError) {
-          console.error("Error fetching participants for conversation", conv.id, ":", participantsError);
-          throw participantsError;
+        // Get participants - different logic for groups vs direct messages
+        let participantIds: string[] = [];
+        
+        if (conv.is_group) {
+          // For groups, get members from group_members table
+          const { data: groupMembers, error: groupMembersError } = await supabase
+            .from('group_members')
+            .select('profile_id')
+            .eq('conversation_id', conv.id);
+            
+          if (groupMembersError) {
+            console.error("Error fetching group members for conversation", conv.id, ":", groupMembersError);
+          } else {
+            participantIds = groupMembers?.map(m => m.profile_id) || [];
+          }
+        } else {
+          // For direct messages, get from conversation_participants
+          const { data: participants, error: participantsError } = await supabase
+            .from('conversation_participants')
+            .select('profile_id')
+            .eq('conversation_id', conv.id);
+            
+          if (participantsError) {
+            console.error("Error fetching participants for conversation", conv.id, ":", participantsError);
+          } else {
+            participantIds = participants?.map(p => p.profile_id) || [];
+          }
         }
         
-        const participantIds = participants?.map(p => p.profile_id) || [];
+        console.log(`Found ${participantIds.length} participants for ${conv.is_group ? 'group' : 'direct'} conversation ${conv.id}:`, participantIds);
         
         // Get participant profiles (for groups show all, for direct messages exclude current user)
         const { data: profiles, error: profilesError } = await supabase
