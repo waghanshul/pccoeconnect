@@ -16,11 +16,18 @@ export const useConversations = () => {
   useEffect(() => {
     if (user?.id) {
       console.log("User authenticated, setting up conversations for user:", user.id);
-      fetchConversationsData();
-      fetchContactsData();
+      // Add small delay to ensure auth state is fully ready
+      const timeoutId = setTimeout(() => {
+        fetchConversationsData();
+        fetchContactsData();
+      }, 50);
+      
       const cleanup = setupRealtimeSubscription(user.id, fetchConversationsData);
       
-      return cleanup;
+      return () => {
+        clearTimeout(timeoutId);
+        cleanup();
+      };
     } else {
       console.log("No authenticated user, clearing conversations");
       setConversations([]);

@@ -10,6 +10,19 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
       return [];
     }
     
+    // Ensure authentication is ready before querying database
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      console.log("No authenticated session found - waiting for auth");
+      // Wait a moment and retry once
+      await new Promise(resolve => setTimeout(resolve, 100));
+      const { data: { session: retrySession } } = await supabase.auth.getSession();
+      if (!retrySession?.user) {
+        console.log("Still no authenticated session - cannot fetch conversations");
+        return [];
+      }
+    }
+    
     console.log("Fetching conversations for user:", userId);
     
     // Get all conversations where the current user is a participant (direct messages)
@@ -108,17 +121,13 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           throw profilesError;
         }
         
-        // Get last message - add debugging for groups
-        console.log(`Fetching messages for conversation ${conv.id} (isGroup: ${conv.is_group})`);
-        
+        // Get last message
         const { data: messages, error: messagesError } = await supabase
           .from('messages')
           .select('content, created_at, read_at')
           .eq('conversation_id', conv.id)
           .order('created_at', { ascending: false })
           .limit(1);
-          
-        console.log(`Messages result for ${conv.id}:`, { messages, messagesError });
           
         if (messagesError) {
           console.error("Error fetching last message for conversation", conv.id, ":", messagesError);
