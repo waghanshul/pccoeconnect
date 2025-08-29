@@ -108,13 +108,17 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           throw profilesError;
         }
         
-        // Get last message
+        // Get last message - add debugging for groups
+        console.log(`Fetching messages for conversation ${conv.id} (isGroup: ${conv.is_group})`);
+        
         const { data: messages, error: messagesError } = await supabase
           .from('messages')
           .select('content, created_at, read_at')
           .eq('conversation_id', conv.id)
           .order('created_at', { ascending: false })
           .limit(1);
+          
+        console.log(`Messages result for ${conv.id}:`, { messages, messagesError });
           
         if (messagesError) {
           console.error("Error fetching last message for conversation", conv.id, ":", messagesError);
