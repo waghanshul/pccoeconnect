@@ -14,12 +14,18 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       console.log("No authenticated session found - waiting for auth");
-      // Wait a moment and retry once
-      await new Promise(resolve => setTimeout(resolve, 100));
-      const { data: { session: retrySession } } = await supabase.auth.getSession();
-      if (!retrySession?.user) {
-        console.log("Still no authenticated session - cannot fetch conversations");
-        return [];
+      // Wait longer and retry multiple times for better reliability
+      for (let i = 0; i < 3; i++) {
+        await new Promise(resolve => setTimeout(resolve, 200 * (i + 1)));
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+        if (retrySession?.user) {
+          console.log("Authentication ready after retry", i + 1);
+          break;
+        }
+        if (i === 2) {
+          console.log("Still no authenticated session after retries - cannot fetch conversations");
+          return [];
+        }
       }
     }
     
@@ -121,17 +127,27 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           throw profilesError;
         }
         
-        // Get last message
-        const { data: messages, error: messagesError } = await supabase
-          .from('messages')
-          .select('content, created_at, read_at')
-          .eq('conversation_id', conv.id)
-          .order('created_at', { ascending: false })
-          .limit(1);
-          
-        if (messagesError) {
-          console.error("Error fetching last message for conversation", conv.id, ":", messagesError);
-          // Don't throw here, just log the error and continue without last message
+        // Get last message with proper error handling
+        let lastMessage = undefined;
+        try {
+          const { data: messages, error: messagesError } = await supabase
+            .from('messages')
+            .select('content, created_at, read_at')
+            .eq('conversation_id', conv.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+            
+          if (messagesError) {
+            console.error("Error fetching last message for conversation", conv.id, ":", messagesError);
+            console.error("This might be due to RLS policy blocking access when auth is not ready");
+          } else if (messages && messages.length > 0) {
+            lastMessage = messages[0];
+            console.log(`Found last message for conversation ${conv.id}:`, lastMessage.content);
+          } else {
+            console.log(`No messages found for conversation ${conv.id}`);
+          }
+        } catch (messageErr) {
+          console.error("Exception when fetching messages for conversation", conv.id, ":", messageErr);
         }
         
         // Count unread messages
@@ -163,7 +179,7 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
         const conversationWithDetails = {
           ...conv,
           participants: profiles || [],
-          last_message: messages && messages.length > 0 ? messages[0] : undefined,
+          last_message: lastMessage,
           unread_count: count || 0,
           member_count: memberCount
         };
