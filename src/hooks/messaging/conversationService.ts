@@ -6,16 +6,29 @@ import { Conversation } from "./types";
 // Helper function to verify database-level authentication
 async function verifyDatabaseAuth(): Promise<boolean> {
   try {
-    // Test if auth.uid() is available in the database context by calling a function that uses it
-    const { data: authTest, error } = await supabase.rpc('get_user_role');
-    
-    if (error) {
-      console.log("Auth verification failed:", error.message);
+    // Ensure a client session exists
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log("No active session for DB auth verification");
       return false;
     }
-    
-    // If we get a result (even null), auth is working
-    console.log("Database auth verified successfully");
+
+    // Small delay to allow auth header propagation
+    await new Promise((r) => setTimeout(r, 100));
+
+    // Lightweight probe query; success indicates headers are set and DB is reachable
+    const { error } = await supabase
+      .from('profiles')
+      .select('id', { head: true, count: 'exact' })
+      .eq('id', session.user.id)
+      .limit(1);
+
+    if (error) {
+      console.log("DB probe failed:", error.message);
+      return false;
+    }
+
+    console.log("Database auth probe succeeded");
     return true;
   } catch (err) {
     console.log("Database auth verification failed:", err);
@@ -23,34 +36,40 @@ async function verifyDatabaseAuth(): Promise<boolean> {
   }
 }
 
-// Helper function to safely fetch messages with auth verification
+// Helper function to safely fetch messages with auth verification and retries
 async function fetchMessagesForConversation(conversationId: string): Promise<any> {
   try {
-    // Double-check auth is ready before fetching messages
-    const isReady = await verifyDatabaseAuth();
-    if (!isReady) {
-      console.log(`Auth not ready for fetching messages in conversation ${conversationId}`);
-      return undefined;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const isReady = await verifyDatabaseAuth();
+      if (!isReady) {
+        console.log(`Auth not ready (attempt ${attempt + 1}) for conversation ${conversationId}`);
+        await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
+        continue;
+      }
+
+      const { data: messages, error: messagesError } = await supabase
+        .from('messages')
+        .select('content, created_at, read_at')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (messagesError) {
+        console.error("Error fetching last message for conversation", conversationId, ":", messagesError);
+        await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
+        continue;
+      }
+
+      if (messages && messages.length > 0) {
+        console.log(`Found last message for conversation ${conversationId}:`, messages[0].content);
+        return messages[0];
+      }
+
+      // No messages found yet, retry a few times in case of timing issues
+      await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
     }
 
-    const { data: messages, error: messagesError } = await supabase
-      .from('messages')
-      .select('content, created_at, read_at')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: false })
-      .limit(1);
-      
-    if (messagesError) {
-      console.error("Error fetching last message for conversation", conversationId, ":", messagesError);
-      return undefined;
-    }
-    
-    if (messages && messages.length > 0) {
-      console.log(`Found last message for conversation ${conversationId}:`, messages[0].content);
-      return messages[0];
-    }
-    
-    console.log(`No messages found for conversation ${conversationId}`);
+    console.log(`No messages found for conversation ${conversationId} after retries`);
     return undefined;
   } catch (err) {
     console.error("Exception when fetching messages for conversation", conversationId, ":", err);

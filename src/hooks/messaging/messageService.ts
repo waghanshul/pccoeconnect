@@ -6,31 +6,46 @@ import { Message, ReceiverProfile } from "./types";
 export const fetchMessages = async (conversationId: string): Promise<Message[]> => {
   try {
     console.log("Fetching messages for conversation:", conversationId);
-    
+
     // Check authentication first
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       console.log("No active session, cannot fetch messages");
       throw new Error("Authentication required");
     }
-    
+
     console.log("Authenticated user for message fetch:", session.user.id);
-    
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-      
-    if (error) {
-      console.error("Error fetching messages:", error);
-      console.error("Error details:", { code: error.code, message: error.message, details: error.details });
-      throw error;
+
+    // Retry logic to handle auth propagation/RLS timing
+    let data: any[] | null = null;
+    let lastError: any = null;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const res = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+
+      if (!res.error && (res.data?.length || attempt === 4)) {
+        data = res.data || [];
+        lastError = null;
+        break;
+      }
+
+      lastError = res.error;
+      console.log(`Messages fetch retry ${attempt + 1} due to ${(res.error && res.error.message) || 'empty result'}`);
+      await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
     }
-    
+
+    if (lastError) {
+      console.error("Error fetching messages:", lastError);
+      console.error("Error details:", { code: lastError.code, message: lastError.message, details: lastError.details });
+      throw lastError;
+    }
+
     console.log("Fetched messages count:", data?.length);
     console.log("Fetched messages:", data);
-    
+
     // Fetch sender profiles for each message
     const messagesWithSenders = await Promise.all((data || []).map(async (message) => {
       try {
@@ -39,11 +54,11 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
           .select('full_name, avatar_url')
           .eq('id', message.sender_id)
           .single();
-          
+
         if (profileError) {
           console.error("Error fetching profile for message", message.id, ":", profileError);
         }
-        
+
         return {
           ...message,
           sender: profileData || undefined
@@ -56,7 +71,7 @@ export const fetchMessages = async (conversationId: string): Promise<Message[]> 
         };
       }
     }));
-    
+
     console.log("Messages with senders:", messagesWithSenders);
     return messagesWithSenders;
   } catch (error) {
