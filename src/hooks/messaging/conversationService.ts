@@ -3,6 +3,61 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Conversation } from "./types";
 
+// Helper function to verify database-level authentication
+async function verifyDatabaseAuth(): Promise<boolean> {
+  try {
+    // Test if auth.uid() is available in the database context by calling a function that uses it
+    const { data: authTest, error } = await supabase.rpc('get_user_role');
+    
+    if (error) {
+      console.log("Auth verification failed:", error.message);
+      return false;
+    }
+    
+    // If we get a result (even null), auth is working
+    console.log("Database auth verified successfully");
+    return true;
+  } catch (err) {
+    console.log("Database auth verification failed:", err);
+    return false;
+  }
+}
+
+// Helper function to safely fetch messages with auth verification
+async function fetchMessagesForConversation(conversationId: string): Promise<any> {
+  try {
+    // Double-check auth is ready before fetching messages
+    const isReady = await verifyDatabaseAuth();
+    if (!isReady) {
+      console.log(`Auth not ready for fetching messages in conversation ${conversationId}`);
+      return undefined;
+    }
+
+    const { data: messages, error: messagesError } = await supabase
+      .from('messages')
+      .select('content, created_at, read_at')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+      
+    if (messagesError) {
+      console.error("Error fetching last message for conversation", conversationId, ":", messagesError);
+      return undefined;
+    }
+    
+    if (messages && messages.length > 0) {
+      console.log(`Found last message for conversation ${conversationId}:`, messages[0].content);
+      return messages[0];
+    }
+    
+    console.log(`No messages found for conversation ${conversationId}`);
+    return undefined;
+  } catch (err) {
+    console.error("Exception when fetching messages for conversation", conversationId, ":", err);
+    return undefined;
+  }
+}
+
 export const fetchConversations = async (userId: string | undefined): Promise<Conversation[]> => {
   try {
     if (!userId) {
@@ -10,20 +65,21 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
       return [];
     }
     
-    // Ensure authentication is ready before querying database
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-      console.log("No authenticated session found - waiting for auth");
-      // Wait longer and retry multiple times for better reliability
+    // Verify database-level authentication before proceeding
+    const isDbAuthReady = await verifyDatabaseAuth();
+    if (!isDbAuthReady) {
+      console.log("Database authentication not ready - retrying...");
+      
+      // Wait and retry with exponential backoff
       for (let i = 0; i < 3; i++) {
-        await new Promise(resolve => setTimeout(resolve, 200 * (i + 1)));
-        const { data: { session: retrySession } } = await supabase.auth.getSession();
-        if (retrySession?.user) {
-          console.log("Authentication ready after retry", i + 1);
+        await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
+        const retryAuthReady = await verifyDatabaseAuth();
+        if (retryAuthReady) {
+          console.log("Database authentication ready after retry", i + 1);
           break;
         }
         if (i === 2) {
-          console.log("Still no authenticated session after retries - cannot fetch conversations");
+          console.log("Database authentication still not ready after retries - cannot fetch conversations");
           return [];
         }
       }
@@ -127,28 +183,8 @@ export const fetchConversations = async (userId: string | undefined): Promise<Co
           throw profilesError;
         }
         
-        // Get last message with proper error handling
-        let lastMessage = undefined;
-        try {
-          const { data: messages, error: messagesError } = await supabase
-            .from('messages')
-            .select('content, created_at, read_at')
-            .eq('conversation_id', conv.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-            
-          if (messagesError) {
-            console.error("Error fetching last message for conversation", conv.id, ":", messagesError);
-            console.error("This might be due to RLS policy blocking access when auth is not ready");
-          } else if (messages && messages.length > 0) {
-            lastMessage = messages[0];
-            console.log(`Found last message for conversation ${conv.id}:`, lastMessage.content);
-          } else {
-            console.log(`No messages found for conversation ${conv.id}`);
-          }
-        } catch (messageErr) {
-          console.error("Exception when fetching messages for conversation", conv.id, ":", messageErr);
-        }
+        // Get last message using the safe fetch function
+        const lastMessage = await fetchMessagesForConversation(conv.id);
         
         // Count unread messages
         const { count, error: countError } = await supabase
