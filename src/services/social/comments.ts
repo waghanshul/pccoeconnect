@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Comment } from "./types";
 import { isValidProfile, createDefaultAuthor } from "./types";
+import { moderateContent } from "@/services/moderation";
 
 export const fetchComments = async (postId: string): Promise<Comment[]> => {
   try {
@@ -56,6 +57,17 @@ export const fetchComments = async (postId: string): Promise<Comment[]> => {
 
 export const addComment = async (postId: string, content: string): Promise<Comment | null> => {
   try {
+    // Moderate content before posting
+    const moderation = await moderateContent(content);
+    if (moderation.flagged) {
+      toast({
+        title: "Content Blocked",
+        description: moderation.reason || "Your comment contains inappropriate language.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");

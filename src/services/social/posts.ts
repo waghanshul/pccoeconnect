@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SocialPost } from "./types";
 import { isValidProfile, createDefaultAuthor } from "./types";
+import { moderateContent } from "@/services/moderation";
 
 export const fetchPosts = async (): Promise<SocialPost[]> => {
   try {
@@ -78,6 +79,13 @@ export const createPost = async (
   parentPostId?: string
 ): Promise<string | null> => {
   try {
+    // Moderate content before posting
+    const moderation = await moderateContent(content);
+    if (moderation.flagged) {
+      toast.error(moderation.reason || "Your content contains inappropriate language.");
+      return null;
+    }
+
     // Get current user
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error("User not authenticated");
