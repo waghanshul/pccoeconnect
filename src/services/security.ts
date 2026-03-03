@@ -11,7 +11,20 @@ export const validatePCCOEEmail = (email: string): boolean => {
 };
 
 export const sanitizeInput = (input: string): string => {
-  return input.trim().replace(/[<>]/g, '');
+  return input
+    .trim()
+    .replace(/[<>'"&]/g, (char) => {
+      const entities: Record<string, string> = {
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;',
+        '&': '&amp;',
+      };
+      return entities[char] || char;
+    })
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '');
 };
 
 export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {

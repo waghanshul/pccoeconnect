@@ -28,14 +28,14 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedRoles,
 }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, userRole } = useAuth();
   const [hasRequiredRole, setHasRequiredRole] = useState(true);
 
   useEffect(() => {
     if (user && allowedRoles) {
-      setHasRequiredRole(allowedRoles.includes(user.role));
+      setHasRequiredRole(allowedRoles.includes(userRole));
     }
-  }, [user, allowedRoles]);
+  }, [user, allowedRoles, userRole]);
 
   if (isLoading) {
     return <div>Loading...</div>;
