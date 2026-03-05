@@ -110,9 +110,16 @@ export const NotificationItem = ({
         )}
         
         <div className="flex-1">
-          <h3 className="font-semibold dark:text-white">{title}</h3>
-          <p className="text-gray-600 dark:text-gray-300 mb-2">{content}</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-semibold dark:text-white">{title}</h3>
+            {category && !isConnectionRequest && (
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${categoryBadgeColors[category.toLowerCase()] || "bg-muted text-muted-foreground"}`}>
+                {category.charAt(0).toUpperCase() + category.slice(1)}
+              </span>
+            )}
+          </div>
+          <p className="text-muted-foreground mb-2">{content}</p>
+          <p className="text-xs text-muted-foreground">
             {formatDate(created_at)}
           </p>
           
