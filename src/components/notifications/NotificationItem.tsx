@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
+const categoryBadgeColors: Record<string, string> = {
+  sports: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  exams: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  events: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  clubs: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  placements: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  celebrations: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  connections: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+};
+
 interface SenderProfile {
   avatar_url?: string;
   full_name: string;
@@ -16,6 +26,7 @@ export interface NotificationItemProps {
   title: string;
   content: string;
   created_at: string;
+  category?: string;
   sender?: SenderProfile;
   isConnectionRequest?: boolean;
   connectionId?: string;
