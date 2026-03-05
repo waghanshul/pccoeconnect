@@ -1,67 +1,38 @@
 
 
-## Content Moderation Feature
+## Admin Notification Posts
 
-### Overview
-Create a Supabase Edge Function microservice that checks text content for profanity/bad words before allowing posts and comments. The frontend will call this edge function before submitting content, and display an error if inappropriate content is detected.
+The admin dashboard currently has a notification form with category selection and text input, but `handleSendNotification` only shows a local toast — it never writes to the database. The `notifications` table already exists with `title`, `content`, `category`, `sender_id` columns and an RLS policy allowing admins to insert. Students already fetch from this table via `useNotifications`.
 
-### Architecture
+### Current Issues
+1. Admin form doesn't actually insert into the `notifications` table
+2. Admin form lacks a "Title" field (the table requires one)
+3. `NotificationTabs` filtering logic is broken — it matches on `notif.title` instead of `notif.category`
+4. No category badges on notification items
+5. Admin notifications and connection requests are mixed in the same filter, causing admin notifications to only show under "connections" tab
 
-```text
-User types post/comment
-       │
-       ▼
-Frontend calls Edge Function
-  POST /moderate-content { content: "..." }
-       │
-       ▼
-Edge Function checks against bad-words list
-       │
-       ├── Clean → returns { flagged: false }
-       │                 │
-       │                 ▼
-       │         Frontend proceeds to create post/comment
-       │
-       └── Flagged → returns { flagged: true, reason: "..." }
-                          │
-                          ▼
-                  Frontend shows error toast, blocks submission
-```
+### Plan
 
-### Backend: Edge Function `moderate-content`
+**1. Update AdminDashboard notification form**
+- Add a "Title" input field (e.g. "Exam Schedule Released")
+- Wire `handleSendNotification` to insert into `notifications` table via Supabase client with `title`, `content`, `category`, and `sender_id` (from `useAuth`)
+- Add a "Sent Notifications" list below the form showing previously sent notifications (fetched from `notifications` table filtered by `sender_id = admin`)
+- Show loading state on the send button
 
-**File: `supabase/functions/moderate-content/index.ts`**
+**2. Fix NotificationTabs category filtering**
+- Change filter from `notif.title?.toLowerCase() === category` to `notif.category?.toLowerCase() === category`
+- Connection requests should only appear under "connections" tab (filter by `isConnectionRequest`)
+- Admin notifications appear under their respective category tabs (sports, exams, events, etc.)
 
-- CORS headers for browser access
-- JWT validation via `getClaims()` (authenticated users only)
-- Contains a curated list of common English profanity/bad words (embedded in the function -- no external API needed)
-- Checks content against the list using word-boundary regex matching (case-insensitive)
-- Returns JSON: `{ flagged: boolean, reason?: string }`
+**3. Add category badges to NotificationItem**
+- Display a colored `Badge` component showing the category (e.g. "Sports", "Exams")
+- Use distinct badge colors per category for visual differentiation
+- Show the admin sender name and avatar for admin notifications
 
-**Config update: `supabase/config.toml`**
-- Add `[functions.moderate-content]` with `verify_jwt = false` (validate in code per project conventions)
+**4. Files to modify**
+- `src/pages/AdminDashboard.tsx` — add title field, wire Supabase insert, add sent notifications list
+- `src/components/notifications/NotificationTabs.tsx` — fix category filtering logic
+- `src/components/notifications/NotificationItem.tsx` — add category badge, style improvements
 
-### Frontend Changes
-
-**1. New utility: `src/services/moderation.ts`**
-- `moderateContent(content: string): Promise<{ flagged: boolean; reason?: string }>` 
-- Calls the edge function via `supabase.functions.invoke('moderate-content', { body: { content } })`
-
-**2. Update `src/services/social/posts.ts`**
-- In `createPost()`: call `moderateContent()` before the Supabase insert. If flagged, throw error with the reason and show toast.
-
-**3. Update `src/services/social/comments.ts`**
-- In `addComment()`: same moderation check before inserting the comment.
-
-**4. Update `src/components/social/CreatePost.tsx`**
-- In `handleTextPost`, `handleMediaPost`, `handlePollPost`: wrap calls with try/catch to surface moderation errors from the store.
-
-**5. Update `src/components/post/CreateTextPost.tsx`**
-- Add loading state on the Post button while moderation check runs.
-
-### Key Design Decisions
-- **Self-contained bad words list** in the edge function (no external API dependency, no extra secrets needed)
-- **Word-boundary matching** to avoid false positives (e.g., "class" won't be flagged)
-- **Server-side validation** so users can't bypass by calling the DB directly -- but since we can't block at the DB level without triggers, the edge function acts as the gate at the application layer
-- Moderation applies to: text posts, media post descriptions, poll questions, and comments
+No database changes needed — the `notifications` table schema and RLS policies already support this flow.
 
