@@ -27,9 +27,25 @@ export const CreatePost = () => {
     await createPost(content);
   };
 
+  const ALLOWED_MIME_TYPES = [
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+    'application/pdf', 'video/mp4', 'video/quicktime', 'video/webm'
+  ];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
   const handleMediaPost = async (file: File, description: string) => {
     if (!user) {
       toast.error("You must be logged in to post");
+      return;
+    }
+
+    if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+      toast.error("Unsupported file type. Allowed: images, PDF, video.");
+      return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error("File too large. Maximum size is 10MB.");
       return;
     }
 
@@ -41,8 +57,8 @@ export const CreatePost = () => {
           ? 'pdf' 
           : 'file';
       
-      // Upload to Supabase Storage
-      const fileName = `${user.id}-${Date.now()}-${file.name}`;
+      // Upload to Supabase Storage scoped to user folder
+      const fileName = `${user.id}/${Date.now()}-${file.name}`;
       const { data, error } = await supabase.storage
         .from('post_media')
         .upload(fileName, file);
