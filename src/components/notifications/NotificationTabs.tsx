@@ -27,8 +27,11 @@ export const NotificationTabs = ({
   
   // Function to group notifications by category
   const getNotificationsByCategory = (category: string) => {
+    if (category === "connections") {
+      return notifications.filter((notif) => notif.isConnectionRequest);
+    }
     return notifications.filter(
-      (notif) => notif.isConnectionRequest || notif.title?.toLowerCase() === category.toLowerCase()
+      (notif) => !notif.isConnectionRequest && notif.category?.toLowerCase() === category.toLowerCase()
     );
   };
   
