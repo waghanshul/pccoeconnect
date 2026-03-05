@@ -51,6 +51,24 @@ export const AdminLoginForm = () => {
         });
         return;
       }
+
+      // Verify the user actually has admin role in the database
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authUser.id)
+          .single();
+
+        if (profileData?.role !== 'admin') {
+          toast.error("This account does not have admin privileges");
+          await supabase.auth.signOut();
+          return;
+        }
+      }
       
       // Log successful admin login
       await logSecurityEvent('admin_login_success', { email: credentials.email });
