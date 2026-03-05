@@ -39,6 +39,7 @@ export const NotificationItem = ({
   title,
   content,
   created_at,
+  category,
   sender,
   isConnectionRequest,
   connectionId,
