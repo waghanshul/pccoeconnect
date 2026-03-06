@@ -20,12 +20,12 @@ import {
 } from "@/components/ui/table";
 
 const categoryColors: Record<string, string> = {
-  sports: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  exams: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  events: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  clubs: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  placements: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  celebrations: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  Sports: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Exams: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  Events: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Clubs: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Placements: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  Celebrations: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
 };
 
 interface SentNotification {
@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const [notificationTitle, setNotificationTitle] = useState("");
   const [notificationText, setNotificationText] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("sports");
+  const [selectedCategory, setSelectedCategory] = useState("Sports");
   const [isSending, setIsSending] = useState(false);
   const [sentNotifications, setSentNotifications] = useState<SentNotification[]>([]);
   const [isLoadingSent, setIsLoadingSent] = useState(false);
@@ -135,12 +135,12 @@ const AdminDashboard = () => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="sports">Sports</option>
-                  <option value="exams">Exams</option>
-                  <option value="events">Events</option>
-                  <option value="clubs">Clubs</option>
-                  <option value="placements">Placements</option>
-                  <option value="celebrations">Celebrations</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Exams">Exams</option>
+                  <option value="Events">Events</option>
+                  <option value="Clubs">Clubs</option>
+                  <option value="Placements">Placements</option>
+                  <option value="Celebrations">Celebrations</option>
                 </select>
               </div>
 
@@ -190,7 +190,7 @@ const AdminDashboard = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${categoryColors[notif.category] || ""}`}>
-                          {notif.category.charAt(0).toUpperCase() + notif.category.slice(1)}
+                          {notif.category}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(notif.created_at), "MMM d, yyyy • h:mm a")}
