@@ -102,6 +102,8 @@ export const SocialPost = ({ post }: SocialPostProps) => {
           userHasLiked={post.user_has_liked || false}
           handleLikeToggle={handleLikeToggle}
           handleCommentToggle={handleCommentToggle}
+          postContent={post.content}
+          postAuthor={post.author?.full_name}
         />
       </CardFooter>
       

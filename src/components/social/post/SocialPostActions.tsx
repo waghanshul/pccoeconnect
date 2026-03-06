@@ -1,19 +1,24 @@
 
 import { Button } from "@/components/ui/button";
 import { Heart, MessageSquare, Share } from "lucide-react";
+import { SharePostDialog } from "@/components/social/SharePostDialog";
 
 interface SocialPostActionsProps {
   likeCount: number;
   userHasLiked: boolean;
   handleLikeToggle: () => void;
   handleCommentToggle: () => void;
+  postContent?: string;
+  postAuthor?: string;
 }
 
 export const SocialPostActions = ({ 
   likeCount, 
   userHasLiked, 
   handleLikeToggle, 
-  handleCommentToggle 
+  handleCommentToggle,
+  postContent,
+  postAuthor,
 }: SocialPostActionsProps) => {
   return (
     <div className="flex justify-between items-center p-3">
@@ -39,14 +44,12 @@ export const SocialPostActions = ({
         Comment
       </Button>
       
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="flex-1"
-      >
-        <Share className="mr-2 h-4 w-4" />
-        Share
-      </Button>
+      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor}>
+        <Button variant="ghost" size="sm" className="flex-1">
+          <Share className="mr-2 h-4 w-4" />
+          Share
+        </Button>
+      </SharePostDialog>
     </div>
   );
 };
