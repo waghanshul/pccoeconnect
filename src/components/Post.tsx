@@ -103,6 +103,8 @@ export const Post = ({ id, author, content, timestamp, avatar, authorId }: PostP
         onLike={handleLike}
         isLiked={userLiked}
         likeCount={likeCount}
+        postContent={content}
+        postAuthor={author}
       />
 
       {showComments && (
