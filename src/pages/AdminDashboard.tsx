@@ -135,12 +135,12 @@ const AdminDashboard = () => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  <option value="sports">Sports</option>
-                  <option value="exams">Exams</option>
-                  <option value="events">Events</option>
-                  <option value="clubs">Clubs</option>
-                  <option value="placements">Placements</option>
-                  <option value="celebrations">Celebrations</option>
+                  <option value="Sports">Sports</option>
+                  <option value="Exams">Exams</option>
+                  <option value="Events">Events</option>
+                  <option value="Clubs">Clubs</option>
+                  <option value="Placements">Placements</option>
+                  <option value="Celebrations">Celebrations</option>
                 </select>
               </div>
 
