@@ -41,7 +41,7 @@ const AdminDashboard = () => {
   const { user } = useAuth();
   const [notificationTitle, setNotificationTitle] = useState("");
   const [notificationText, setNotificationText] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("sports");
+  const [selectedCategory, setSelectedCategory] = useState("Sports");
   const [isSending, setIsSending] = useState(false);
   const [sentNotifications, setSentNotifications] = useState<SentNotification[]>([]);
   const [isLoadingSent, setIsLoadingSent] = useState(false);
