@@ -20,12 +20,12 @@ import {
 } from "@/components/ui/table";
 
 const categoryColors: Record<string, string> = {
-  sports: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  exams: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  events: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  clubs: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  placements: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  celebrations: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+  Sports: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  Exams: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  Events: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Clubs: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  Placements: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
+  Celebrations: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
 };
 
 interface SentNotification {
