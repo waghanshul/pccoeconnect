@@ -190,7 +190,7 @@ const AdminDashboard = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${categoryColors[notif.category] || ""}`}>
-                          {notif.category.charAt(0).toUpperCase() + notif.category.slice(1)}
+                          {notif.category}
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(notif.created_at), "MMM d, yyyy • h:mm a")}
