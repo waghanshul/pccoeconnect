@@ -61,16 +61,15 @@ const Settings = () => {
         year: studentProfile.year || "",
         recoveryEmail: studentProfile.recovery_email || "",
       });
-      
       setInterests(studentProfile.interests || []);
     }
   }, [userProfile, studentProfile]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-black dark:text-white">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="p-4 pt-20">
+        <div className="p-4 pt-28">
           <LoadingSpinner />
         </div>
       </div>
@@ -78,9 +77,9 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-black dark:text-white">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="p-4 pt-20">
+      <div className="p-4 pt-28">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">Settings</h1>
           

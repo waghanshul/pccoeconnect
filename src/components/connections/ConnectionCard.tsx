@@ -29,25 +29,24 @@ export const ConnectionCard = ({
   console.log(`Connection ${connection.full_name} - isConnected: ${isConnected}, hasPendingRequest: ${hasPendingRequest}, hasReceivedRequest: ${hasReceivedRequest}`);
 
   const handleMessage = (connectionId: string) => {
-    // Navigate to messages page with this connection
     navigate(`/messages?user=${connectionId}`);
   };
 
   return (
-    <Card className="overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300">
+    <Card className="overflow-hidden hover:border-primary/20 transition-all duration-300 group">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12 border-2 border-primary/10">
+            <Avatar className="h-11 w-11 ring-2 ring-primary/10 group-hover:ring-primary/20 transition-all">
               <AvatarImage src={connection.avatar_url} />
               <AvatarFallback>
                 {connection.full_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-medium text-lg">{connection.full_name}</h3>
+              <h3 className="font-medium">{connection.full_name}</h3>
               {connection.role && (
-                <Badge variant="outline" className="text-xs font-normal">
+                <Badge variant="outline" className="text-[10px] font-normal mt-0.5">
                   {connection.role}
                 </Badge>
               )}
@@ -58,7 +57,7 @@ export const ConnectionCard = ({
       
       <CardContent className="pb-3 pt-0">
         {connection.department && (
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {connection.department}
           </p>
         )}

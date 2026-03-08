@@ -7,13 +7,13 @@ import { Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const categoryBadgeColors: Record<string, string> = {
-  sports: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  exams: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  events: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  clubs: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  placements: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  celebrations: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  connections: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+  sports: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  exams: "bg-red-500/10 text-red-400 border-red-500/20",
+  events: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+  clubs: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  placements: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+  celebrations: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+  connections: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
 };
 
 interface SenderProfile {
@@ -50,24 +50,18 @@ export const NotificationItem = ({
   const [isRejecting, setIsRejecting] = useState(false);
   const [isHidden, setIsHidden] = useState(false);
   
-  // Format date to a readable format
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     return format(new Date(dateString), "MMM d, yyyy • h:mm a");
   };
   
   const handleAccept = async () => {
-    if (!connectionId) {
-      console.error("Cannot accept connection: connectionId is missing");
-      return;
-    }
-    
+    if (!connectionId) return;
     setIsAccepting(true);
     try {
       await onAcceptConnection(connectionId);
-      setIsHidden(true); // Hide the notification after successful acceptance
+      setIsHidden(true);
     } catch (error) {
-      console.error("Error accepting connection:", error);
       toast.error("Failed to accept connection");
     } finally {
       setIsAccepting(false);
@@ -75,68 +69,53 @@ export const NotificationItem = ({
   };
   
   const handleReject = async () => {
-    if (!connectionId) {
-      console.error("Cannot reject connection: connectionId is missing");
-      return;
-    }
-    
+    if (!connectionId) return;
     setIsRejecting(true);
     try {
       await onRejectConnection(connectionId);
-      setIsHidden(true); // Hide the notification after successful rejection
+      setIsHidden(true);
     } catch (error) {
-      console.error("Error rejecting connection:", error);
       toast.error("Failed to reject connection");
     } finally {
       setIsRejecting(false);
     }
   };
 
-  // If notification is hidden (after action), don't render anything
-  if (isHidden) {
-    return null;
-  }
+  if (isHidden) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow transition-colors duration-200">
-      <div className="flex items-start gap-4">
+    <div className="glass-card p-4 rounded-xl">
+      <div className="flex items-start gap-3">
         {sender && (
           <Avatar className="h-10 w-10">
             <AvatarImage src={sender.avatar_url} />
-            <AvatarFallback>
-              {sender.full_name.charAt(0)}
-            </AvatarFallback>
+            <AvatarFallback>{sender.full_name.charAt(0)}</AvatarFallback>
           </Avatar>
         )}
         
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold dark:text-white">{title}</h3>
+            <h3 className="font-medium text-sm">{title}</h3>
             {category && !isConnectionRequest && (
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${categoryBadgeColors[category.toLowerCase()] || "bg-muted text-muted-foreground"}`}>
+              <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${categoryBadgeColors[category.toLowerCase()] || "bg-muted text-muted-foreground"}`}>
                 {category.charAt(0).toUpperCase() + category.slice(1)}
               </span>
             )}
           </div>
-          <p className="text-muted-foreground mb-2">{content}</p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-1.5">{content}</p>
+          <p className="text-[10px] text-muted-foreground">
             {formatDate(created_at)}
           </p>
           
           {isConnectionRequest && connectionId && (
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-3">
               <Button 
-                variant="default" 
                 size="sm"
                 onClick={handleAccept}
                 disabled={isAccepting || isRejecting}
-                className="flex items-center gap-1"
+                className="gap-1.5 h-8 text-xs"
               >
-                {isAccepting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4" />
-                )}
+                {isAccepting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
                 Accept
               </Button>
               <Button 
@@ -144,13 +123,9 @@ export const NotificationItem = ({
                 size="sm"
                 onClick={handleReject}
                 disabled={isAccepting || isRejecting}
-                className="flex items-center gap-1"
+                className="gap-1.5 h-8 text-xs"
               >
-                {isRejecting ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <X className="h-4 w-4" />
-                )}
+                {isRejecting ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3" />}
                 Reject
               </Button>
             </div>
