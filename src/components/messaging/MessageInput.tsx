@@ -25,19 +25,19 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <div className="p-4 border-t dark:border-gray-700">
+    <div className="p-3 border-t border-white/[0.06]">
       <div className="flex gap-2">
         <Textarea
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder="Type a message..."
-          className="flex-1 min-h-[60px] max-h-[120px] dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 resize-none"
+          className="flex-1 min-h-[44px] max-h-[120px] glass-input rounded-xl resize-none text-sm"
         />
         <Button 
           onClick={handleSendMessage} 
           size="icon" 
-          className="self-end h-10 w-10"
+          className="self-end h-[44px] w-[44px] rounded-xl"
           disabled={!newMessage.trim()}
         >
           <Send className="h-4 w-4" />

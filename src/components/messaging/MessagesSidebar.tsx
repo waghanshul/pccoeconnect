@@ -43,10 +43,10 @@ const MessagesSidebar = ({
 
   return (
     <div className="md:col-span-1">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow transition-colors duration-200">
-        <div className="p-4 border-b dark:border-gray-700">
+      <div className="glass-card rounded-xl overflow-hidden">
+        <div className="p-4 border-b border-white/[0.06]">
           <div className="flex justify-between items-center mb-3">
-            <h1 className="text-xl font-semibold dark:text-white">Messages</h1>
+            <h1 className="text-lg font-semibold">Messages</h1>
             <NewMessageDialog
               friends={friends}
               isSearching={isSearching}
