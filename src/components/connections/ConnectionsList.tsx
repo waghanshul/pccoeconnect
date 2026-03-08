@@ -29,17 +29,12 @@ export const ConnectionsList = () => {
       fetchUserConnectionStatus();
       fetchAllUsers();
       
-      // Set up realtime subscription for connection changes
       const channel = supabase
         .channel('connection-changes')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'connections_v2' },
-          (payload) => {
-            console.log("Connection change detected:", payload);
-            fetchUserConnectionStatus();
-          }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'connections_v2' }, (payload) => {
+          console.log("Connection change detected:", payload);
+          fetchUserConnectionStatus();
+        })
         .subscribe();
         
       return () => {
@@ -52,58 +47,36 @@ export const ConnectionsList = () => {
     if (!user) return;
     
     try {
-      console.log("Fetching connection status for user:", user.id);
-      
-      // Get accepted connections
       const { data: connectedData, error: connectedError } = await supabase
         .from('connections_v2')
         .select('sender_id, receiver_id')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq('status', 'accepted');
         
-      if (connectedError) {
-        console.error("Error fetching connected users:", connectedError);
-        throw connectedError;
-      }
+      if (connectedError) throw connectedError;
       
-      // Extract connected user IDs
       const connected = (connectedData || []).map(conn => 
         conn.sender_id === user.id ? conn.receiver_id : conn.sender_id
       );
       setConnectedIds(connected);
-      console.log("Connected IDs:", connected);
       
-      // Get pending requests sent by user
       const { data: sentData, error: sentError } = await supabase
         .from('connections_v2')
         .select('receiver_id')
         .eq('sender_id', user.id)
         .eq('status', 'pending');
         
-      if (sentError) {
-        console.error("Error fetching sent requests:", sentError);
-        throw sentError;
-      }
+      if (sentError) throw sentError;
+      setPendingRequestIds((sentData || []).map(req => req.receiver_id));
       
-      const pendingIds = (sentData || []).map(req => req.receiver_id);
-      setPendingRequestIds(pendingIds);
-      console.log("Pending request IDs:", pendingIds);
-      
-      // Get pending requests received by user
       const { data: receivedData, error: receivedError } = await supabase
         .from('connections_v2')
         .select('sender_id')
         .eq('receiver_id', user.id)
         .eq('status', 'pending');
         
-      if (receivedError) {
-        console.error("Error fetching received requests:", receivedError);
-        throw receivedError;
-      }
-      
-      const receivedIds = (receivedData || []).map(req => req.sender_id);
-      setReceivedRequestIds(receivedIds);
-      console.log("Received request IDs:", receivedIds);
+      if (receivedError) throw receivedError;
+      setReceivedRequestIds((receivedData || []).map(req => req.sender_id));
       
     } catch (error) {
       console.error("Error fetching connection status:", error);
@@ -114,7 +87,6 @@ export const ConnectionsList = () => {
   const fetchAllUsers = async () => {
     setIsLoading(true);
     try {
-      // Fetch all users except current user
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, role')
@@ -122,7 +94,6 @@ export const ConnectionsList = () => {
         
       if (error) throw error;
       
-      // Get student profile data for each user
       const usersWithExtendedInfo = await Promise.all(
         data.map(async (profile) => {
           if (profile.role === 'student') {
@@ -132,10 +103,7 @@ export const ConnectionsList = () => {
               .eq('id', profile.id)
               .maybeSingle();
               
-            return {
-              ...profile,
-              department: studentData?.department
-            };
+            return { ...profile, department: studentData?.department };
           }
           return profile;
         })
@@ -168,7 +136,6 @@ export const ConnectionsList = () => {
         
       if (error) throw error;
       
-      // Get student profile data for each user
       const usersWithExtendedInfo = await Promise.all(
         data.map(async (profile) => {
           if (profile.role === 'student') {
@@ -178,10 +145,7 @@ export const ConnectionsList = () => {
               .eq('id', profile.id)
               .maybeSingle();
               
-            return {
-              ...profile,
-              department: studentData?.department
-            };
+            return { ...profile, department: studentData?.department };
           }
           return profile;
         })
@@ -196,15 +160,12 @@ export const ConnectionsList = () => {
   };
 
   const handleConnectionUpdate = () => {
-    console.log("Connection updated, refreshing data...");
     fetchUserConnectionStatus();
   };
 
-  // Filter connections based on connection status
   const filteredConnections = connections.filter(connection => 
     !receivedRequestIds.includes(connection.id)
   ).sort((a, b) => {
-    // Sort by connection status first (connected users first), then by name
     const aConnected = connectedIds.includes(a.id);
     const bConnected = connectedIds.includes(b.id);
     if (aConnected && !bConnected) return -1;
@@ -220,12 +181,12 @@ export const ConnectionsList = () => {
           placeholder="Search for students..."
           value={searchQuery}
           onChange={handleSearch}
-          className="pl-9"
+          className="pl-9 glass-input"
         />
       </div>
       
       {isLoading ? (
-        <div className="flex justify-center py-8">
+        <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : filteredConnections.length > 0 ? (
@@ -242,7 +203,7 @@ export const ConnectionsList = () => {
           ))}
         </div>
       ) : (
-        <div className="text-center py-8">
+        <div className="text-center py-12">
           <p className="text-muted-foreground">No students found</p>
         </div>
       )}

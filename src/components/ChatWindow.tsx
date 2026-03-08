@@ -26,17 +26,16 @@ const ChatWindow = ({ conversationId, selectedUser }: ChatWindowProps) => {
 
   if (!conversationId) {
     return (
-      <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow items-center justify-center">
-        <p className="text-gray-500 dark:text-gray-400">Select a conversation to start messaging</p>
+      <div className="flex flex-col h-[calc(100vh-8rem)] glass-card rounded-xl items-center justify-center">
+        <p className="text-muted-foreground text-sm">Select a conversation to start messaging</p>
       </div>
     );
   }
 
-  // Use selectedUser if provided (for new conversations), otherwise use receiverProfile
   const displayProfile = selectedUser || receiverProfile;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div className="flex flex-col h-[calc(100vh-8rem)] glass-card rounded-xl overflow-hidden">
       {isGroup && currentConversation ? (
         <GroupChatHeader
           conversationId={conversationId}

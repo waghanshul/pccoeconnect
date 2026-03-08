@@ -18,33 +18,33 @@ const MessageItem = ({ message }: MessageItemProps) => {
 
   return (
     <div className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
-      <div className="flex items-start gap-2 max-w-[70%]">
+      <div className="flex items-end gap-2 max-w-[70%]">
         {!isOwnMessage && (
-          <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
+          <Avatar className="h-7 w-7 flex-shrink-0">
             <AvatarImage src={message.sender?.avatar_url || undefined} />
-            <AvatarFallback>
+            <AvatarFallback className="text-xs">
               {message.sender?.full_name?.charAt(0) || '?'}
             </AvatarFallback>
           </Avatar>
         )}
         
         <div
-          className={`rounded-lg p-3 ${
+          className={`rounded-2xl px-4 py-2.5 ${
             isOwnMessage
-              ? "bg-primary text-white"
-              : "bg-gray-100 dark:bg-gray-700 dark:text-gray-200"
+              ? "bg-primary text-primary-foreground rounded-br-md"
+              : "bg-muted/60 rounded-bl-md"
           }`}
         >
-          <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-          <span className="text-xs opacity-70 mt-1 block">
+          <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
+          <span className={`text-[10px] mt-1 block ${isOwnMessage ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
             {formatTime(message.created_at)}
           </span>
         </div>
         
         {isOwnMessage && (
-          <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
+          <Avatar className="h-7 w-7 flex-shrink-0">
             <AvatarImage src={user?.user_metadata?.avatar_url} />
-            <AvatarFallback>
+            <AvatarFallback className="text-xs">
               {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>

@@ -49,9 +49,10 @@ export const ProfileHeader = ({
   return (
     <CardHeader className="flex flex-col items-center space-y-4">
       <div className="relative">
-        <Avatar className="w-24 h-24 ring-4 ring-white dark:ring-gray-700">
+        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-blue-400 rounded-full opacity-50 blur-sm" />
+        <Avatar className="relative w-24 h-24 ring-2 ring-background">
           <AvatarImage src={avatar} alt={name} />
-          <AvatarFallback>{name.charAt(0)}</AvatarFallback>
+          <AvatarFallback className="text-2xl">{name.charAt(0)}</AvatarFallback>
         </Avatar>
         {isOwnProfile && onAvatarUpdate && (
           <ProfilePhotoUpload
@@ -61,20 +62,23 @@ export const ProfileHeader = ({
           />
         )}
       </div>
-      <div className="text-center space-y-2">
-        <CardTitle className="text-2xl font-bold dark:text-white">{name}</CardTitle>
-        <div className="flex items-center justify-center gap-2 text-primary">
-          {role === 'student' ? <GraduationCap className="w-4 h-4" /> : <Cpu className="w-4 h-4" />}
-          <p className="text-muted-foreground dark:text-gray-400">{role}</p>
+      <div className="text-center space-y-3">
+        <CardTitle className="text-2xl font-bold">{name}</CardTitle>
+        <div className="flex items-center justify-center gap-4 text-sm">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            {role === 'student' ? <GraduationCap className="w-4 h-4 text-primary" /> : <Cpu className="w-4 h-4 text-primary" />}
+            <span>{role}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Users className="w-4 h-4 text-primary" />
+            <span>{connectionCount} Connections</span>
+          </div>
         </div>
-        <div className="flex items-center justify-center gap-2 text-primary">
-          <Users className="w-4 h-4" />
-          <p className="text-muted-foreground dark:text-gray-400">{connectionCount} Connections</p>
-        </div>
-        <div className="flex gap-2 justify-center">
+        <div className="flex gap-2 justify-center pt-1">
           <Button 
             variant="outline" 
-            className="gap-2 hover:bg-primary hover:text-white dark:text-gray-200 dark:hover:text-white transition-colors duration-200"
+            size="sm"
+            className="gap-2"
             onClick={onMessageClick}
           >
             <MessageSquare className="w-4 h-4" />
@@ -84,6 +88,7 @@ export const ProfileHeader = ({
           {!isOwnProfile && (
             <Button 
               variant={isConnected ? "default" : "outline"}
+              size="sm"
               className="gap-2"
               onClick={handleConnect}
               disabled={isLoading || isConnected}

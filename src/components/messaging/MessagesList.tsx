@@ -11,7 +11,6 @@ interface MessagesListProps {
 const MessagesList = ({ messages, isLoading }: MessagesListProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -23,7 +22,7 @@ const MessagesList = ({ messages, isLoading }: MessagesListProps) => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-full">
-        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-primary"></div>
+        <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent"></div>
       </div>
     );
   }
@@ -31,13 +30,13 @@ const MessagesList = ({ messages, isLoading }: MessagesListProps) => {
   if (messages.length === 0) {
     return (
       <div className="flex justify-center items-center h-full">
-        <p className="text-gray-500 dark:text-gray-400">No messages yet. Start a conversation!</p>
+        <p className="text-sm text-muted-foreground">No messages yet. Start a conversation!</p>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.map((message) => (
         <MessageItem key={message.id} message={message} />
       ))}

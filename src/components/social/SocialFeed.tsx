@@ -13,10 +13,7 @@ export const SocialFeed = () => {
   
   useEffect(() => {
     fetchPosts();
-    
-    // Set up realtime subscriptions
     const cleanup = setupRealtimeSubscriptions();
-    
     return () => {
       cleanup();
     };
@@ -25,39 +22,36 @@ export const SocialFeed = () => {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <Card>
-          <CardContent className="pt-6">
-            <Skeleton className="h-8 w-3/4 mb-2" />
-            <Skeleton className="h-32 w-full mb-4" />
-            <div className="flex justify-between">
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-6 w-20" />
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <Skeleton className="h-8 w-3/4 mb-2" />
-            <Skeleton className="h-32 w-full mb-4" />
-            <div className="flex justify-between">
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-6 w-20" />
-              <Skeleton className="h-6 w-20" />
-            </div>
-          </CardContent>
-        </Card>
+        {[1, 2].map((i) => (
+          <Card key={i} className="overflow-hidden">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-24 w-full mb-4 rounded-lg" />
+              <div className="flex justify-between pt-2">
+                <Skeleton className="h-8 w-20 rounded-lg" />
+                <Skeleton className="h-8 w-20 rounded-lg" />
+                <Skeleton className="h-8 w-20 rounded-lg" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
   
   return (
-    <div>
+    <div className="space-y-4">
       {user && <CreatePost />}
       
       {posts.length === 0 ? (
-        <Card className="text-center p-6">
-          <p className="text-gray-500">No posts yet. Be the first to post!</p>
+        <Card className="text-center p-8">
+          <p className="text-muted-foreground">No posts yet. Be the first to post!</p>
         </Card>
       ) : (
         posts.map((post) => (

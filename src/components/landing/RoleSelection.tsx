@@ -15,7 +15,7 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
         <Button 
           variant="ghost" 
           size="sm" 
-          className="flex items-center gap-2 text-gray-400 hover:text-white"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           onClick={() => {
             setRole(null);
             setStep("initial");
@@ -27,71 +27,67 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
       </div>
       
       <div className="text-center space-y-4 mb-12">
-        <h2 className="text-4xl font-bold text-primary">Choose Your Role</h2>
-        <p className="text-xl text-muted-foreground">
+        <h2 className="text-4xl font-bold gradient-text">Choose Your Role</h2>
+        <p className="text-lg text-muted-foreground">
           Select your role to access personalized features and content
         </p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-6">
-          <Button
-            size="lg"
-            variant={role === "student" ? "default" : "outline"}
-            className="w-full h-auto py-8 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-all duration-300 border-2 border-primary/30 hover:border-primary hover:shadow-lg hover:shadow-primary/25 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20"
+          <button
+            className="w-full h-auto py-10 flex flex-col items-center justify-center gap-4 group glass-card rounded-xl hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             onClick={() => {
               setRole("student");
               setStep("auth");
             }}
           >
-            <div className="p-4 bg-primary/20 rounded-full group-hover:bg-primary/30 transition-colors group-hover:shadow-lg">
-              <GraduationCap className="h-12 w-12 text-primary group-hover:scale-110 transition-transform duration-300" />
+            <div className="p-5 bg-primary/10 rounded-2xl group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+              <GraduationCap className="h-12 w-12 text-primary" />
             </div>
             <div className="space-y-2 text-center">
               <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">Student</h3>
-              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+              <p className="text-sm text-muted-foreground">
                 Access study materials and connect with peers
               </p>
             </div>
-          </Button>
-          <div className="bg-gray-900/30 p-6 rounded-xl border border-gray-700/50">
-            <h4 className="font-semibold mb-2 text-muted-foreground">Student Features:</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground/80">
-              <li>• Access to academic resources</li>
-              <li>• Connect with classmates</li>
-              <li>• Join study groups</li>
-              <li>• Track academic events</li>
+          </button>
+          <div className="glass-surface p-6 rounded-xl">
+            <h4 className="font-semibold mb-3 text-muted-foreground text-sm uppercase tracking-wide">Student Features</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Access to academic resources</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Connect with classmates</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Join study groups</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Track academic events</li>
             </ul>
           </div>
         </div>
 
         <div className="space-y-6">
-          <Button
-            size="lg"
-            variant={role === "admin" ? "default" : "outline"}
-            className="w-full h-auto py-8 flex flex-col items-center justify-center gap-4 group hover:scale-105 transition-all duration-300 border-2 border-primary/30 hover:border-primary hover:shadow-lg hover:shadow-primary/25 bg-gradient-to-br from-primary/5 to-primary/10 hover:from-primary/10 hover:to-primary/20"
+          <button
+            className="w-full h-auto py-10 flex flex-col items-center justify-center gap-4 group glass-card rounded-xl hover:border-primary/30 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
             onClick={() => {
               setRole("admin");
               setStep("auth");
             }}
           >
-            <div className="p-4 bg-primary/20 rounded-full group-hover:bg-primary/30 transition-colors group-hover:shadow-lg">
-              <Shield className="h-12 w-12 text-primary group-hover:scale-110 transition-transform duration-300" />
+            <div className="p-5 bg-primary/10 rounded-2xl group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+              <Shield className="h-12 w-12 text-primary" />
             </div>
             <div className="space-y-2 text-center">
               <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">Admin</h3>
-              <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+              <p className="text-sm text-muted-foreground">
                 Manage platform content and oversee activities
               </p>
             </div>
-          </Button>
-          <div className="bg-gray-900/30 p-6 rounded-xl border border-gray-700/50">
-            <h4 className="font-semibold mb-2 text-muted-foreground">Admin Features:</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground/80">
-              <li>• Content moderation</li>
-              <li>• User management</li>
-              <li>• Analytics dashboard</li>
-              <li>• System configuration</li>
+          </button>
+          <div className="glass-surface p-6 rounded-xl">
+            <h4 className="font-semibold mb-3 text-muted-foreground text-sm uppercase tracking-wide">Admin Features</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Content moderation</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />User management</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />Analytics dashboard</li>
+              <li className="flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-primary" />System configuration</li>
             </ul>
           </div>
         </div>

@@ -21,33 +21,33 @@ export const SocialPostActions = ({
   postAuthor,
 }: SocialPostActionsProps) => {
   return (
-    <div className="flex justify-between items-center p-3">
+    <div className="flex justify-between items-center p-2 w-full">
       <Button 
         variant="ghost" 
         size="sm" 
-        className="flex-1"
+        className={`flex-1 gap-2 rounded-lg transition-colors ${userHasLiked ? 'text-red-400 hover:text-red-300' : 'text-muted-foreground hover:text-foreground'}`}
         onClick={handleLikeToggle}
       >
         <Heart 
-          className={`mr-2 h-4 w-4 ${userHasLiked ? 'fill-red-500 text-red-500' : ''}`} 
+          className={`h-4 w-4 ${userHasLiked ? 'fill-red-400' : ''}`} 
         />
-        {userHasLiked ? 'Liked' : 'Like'}
+        <span className="text-xs">{userHasLiked ? 'Liked' : 'Like'}</span>
       </Button>
       
       <Button 
         variant="ghost" 
         size="sm" 
-        className="flex-1"
+        className="flex-1 gap-2 text-muted-foreground hover:text-foreground rounded-lg"
         onClick={handleCommentToggle}
       >
-        <MessageSquare className="mr-2 h-4 w-4" />
-        Comment
+        <MessageSquare className="h-4 w-4" />
+        <span className="text-xs">Comment</span>
       </Button>
       
       <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor}>
-        <Button variant="ghost" size="sm" className="flex-1">
-          <Share className="mr-2 h-4 w-4" />
-          Share
+        <Button variant="ghost" size="sm" className="flex-1 gap-2 text-muted-foreground hover:text-foreground rounded-lg">
+          <Share className="h-4 w-4" />
+          <span className="text-xs">Share</span>
         </Button>
       </SharePostDialog>
     </div>

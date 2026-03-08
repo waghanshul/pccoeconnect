@@ -10,7 +10,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Notifications = () => {
   const { user } = useAuth();
-  
   const { notifications, isLoading, refreshNotifications } = useNotifications(user?.id);
   const { handleAcceptConnection, handleRejectConnection, isProcessing } = useConnectionRequests(
     user?.id, 
@@ -19,25 +18,14 @@ const Notifications = () => {
 
   useEffect(() => {
     if (user) {
-      // Enable database realtime subscriptions for connection changes
       const channel = supabase
         .channel('notification-realtime')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'connections_v2' },
-          (payload) => {
-            console.log("Connection change detected in Notifications page:", payload);
-            refreshNotifications();
-          }
-        )
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'notifications' },
-          (payload) => {
-            console.log("Notification change detected in Notifications page:", payload);
-            refreshNotifications();
-          }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'connections_v2' }, () => {
+          refreshNotifications();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+          refreshNotifications();
+        })
         .subscribe();
         
       return () => {
@@ -47,10 +35,10 @@ const Notifications = () => {
   }, [user, refreshNotifications]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto px-4 py-8 pt-20">
-        <h1 className="text-2xl font-bold mb-6 dark:text-white">Notifications</h1>
+      <div className="container mx-auto px-4 py-8 pt-28">
+        <h1 className="text-3xl font-bold mb-6">Notifications</h1>
         
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

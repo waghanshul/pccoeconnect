@@ -1,97 +1,67 @@
 
 
-# Visual Redesign Plan -- Modern, Refined UI
+## Content Moderation Feature
 
-This plan covers a complete visual refresh of PCCOE Connect without touching any backend logic, database queries, or core functionality. Every component keeps its exact same props, state management, and event handlers -- only CSS classes, layout structure, and visual styling change.
+### Overview
+Create a Supabase Edge Function microservice that checks text content for profanity/bad words before allowing posts and comments. The frontend will call this edge function before submitting content, and display an error if inappropriate content is detected.
 
-## Design Direction
+### Architecture
 
-The current UI uses a basic dark theme with flat gray cards and minimal visual hierarchy. The redesign will introduce:
+```text
+User types post/comment
+       │
+       ▼
+Frontend calls Edge Function
+  POST /moderate-content { content: "..." }
+       │
+       ▼
+Edge Function checks against bad-words list
+       │
+       ├── Clean → returns { flagged: false }
+       │                 │
+       │                 ▼
+       │         Frontend proceeds to create post/comment
+       │
+       └── Flagged → returns { flagged: true, reason: "..." }
+                          │
+                          ▼
+                  Frontend shows error toast, blocks submission
+```
 
-- **Glassmorphism**: Translucent cards with backdrop-blur and subtle borders
-- **Refined color palette**: Richer gradients, softer backgrounds, better contrast
-- **Micro-interactions**: Smoother hover states, subtle transitions, better focus states
-- **Improved spacing and typography**: More breathing room, refined font weights
-- **Consistent design language**: Every page follows the same visual system
+### Backend: Edge Function `moderate-content`
 
-## Files to Change
+**File: `supabase/functions/moderate-content/index.ts`**
 
-### 1. Global Theme (`src/index.css`)
-- Update CSS variables for richer, more nuanced dark palette
-- Add utility classes for glass effects (`glass-card`, `glass-surface`)
-- Add subtle gradient background patterns
-- Improve scrollbar styling
-- Add smooth transition defaults
+- CORS headers for browser access
+- JWT validation via `getClaims()` (authenticated users only)
+- Contains a curated list of common English profanity/bad words (embedded in the function -- no external API needed)
+- Checks content against the list using word-boundary regex matching (case-insensitive)
+- Returns JSON: `{ flagged: boolean, reason?: string }`
 
-### 2. Navigation (`src/components/Navigation.tsx`)
-- Glassmorphic navbar with backdrop-blur and semi-transparent background
-- Active link gets a pill-shaped indicator with glow effect
-- Notification badge with pulse animation
-- Smoother hover transitions on nav items
-- Better mobile menu with slide-in animation
+**Config update: `supabase/config.toml`**
+- Add `[functions.moderate-content]` with `verify_jwt = false` (validate in code per project conventions)
 
-### 3. Landing Page
-- **Hero** (`src/components/landing/Hero.tsx`): Animated gradient background blobs, refined typography with letter-spacing, floating campus image with shadow
-- **Features** (`src/components/landing/Features.tsx`): Glass cards with colored icon accents, hover lift effect
-- **RoleSelection** (`src/components/landing/RoleSelection.tsx`): Refined selection cards with gradient borders, smoother transitions
-- **Landing** (`src/pages/Landing.tsx`): Glass auth panel, improved form container
+### Frontend Changes
 
-### 4. Home / Social Feed
-- **Index** (`src/pages/Index.tsx`): Refined background gradient, remove the badge-blocking div hack
-- **SocialFeed** (`src/components/social/SocialFeed.tsx`): Better loading skeletons with shimmer animation
-- **CreatePost** (`src/components/social/CreatePost.tsx`): Glass card with refined tabs styling
-- **SocialPost** (`src/components/social/SocialPost.tsx`): Glass card, refined content spacing
-- **SocialPostActions** (`src/components/social/post/SocialPostActions.tsx`): Refined action buttons with hover color transitions
-- **SocialPostComments** (`src/components/social/SocialPostComments.tsx`): Better comment bubbles, refined input area
+**1. New utility: `src/services/moderation.ts`**
+- `moderateContent(content: string): Promise<{ flagged: boolean; reason?: string }>` 
+- Calls the edge function via `supabase.functions.invoke('moderate-content', { body: { content } })`
 
-### 5. Messages
-- **MessagesLayout** (`src/components/messaging/MessagesLayout.tsx`): Refined grid layout with proper gaps
-- **MessagesSidebar** (`src/components/messaging/MessagesSidebar.tsx`): Glass panel with refined header
-- **ConversationListItem** (`src/components/messaging/ConversationListItem.tsx`): Better hover states, refined active indicator
-- **ChatWindow** (`src/components/ChatWindow.tsx`): Glass container, refined layout
-- **MessageItem** (`src/components/messaging/MessageItem.tsx`): Refined message bubbles with gradient for own messages
-- **MessageInput** (`src/components/messaging/MessageInput.tsx`): Refined input with glass background
-- **MessagesList** (`src/components/messaging/MessagesList.tsx`): Better empty/loading states
+**2. Update `src/services/social/posts.ts`**
+- In `createPost()`: call `moderateContent()` before the Supabase insert. If flagged, throw error with the reason and show toast.
 
-### 6. Profile
-- **Profile** (`src/pages/Profile.tsx`): Refined gradient banner, better card layout
-- **ProfileHeader** (`src/components/profile/ProfileHeader.tsx`): Larger avatar with gradient ring, refined buttons
-- **UserProfile** (`src/components/UserProfile.tsx`): Glass card with better shadow
+**3. Update `src/services/social/comments.ts`**
+- In `addComment()`: same moderation check before inserting the comment.
 
-### 7. Connections
-- **Connections** (`src/pages/Connections.tsx`): Refined page header, better layout
-- **ConnectionCard** (`src/components/connections/ConnectionCard.tsx`): Glass card with gradient border on hover
-- **ConnectionsList** (`src/components/connections/ConnectionsList.tsx`): Refined search input
+**4. Update `src/components/social/CreatePost.tsx`**
+- In `handleTextPost`, `handleMediaPost`, `handlePollPost`: wrap calls with try/catch to surface moderation errors from the store.
 
-### 8. Notifications
-- **Notifications** (`src/pages/Notifications.tsx`): Refined page layout
-- **NotificationTabs** (`src/components/notifications/NotificationTabs.tsx`): Better tab styling with pill indicators
-- **NotificationItem** (`src/components/notifications/NotificationItem.tsx`): Glass notification cards, refined badges
+**5. Update `src/components/post/CreateTextPost.tsx`**
+- Add loading state on the Post button while moderation check runs.
 
-### 9. Settings
-- **Settings** (`src/pages/Settings.tsx`): Glass section cards, refined layout
-- **BasicInfoSection** (`src/components/settings/BasicInfoSection.tsx`): Glass card, refined form fields
-
-### 10. Admin Dashboard
-- **AdminDashboard** (`src/pages/AdminDashboard.tsx`): Glass panels, refined form elements, better table styling
-
-### 11. Shared UI Primitives (CSS-only changes)
-- **Card** (`src/components/ui/card.tsx`): Default glass styling with backdrop-blur
-- **Button** (`src/components/ui/button.tsx`): Refined variants with better gradients and transitions
-
-### 12. Tailwind Config (`tailwind.config.ts`)
-- Add glass-related utilities
-- Add shimmer keyframe animation
-
-## What Does NOT Change
-- All Supabase queries, RLS policies, and database operations
-- All state management (Zustand stores, React hooks)
-- All routing logic and protected routes
-- All form submission handlers and validation
-- All realtime subscription logic
-- Component props and interfaces
-- Any file in `src/hooks/`, `src/services/`, `src/context/`, `src/integrations/`
-
-## Estimated Scope
-~25 files modified, purely className and minor JSX layout tweaks. No new dependencies needed.
+### Key Design Decisions
+- **Self-contained bad words list** in the edge function (no external API dependency, no extra secrets needed)
+- **Word-boundary matching** to avoid false positives (e.g., "class" won't be flagged)
+- **Server-side validation** so users can't bypass by calling the DB directly -- but since we can't block at the DB level without triggers, the edge function acts as the gate at the application layer
+- Moderation applies to: text posts, media post descriptions, poll questions, and comments
 

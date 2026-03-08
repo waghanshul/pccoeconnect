@@ -25,7 +25,6 @@ export const NotificationTabs = ({
     "celebrations",
   ];
   
-  // Function to group notifications by category
   const getNotificationsByCategory = (category: string) => {
     if (category === "connections") {
       return notifications.filter((notif) => notif.isConnectionRequest);
@@ -37,10 +36,14 @@ export const NotificationTabs = ({
   
   return (
     <Tabs defaultValue="connections" className="w-full">
-      <TabsList className="w-full justify-start mb-8 overflow-x-auto bg-white dark:bg-gray-800">
+      <TabsList className="w-full justify-start mb-6 overflow-x-auto bg-muted/50 p-1 rounded-xl">
         {categories.map((category) => (
-          <TabsTrigger key={category} value={category}>
-            {category.charAt(0).toUpperCase() + category.slice(1)}
+          <TabsTrigger 
+            key={category} 
+            value={category}
+            className="rounded-lg text-xs capitalize data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+          >
+            {category}
           </TabsTrigger>
         ))}
       </TabsList>
