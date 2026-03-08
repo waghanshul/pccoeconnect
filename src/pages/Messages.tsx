@@ -1,12 +1,14 @@
-
 import MessagesLayout from "@/components/messaging/MessagesLayout";
 import MessagesContainer from "@/components/messaging/MessagesContainer";
+import { PageTransition } from "@/components/ui/PageTransition";
 
 const Messages = () => {
   return (
-    <MessagesLayout>
-      <MessagesContainer />
-    </MessagesLayout>
+    <PageTransition>
+      <MessagesLayout>
+        <MessagesContainer />
+      </MessagesLayout>
+    </PageTransition>
   );
 };
 

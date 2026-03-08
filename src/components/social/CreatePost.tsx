@@ -1,16 +1,15 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CreateTextPost } from "@/components/post/CreateTextPost";
 import { CreateMediaPost } from "@/components/post/CreateMediaPost";
 import { CreatePollPost } from "@/components/post/CreatePollPost";
 import { useSocialStore } from "@/services/social";
-import { File, Image, MessageSquare, BarChart2 } from "lucide-react";
+import { Image, BarChart2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export const CreatePost = () => {
   const [isTextModalOpen, setIsTextModalOpen] = useState(false);
@@ -98,53 +97,39 @@ export const CreatePost = () => {
   return (
     <>
       <Card className="mb-4">
-        <CardContent className="pt-5 pb-4">
-          <Tabs defaultValue="post">
-            <TabsList className="grid grid-cols-3 mb-4 bg-muted/50">
-              <TabsTrigger value="post" className="flex items-center gap-2 text-xs sm:text-sm">
-                <MessageSquare className="h-4 w-4" />
-                <span className="hidden sm:inline">Post</span>
-              </TabsTrigger>
-              <TabsTrigger value="media" className="flex items-center gap-2 text-xs sm:text-sm">
-                <Image className="h-4 w-4" />
-                <span className="hidden sm:inline">Media</span>
-              </TabsTrigger>
-              <TabsTrigger value="poll" className="flex items-center gap-2 text-xs sm:text-sm">
-                <BarChart2 className="h-4 w-4" />
-                <span className="hidden sm:inline">Poll</span>
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="post">
-              <Button 
-                variant="outline" 
-                className="w-full text-left justify-start px-4 py-5 h-auto text-muted-foreground hover:text-foreground"
-                onClick={() => setIsTextModalOpen(true)}
-              >
-                What's on your mind?
-              </Button>
-            </TabsContent>
-            
-            <TabsContent value="media">
-              <Button 
-                variant="outline" 
-                className="w-full text-left justify-start px-4 py-5 h-auto text-muted-foreground hover:text-foreground"
-                onClick={() => setIsMediaModalOpen(true)}
-              >
-                Share a photo, document or link
-              </Button>
-            </TabsContent>
-            
-            <TabsContent value="poll">
-              <Button 
-                variant="outline" 
-                className="w-full text-left justify-start px-4 py-5 h-auto text-muted-foreground hover:text-foreground"
-                onClick={() => setIsPollModalOpen(true)}
-              >
-                Create a poll
-              </Button>
-            </TabsContent>
-          </Tabs>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 flex-shrink-0">
+              <AvatarImage src={user?.user_metadata?.avatar_url} />
+              <AvatarFallback>{user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+            <button
+              onClick={() => setIsTextModalOpen(true)}
+              className="flex-1 text-left px-4 py-2.5 rounded-full bg-muted/40 text-sm text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-colors duration-200"
+            >
+              What's on your mind?
+            </button>
+          </div>
+          <div className="flex items-center gap-2 mt-3 ml-[52px]">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-foreground rounded-lg text-xs h-8"
+              onClick={() => setIsMediaModalOpen(true)}
+            >
+              <Image className="h-4 w-4 text-emerald-400" />
+              Media
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground hover:text-foreground rounded-lg text-xs h-8"
+              onClick={() => setIsPollModalOpen(true)}
+            >
+              <BarChart2 className="h-4 w-4 text-amber-400" />
+              Poll
+            </Button>
+          </div>
         </CardContent>
       </Card>
       

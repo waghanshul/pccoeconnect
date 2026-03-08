@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Features } from "./Features";
+import { motion } from "framer-motion";
 
 interface HeroProps {
   setStep: (step: "role") => void;
@@ -19,35 +19,87 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
       </div>
 
       <div className="w-full lg:w-1/2 space-y-8 relative z-10">
-        <Logo />
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <Logo />
+        </motion.div>
         <div className="space-y-6">
           <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            Welcome to{" "}
-            <span className="gradient-text">
+            {"Welcome to ".split(" ").map((word, i) => (
+              <motion.span
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
+                className="inline-block mr-3"
+              >
+                {word}
+              </motion.span>
+            ))}
+            <motion.span
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.4 }}
+              className="gradient-text inline-block"
+            >
               PCCOE Connect
-            </span>
+            </motion.span>
           </h1>
-          <p className="text-lg text-muted-foreground leading-relaxed max-w-xl">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="text-lg text-muted-foreground leading-relaxed max-w-xl"
+          >
             Your exclusive social platform to connect, collaborate, and grow with fellow PCCOE students.
-          </p>
-          
+          </motion.p>
+
+          {/* Stats row */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.85, duration: 0.4 }}
+            className="flex gap-8 py-4"
+          >
+            {[
+              { value: "500+", label: "Students" },
+              { value: "50+", label: "Departments" },
+              { value: "1K+", label: "Connections" },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                <div className="text-xs text-muted-foreground">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+
           <Features />
 
-          <Button
-            size="lg"
-            className="mt-8 text-base px-8 py-6 rounded-full glow-primary hover:scale-[1.02] transition-all duration-300"
-            onClick={() => {
-              resetRole();
-              setStep("role");
-            }}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1, duration: 0.4 }}
           >
-            Get Started
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+            <Button
+              size="lg"
+              className="mt-8 text-base px-8 py-6 rounded-full glow-primary hover:scale-[1.02] transition-all duration-300"
+              onClick={() => {
+                resetRole();
+                setStep("role");
+              }}
+            >
+              Get Started
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
         </div>
       </div>
 
-      <div className="w-full lg:w-1/2 flex justify-center relative z-10">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, x: 30 }}
+        animate={{ opacity: 1, scale: 1, x: 0 }}
+        transition={{ delay: 0.4, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+        className="w-full lg:w-1/2 flex justify-center relative z-10"
+      >
         <div className="relative w-full max-w-lg animate-float">
           <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-3xl blur-2xl" />
           <img
@@ -56,7 +108,7 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
             className="relative rounded-2xl shadow-2xl border border-white/[0.08]"
           />
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

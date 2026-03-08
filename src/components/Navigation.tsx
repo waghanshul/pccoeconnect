@@ -3,34 +3,17 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { Badge } from "@/components/ui/badge";
-import { User, Settings, Bell, LogOut, Menu, X, MessageSquare, Home, Users } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { User, Settings, Bell, LogOut, MessageSquare, Home, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-
-const useIsMobile = () => {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
-  return isMobile;
-};
+import { BottomTabBar } from "@/components/ui/BottomTabBar";
+import { motion } from "framer-motion";
 
 export const Navigation = () => {
   const { signOut: logout, user } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-  const isMobile = useIsMobile();
-
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location]);
 
   useEffect(() => {
     if (user) {
@@ -73,10 +56,6 @@ export const Navigation = () => {
     await logout();
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   const navLinks = [
     { to: "/home", icon: Home, label: "Home" },
     { to: "/connections", icon: Users, label: "Connections" },
@@ -87,22 +66,58 @@ export const Navigation = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 w-full bg-background/70 backdrop-blur-xl border-b border-white/[0.06] z-50">
-      <div className="container max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/home" className="flex items-center space-x-2">
-          <Logo />
-        </Link>
+    <>
+      {/* Desktop top bar — single row */}
+      <nav className="fixed top-0 left-0 w-full bg-background/70 backdrop-blur-xl border-b border-white/[0.06] z-50 hidden md:block">
+        <div className="container max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
+          <Link to="/home" className="flex items-center space-x-2">
+            <Logo />
+          </Link>
 
-        {isMobile && (
-          <button onClick={toggleMenu} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-        )}
+          <TooltipProvider delayDuration={200}>
+            <div className="flex items-center gap-1">
+              {navLinks.map(({ to, icon: Icon, label, badge }) => {
+                const isActive = currentPath === to || currentPath.startsWith(to + "/");
+                return (
+                  <Tooltip key={to}>
+                    <TooltipTrigger asChild>
+                      <Link
+                        to={to}
+                        className={`relative flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-200 ${
+                          isActive
+                            ? "text-primary"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                        }`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="desktopNavIndicator"
+                            className="absolute inset-0 bg-primary/10 rounded-xl"
+                            transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                          />
+                        )}
+                        <div className="relative z-10">
+                          <Icon size={18} />
+                          {badge && badge > 0 && (
+                            <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full text-[9px] w-4 h-4 flex items-center justify-center font-bold animate-pulse-glow">
+                              {badge > 99 ? "99+" : badge}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      {label}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          </TooltipProvider>
 
-        <div className="hidden md:flex items-center space-x-3">
           {user ? (
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-foreground gap-2"
               onClick={handleLogout}
@@ -116,68 +131,27 @@ export const Navigation = () => {
             </Link>
           )}
         </div>
-      </div>
+      </nav>
 
-      {/* Mobile menu */}
-      <div className={`absolute top-full left-0 w-full glass-card border-t-0 rounded-t-none p-3 md:hidden transition-all duration-300 ease-in-out z-50 ${isMenuOpen ? "block opacity-100 translate-y-0" : "hidden opacity-0 -translate-y-2"}`}>
-        <div className="flex flex-col space-y-1">
-          {navLinks.map(({ to, icon: Icon, label, badge }) => (
-            <Link
-              key={to}
-              to={to}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 ${
-                currentPath === to
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              }`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <div className="relative">
-                <Icon size={18} />
-                {badge && badge > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-medium animate-pulse-glow">
-                    {badge}
-                  </span>
-                )}
-              </div>
-              <span className="text-sm font-medium">{label}</span>
+      {/* Mobile bottom tab bar */}
+      <BottomTabBar notificationCount={notificationCount} />
+
+      {/* Mobile top bar — minimal, logo only */}
+      <div className="fixed top-0 left-0 w-full bg-background/70 backdrop-blur-xl border-b border-white/[0.06] z-50 md:hidden">
+        <div className="flex items-center justify-between px-4 h-12">
+          <Link to="/home">
+            <Logo />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/settings" className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+              <Settings size={18} />
             </Link>
-          ))}
-          <Button 
-            variant="ghost" 
-            className="flex items-center gap-3 px-4 py-2.5 w-full justify-start text-muted-foreground hover:text-foreground"
-            onClick={handleLogout}
-          >
-            <LogOut size={18} />
-            <span className="text-sm font-medium">Logout</span>
-          </Button>
+            <button onClick={handleLogout} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+              <LogOut size={18} />
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* Desktop nav links */}
-      <div className="hidden md:flex justify-center gap-1 pb-2 px-4">
-        {navLinks.map(({ to, icon: Icon, label, badge }) => (
-          <Link
-            key={to}
-            to={to}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              currentPath === to
-                ? "bg-primary/10 text-primary glow-primary"
-                : "text-muted-foreground hover:bg-muted/40 hover:text-foreground"
-            }`}
-          >
-            <div className="relative">
-              <Icon size={16} />
-              {badge && badge > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full text-[10px] w-4 h-4 flex items-center justify-center font-medium animate-pulse-glow">
-                  {badge}
-                </span>
-              )}
-            </div>
-            <span>{label}</span>
-          </Link>
-        ))}
-      </div>
-    </nav>
+    </>
   );
 };
