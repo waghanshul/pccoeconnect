@@ -2,22 +2,22 @@ import { BookOpen, Calendar, MessageSquare, Users } from "lucide-react";
 
 const features = [
   {
-    icon: <Users className="h-5 w-5" />,
+    icon: <Users className="h-5 w-5 text-primary" />,
     title: "Connect with Fellow Students",
     description: "Build meaningful connections within the PCCOE community",
   },
   {
-    icon: <BookOpen className="h-5 w-5" />,
+    icon: <BookOpen className="h-5 w-5 text-primary" />,
     title: "Academic Discussions",
     description: "Engage in enriching academic conversations",
   },
   {
-    icon: <Calendar className="h-5 w-5" />,
+    icon: <Calendar className="h-5 w-5 text-primary" />,
     title: "College Events",
     description: "Stay updated with all campus activities and events",
   },
   {
-    icon: <MessageSquare className="h-5 w-5" />,
+    icon: <MessageSquare className="h-5 w-5 text-primary" />,
     title: "Resource Sharing",
     description: "Share and access valuable academic resources",
   },
@@ -25,19 +25,20 @@ const features = [
 
 export const Features = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-12">
       {features.map((feature, index) => (
         <div
           key={index}
-          className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm p-6 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700"
+          className="group glass-card p-5 rounded-xl hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300"
+          style={{ animationDelay: `${index * 100}ms` }}
         >
-          <div className="flex items-center gap-4 mb-3">
+          <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
               {feature.icon}
             </div>
-            <h3 className="font-semibold text-lg">{feature.title}</h3>
+            <h3 className="font-semibold">{feature.title}</h3>
           </div>
-          <p className="text-muted-foreground">{feature.description}</p>
+          <p className="text-sm text-muted-foreground">{feature.description}</p>
         </div>
       ))}
     </div>
