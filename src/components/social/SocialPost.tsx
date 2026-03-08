@@ -28,7 +28,6 @@ export const SocialPost = ({ post }: SocialPostProps) => {
           setPoll(pollData);
         }
       };
-      
       loadPoll();
     }
   }, [post.poll_id, post.file_type, fetchPoll]);
@@ -56,14 +55,13 @@ export const SocialPost = ({ post }: SocialPostProps) => {
   
   const handleProfileClick = () => {
     if (post.user_id) {
-      console.log("Navigating to user profile:", post.user_id);
       navigate(`/user/${post.user_id}`);
     }
   };
   
   return (
-    <Card className="mb-4">
-      <CardContent className="pt-6">
+    <Card className="overflow-hidden hover:border-white/[0.12] transition-colors duration-200">
+      <CardContent className="pt-5 pb-3">
         <SocialPostHeader 
           author={post.author}
           timestamp={post.created_at}
@@ -72,8 +70,8 @@ export const SocialPost = ({ post }: SocialPostProps) => {
           onProfileClick={handleProfileClick}
         />
         
-        <div className="mt-2">
-          <p className="whitespace-pre-line">{post.content}</p>
+        <div className="mt-3">
+          <p className="whitespace-pre-line text-sm leading-relaxed">{post.content}</p>
           
           <SocialPostMedia 
             fileUrl={post.file_url} 
@@ -88,13 +86,13 @@ export const SocialPost = ({ post }: SocialPostProps) => {
           )}
         </div>
         
-        <div className="flex justify-between items-center mt-4 text-sm text-gray-500">
+        <div className="flex justify-between items-center mt-3 pt-2 text-xs text-muted-foreground">
           <div>{post.likes_count || 0} likes</div>
           <div>{post.comments_count || 0} comments</div>
         </div>
       </CardContent>
       
-      <Separator />
+      <Separator className="bg-white/[0.06]" />
       
       <CardFooter className="p-0">
         <SocialPostActions
