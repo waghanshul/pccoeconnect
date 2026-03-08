@@ -1,9 +1,9 @@
-
 import { Navigation } from "@/components/Navigation";
 import { UserProfile } from "@/components/UserProfile";
 import { useUserStore } from "@/services/user";
 import { useAuth } from "@/context/AuthContext";
 import { useEffect } from "react";
+import { PageTransition } from "@/components/ui/PageTransition";
 
 const Profile = () => {
   const { userData, fetchUserProfile, isLoading } = useUserStore();
@@ -18,18 +18,23 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="container mx-auto px-4 pt-32">
-        <div className="relative">
-          <div className="absolute inset-0 h-48 bg-gradient-to-r from-primary/30 to-blue-500/20 rounded-b-3xl blur-sm -z-10" />
-          {isLoading ? (
-            <div className="flex justify-center p-8">
-              <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent"></div>
-            </div>
-          ) : (
-            <UserProfile user={userData} isOwnProfile={true} />
-          )}
-        </div>
-      </main>
+      <PageTransition>
+        <main className="container mx-auto px-4 pt-16 md:pt-20 pb-24 md:pb-10">
+          <div className="relative">
+            <div className="absolute inset-0 h-48 bg-gradient-to-r from-primary/30 to-blue-500/20 rounded-b-3xl blur-sm -z-10" />
+            {isLoading ? (
+              <div className="flex justify-center p-8">
+                <div className="relative w-10 h-10">
+                  <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
+                  <div className="absolute inset-0 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                </div>
+              </div>
+            ) : (
+              <UserProfile user={userData} isOwnProfile={true} />
+            )}
+          </div>
+        </main>
+      </PageTransition>
     </div>
   );
 };

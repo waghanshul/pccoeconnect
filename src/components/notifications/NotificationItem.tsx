@@ -1,10 +1,10 @@
-
 import React, { useState } from "react";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Check, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const categoryBadgeColors: Record<string, string> = {
   sports: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
@@ -84,7 +84,13 @@ export const NotificationItem = ({
   if (isHidden) return null;
 
   return (
-    <div className="glass-card p-4 rounded-xl">
+    <motion.div
+      initial={{ opacity: 0, x: 12 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -12 }}
+      transition={{ duration: 0.25 }}
+      className={`glass-card p-4 rounded-xl border-l-2 ${isConnectionRequest ? 'border-l-primary' : 'border-l-transparent'}`}
+    >
       <div className="flex items-start gap-3">
         {sender && (
           <Avatar className="h-10 w-10">
@@ -132,6 +138,6 @@ export const NotificationItem = ({
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

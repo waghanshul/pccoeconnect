@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useSocialStore, SocialPost as SocialPostType, Poll } from "@/services/social";
@@ -9,6 +8,7 @@ import { SocialPostHeader } from "./post/SocialPostHeader";
 import { SocialPostMedia } from "./post/SocialPostMedia";
 import { SocialPostPoll } from "./post/SocialPostPoll";
 import { SocialPostActions } from "./post/SocialPostActions";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SocialPostProps {
   post: SocialPostType;
@@ -60,7 +60,7 @@ export const SocialPost = ({ post }: SocialPostProps) => {
   };
   
   return (
-    <Card className="overflow-hidden hover:border-white/[0.12] transition-colors duration-200">
+    <Card className="overflow-hidden hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5">
       <CardContent className="pt-5 pb-3">
         <SocialPostHeader 
           author={post.author}
@@ -105,9 +105,19 @@ export const SocialPost = ({ post }: SocialPostProps) => {
         />
       </CardFooter>
       
-      {showComments && (
-        <SocialPostComments postId={post.id} />
-      )}
+      <AnimatePresence>
+        {showComments && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="overflow-hidden"
+          >
+            <SocialPostComments postId={post.id} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Card>
   );
 };
