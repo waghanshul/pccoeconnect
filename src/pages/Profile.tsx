@@ -20,8 +20,7 @@ const Profile = () => {
       <Navigation />
       <PageTransition>
         <main className="container mx-auto px-4 pt-16 md:pt-20 pb-24 md:pb-10">
-          <div className="relative">
-            <div className="absolute inset-0 h-48 bg-gradient-to-r from-primary/30 to-blue-500/20 rounded-b-3xl blur-sm -z-10" />
+          <div>
             {isLoading ? (
               <div className="flex justify-center p-8">
                 <div className="relative w-10 h-10">

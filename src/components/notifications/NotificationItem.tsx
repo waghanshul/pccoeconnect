@@ -84,12 +84,8 @@ export const NotificationItem = ({
   if (isHidden) return null;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: 12 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -12 }}
-      transition={{ duration: 0.25 }}
-      className={`glass-card p-4 rounded-xl border-l-2 ${isConnectionRequest ? 'border-l-primary' : 'border-l-transparent'}`}
+    <div
+      className={`bg-card border border-border p-4 rounded-xl border-l-2 ${isConnectionRequest ? 'border-l-primary' : 'border-l-transparent'}`}
     >
       <div className="flex items-start gap-3">
         {sender && (
@@ -138,6 +134,6 @@ export const NotificationItem = ({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }

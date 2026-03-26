@@ -12,76 +12,39 @@ interface HeroProps {
 export const Hero = ({ setStep, resetRole }: HeroProps) => {
   return (
     <div className="container mx-auto px-4 py-16 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-16">
-      {/* Animated background blobs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-[120px] animate-blob" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/8 rounded-full blur-[150px] animate-blob animation-delay-2000" />
-      </div>
-
       <div className="w-full lg:w-1/2 space-y-8 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
           <Logo />
         </motion.div>
         <div className="space-y-6">
-          <h1 className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]">
-            {"Welcome to ".split(" ").map((word, i) => (
-              <motion.span
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.1, duration: 0.4 }}
-                className="inline-block mr-3"
-              >
-                {word}
-              </motion.span>
-            ))}
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-              className="gradient-text inline-block"
-            >
-              PCCOE Connect
-            </motion.span>
-          </h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.4 }}
+            className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]"
+          >
+            Welcome to{" "}
+            <span className="text-primary">PCCOE Connect</span>
+          </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7, duration: 0.5 }}
+            transition={{ delay: 0.3, duration: 0.4 }}
             className="text-lg text-muted-foreground leading-relaxed max-w-xl"
           >
             Your exclusive social platform to connect, collaborate, and grow with fellow PCCOE students.
           </motion.p>
 
-          {/* Stats row */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.85, duration: 0.4 }}
-            className="flex gap-8 py-4"
-          >
-            {[
-              { value: "500+", label: "Students" },
-              { value: "50+", label: "Departments" },
-              { value: "1K+", label: "Connections" },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-2xl font-bold text-primary">{stat.value}</div>
-                <div className="text-xs text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
-
           <Features />
 
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1, duration: 0.4 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
           >
             <Button
               size="lg"
-              className="mt-8 text-base px-8 py-6 rounded-full glow-primary hover:scale-[1.02] transition-all duration-300"
+              className="mt-8 text-base px-8 py-6 rounded-full"
               onClick={() => {
                 resetRole();
                 setStep("role");
@@ -95,17 +58,16 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, x: 30 }}
-        animate={{ opacity: 1, scale: 1, x: 0 }}
-        transition={{ delay: 0.4, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
         className="w-full lg:w-1/2 flex justify-center relative z-10"
       >
-        <div className="relative w-full max-w-lg animate-float">
-          <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-3xl blur-2xl" />
+        <div className="relative w-full max-w-lg">
           <img
             src="/lovable-uploads/632cb8a0-bd7f-4e2a-a647-734d748778ca.png"
             alt="PCCOE Campus - Aerial View"
-            className="relative rounded-2xl shadow-2xl border border-white/[0.08]"
+            className="rounded-2xl shadow-2xl border border-border"
           />
         </div>
       </motion.div>

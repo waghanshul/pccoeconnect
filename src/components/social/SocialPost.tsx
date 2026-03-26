@@ -60,7 +60,7 @@ export const SocialPost = ({ post }: SocialPostProps) => {
   };
   
   return (
-    <Card className="overflow-hidden hover:border-white/[0.12] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5">
+    <Card className="overflow-hidden hover:border-primary/10 transition-colors duration-200">
       <CardContent className="pt-5 pb-3">
         <SocialPostHeader 
           author={post.author}

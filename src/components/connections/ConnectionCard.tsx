@@ -26,7 +26,7 @@ export const ConnectionCard = ({
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  console.log(`Connection ${connection.full_name} - isConnected: ${isConnected}, hasPendingRequest: ${hasPendingRequest}, hasReceivedRequest: ${hasReceivedRequest}`);
+
 
   const handleMessage = (connectionId: string) => {
     navigate(`/messages?user=${connectionId}`);
@@ -84,6 +84,6 @@ export const ConnectionCard = ({
           />
         </CardFooter>
       </Card>
-    </motion.div>
+    </div>
   );
 };
