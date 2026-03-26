@@ -3,6 +3,16 @@ import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { NotificationList } from "./NotificationList";
 import { NotificationItemProps } from "./NotificationItem";
+import {
+  Bell,
+  UserPlus,
+  Trophy,
+  GraduationCap,
+  Calendar,
+  Users,
+  Briefcase,
+  PartyPopper,
+} from "lucide-react";
 
 interface NotificationTabsProps {
   notifications: Omit<NotificationItemProps, 'onAcceptConnection' | 'onRejectConnection'>[];
@@ -10,22 +20,25 @@ interface NotificationTabsProps {
   onRejectConnection: (connectionId: string) => Promise<void>;
 }
 
+const categoryConfig = [
+  { key: "all", label: "All", icon: Bell },
+  { key: "connections", label: "Connections", icon: UserPlus },
+  { key: "sports", label: "Sports", icon: Trophy },
+  { key: "exams", label: "Exams", icon: GraduationCap },
+  { key: "events", label: "Events", icon: Calendar },
+  { key: "clubs", label: "Clubs", icon: Users },
+  { key: "placements", label: "Placements", icon: Briefcase },
+  { key: "celebrations", label: "Celebrations", icon: PartyPopper },
+];
+
 export const NotificationTabs = ({
   notifications,
   onAcceptConnection,
   onRejectConnection,
 }: NotificationTabsProps) => {
-  const categories = [
-    "connections",
-    "sports",
-    "exams",
-    "events",
-    "clubs",
-    "placements",
-    "celebrations",
-  ];
-  
+
   const getNotificationsByCategory = (category: string) => {
+    if (category === "all") return notifications;
     if (category === "connections") {
       return notifications.filter((notif) => notif.isConnectionRequest);
     }
@@ -33,27 +46,41 @@ export const NotificationTabs = ({
       (notif) => !notif.isConnectionRequest && notif.category?.toLowerCase() === category.toLowerCase()
     );
   };
-  
-  return (
-    <Tabs defaultValue="connections" className="w-full">
-      <TabsList className="w-full justify-start mb-6 overflow-x-auto bg-muted/50 p-1 rounded-xl">
-        {categories.map((category) => (
-          <TabsTrigger 
-            key={category} 
-            value={category}
-            className="rounded-lg text-xs capitalize data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-          >
-            {category}
-          </TabsTrigger>
-        ))}
-      </TabsList>
 
-      {categories.map((category) => (
-        <TabsContent key={category} value={category}>
+  const getCount = (category: string) => getNotificationsByCategory(category).length;
+
+  return (
+    <Tabs defaultValue="all" className="w-full">
+      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+        <TabsList className="inline-flex w-max gap-1 mb-6 bg-muted/50 p-1 rounded-xl">
+          {categoryConfig.map(({ key, label, icon: Icon }) => {
+            const count = getCount(key);
+            return (
+              <TabsTrigger
+                key={key}
+                value={key}
+                className="rounded-lg text-xs gap-1.5 px-3 py-1.5 capitalize data-[state=active]:bg-primary data-[state=active]:text-primary-foreground whitespace-nowrap"
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {label}
+                {count > 0 && (
+                  <span className="ml-1 inline-flex items-center justify-center h-4 min-w-[16px] rounded-full bg-primary/15 text-[10px] font-semibold px-1 data-[state=active]:bg-primary-foreground/20">
+                    {count}
+                  </span>
+                )}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+      </div>
+
+      {categoryConfig.map(({ key }) => (
+        <TabsContent key={key} value={key}>
           <NotificationList
-            notifications={getNotificationsByCategory(category)}
+            notifications={getNotificationsByCategory(key)}
             onAcceptConnection={onAcceptConnection}
             onRejectConnection={onRejectConnection}
+            category={key}
           />
         </TabsContent>
       ))}
