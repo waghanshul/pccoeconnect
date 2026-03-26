@@ -40,8 +40,8 @@ export const Features = () => {
           key={index}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 + index * 0.1, duration: 0.35 }}
-          className="group glass-card p-5 rounded-xl hover:border-primary/20 hover:-translate-y-0.5 transition-all duration-300"
+          transition={{ delay: 0.15 + index * 0.08, duration: 0.3 }}
+          className="group bg-card border border-border p-5 rounded-xl hover:border-primary/20 transition-colors duration-200"
         >
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 ${feature.bg} rounded-lg group-hover:scale-110 transition-transform ${feature.color}`}>

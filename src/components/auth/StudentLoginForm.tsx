@@ -49,7 +49,7 @@ export const StudentLoginForm = () => {
           required
           pattern="^[a-zA-Z0-9._%+-]+@pccoepune\.org$"
           title="Please enter a valid PCCOE email address (ending with @pccoepune.org)"
-          className="bg-white dark:bg-gray-900"
+          className=""
           disabled={isLoading}
         />
       </div>
@@ -64,7 +64,7 @@ export const StudentLoginForm = () => {
               setCredentials({ ...credentials, password: e.target.value })
             }
             required
-            className="bg-white dark:bg-gray-900 pr-10"
+            className="pr-10"
             disabled={isLoading}
           />
           <Button

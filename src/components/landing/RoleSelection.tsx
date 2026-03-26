@@ -69,13 +69,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
                 setStep("auth");
               }}
             >
-              <motion.div
-                whileHover={{ scale: 1.12 }}
-                whileTap={{ scale: 0.95 }}
-                className="p-5 bg-primary/10 rounded-2xl group-hover:bg-primary/20 transition-colors duration-300"
-              >
+              <div className="p-5 bg-primary/10 rounded-2xl group-hover:bg-primary/20 transition-colors duration-200">
                 <card.icon className="h-12 w-12 text-primary" />
-              </motion.div>
+              </div>
               <div className="space-y-2 text-center">
                 <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">{card.title}</h3>
                 <p className="text-sm text-muted-foreground">{card.desc}</p>
@@ -85,15 +81,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
               <h4 className="font-semibold mb-3 text-muted-foreground text-sm uppercase tracking-wide">{card.title} Features</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 {card.features.map((f, j) => (
-                  <motion.li
-                    key={j}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + j * 0.06 }}
-                    className="flex items-center gap-2"
-                  >
+                  <li key={j} className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary" />{f}
-                  </motion.li>
+                  </li>
                 ))}
               </ul>
             </div>

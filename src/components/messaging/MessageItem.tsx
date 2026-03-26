@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/AuthContext";
 import { Message } from "@/hooks/messaging/types";
-import { motion } from "framer-motion";
 
 interface MessageItemProps {
   message: Message;
@@ -17,12 +16,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
-    >
+    <div className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}>
       <div className="flex items-end gap-2 max-w-[70%]">
         {!isOwnMessage && (
           <Avatar className="h-7 w-7 flex-shrink-0">
@@ -36,8 +30,8 @@ const MessageItem = ({ message }: MessageItemProps) => {
         <div
           className={`rounded-2xl px-4 py-2.5 ${
             isOwnMessage
-              ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-br-md"
-              : "bg-muted/60 rounded-bl-md"
+              ? "bg-primary text-primary-foreground rounded-br-md"
+              : "bg-muted rounded-bl-md"
           }`}
         >
           <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
@@ -55,7 +49,7 @@ const MessageItem = ({ message }: MessageItemProps) => {
           </Avatar>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 };
 

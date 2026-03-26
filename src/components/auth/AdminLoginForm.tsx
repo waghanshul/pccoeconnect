@@ -102,7 +102,7 @@ export const AdminLoginForm = () => {
           required
           pattern=".*@pccoepune\.org$"
           title="Please use your PCCOE email address (@pccoepune.org)"
-          className="bg-white dark:bg-gray-900"
+          className=""
           disabled={isLoading}
         />
       </div>
@@ -117,7 +117,7 @@ export const AdminLoginForm = () => {
               setCredentials({ ...credentials, password: e.target.value })
             }
             required
-            className="bg-white dark:bg-gray-900 pr-10"
+            className="pr-10"
             disabled={isLoading}
           />
           <Button
