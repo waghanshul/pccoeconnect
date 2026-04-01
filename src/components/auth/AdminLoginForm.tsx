@@ -151,7 +151,7 @@ export const AdminLoginForm = () => {
             <SheetHeader>
               <SheetTitle>Create Admin Account</SheetTitle>
               <SheetDescription>
-                Fill in your details to register as an admin for PCCOE Connect
+                Fill in your details to register as an admin for ChatPCCOE
               </SheetDescription>
             </SheetHeader>
             <div className="mt-6">

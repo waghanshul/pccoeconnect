@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Show notification for new account creation
       if (data.user) {
-        toast.success("Account created successfully! Welcome to PCCOE Connect!");
+        toast.success("Account created successfully! Welcome to ChatPCCOE!");
       }
       
       return { data, error: null };

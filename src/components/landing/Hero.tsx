@@ -24,7 +24,7 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
             className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]"
           >
             Welcome to{" "}
-            <span className="text-primary">PCCOE Connect</span>
+            <span className="text-primary">ChatPCCOE</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
@@ -32,7 +32,7 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
             transition={{ delay: 0.3, duration: 0.4 }}
             className="text-lg text-muted-foreground leading-relaxed max-w-xl"
           >
-            Your exclusive social platform to connect, collaborate, and grow with fellow PCCOE students.
+            Your exclusive platform to connect, collaborate, and grow with fellow PCCOE students.
           </motion.p>
 
           <Features />
