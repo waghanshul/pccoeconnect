@@ -24,7 +24,7 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
             className="text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1]"
           >
             Welcome to{" "}
-            <span className="text-primary">PCCOE Connect</span>
+            <span className="text-primary">ChatPCCOE</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
