@@ -81,7 +81,7 @@ const Landing = () => {
                           <SheetHeader>
                             <SheetTitle>Create your account</SheetTitle>
                             <SheetDescription>
-                              Fill in your details to register for PCCOE Connect
+                              Fill in your details to register for ChatPCCOE
                             </SheetDescription>
                           </SheetHeader>
                           <div className="mt-6">

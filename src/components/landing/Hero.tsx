@@ -32,7 +32,7 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
             transition={{ delay: 0.3, duration: 0.4 }}
             className="text-lg text-muted-foreground leading-relaxed max-w-xl"
           >
-            Your exclusive social platform to connect, collaborate, and grow with fellow PCCOE students.
+            Your exclusive platform to connect, collaborate, and grow with fellow PCCOE students.
           </motion.p>
 
           <Features />
