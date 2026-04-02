@@ -36,6 +36,7 @@ export const NotificationTabs = ({
   notifications,
   onAcceptConnection,
   onRejectConnection,
+  readNotificationIds = new Set(),
 }: NotificationTabsProps) => {
 
   const getNotificationsByCategory = (category: string) => {
