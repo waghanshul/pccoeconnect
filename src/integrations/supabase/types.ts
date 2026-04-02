@@ -785,6 +785,10 @@ export type Database = {
         Args: { follower: string; following: string }
         Returns: boolean
       }
+      get_unread_notification_count: {
+        Args: { user_uuid: string }
+        Returns: Json
+      }
       get_user_connection_counts: { Args: { user_id: string }; Returns: Json }
       get_user_connections: { Args: { user_id: string }; Returns: Json }
       get_user_role: { Args: { user_id?: string }; Returns: string }
