@@ -8,9 +8,10 @@ interface PostActionsProps {
   likeCount: number;
   postContent?: string;
   postAuthor?: string;
+  postId?: string;
 }
 
-export const PostActions = ({ onCommentToggle, onLike, isLiked, likeCount, postContent, postAuthor }: PostActionsProps) => {
+export const PostActions = ({ onCommentToggle, onLike, isLiked, likeCount, postContent, postAuthor, postId }: PostActionsProps) => {
   return (
     <div className="flex justify-between items-center mt-4 pt-4 border-t dark:border-gray-700">
       <button 
@@ -30,7 +31,7 @@ export const PostActions = ({ onCommentToggle, onLike, isLiked, likeCount, postC
         <MessageCircle size={20} />
         <span>Comment</span>
       </button>
-      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor}>
+      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor} postId={postId}>
         <button className="flex items-center space-x-2 hover:text-primary transition-colors">
           <Share2 size={20} />
           <span>Share</span>

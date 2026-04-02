@@ -20,6 +20,7 @@ import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import AdminDashboard from "./pages/AdminDashboard";
 import Connections from "./pages/Connections";
+import PostView from "./pages/PostView";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -79,6 +80,7 @@ const AnimatedRoutes = () => {
         <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
+        <Route path="/post/:postId" element={<ProtectedRoute><PostView /></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
       </Routes>
     </AnimatePresence>

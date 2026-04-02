@@ -23,10 +23,11 @@ interface Friend {
 interface SharePostDialogProps {
   postContent: string;
   postAuthor?: string;
+  postId?: string;
   children?: React.ReactNode;
 }
 
-export const SharePostDialog = ({ postContent, postAuthor, children }: SharePostDialogProps) => {
+export const SharePostDialog = ({ postContent, postAuthor, postId, children }: SharePostDialogProps) => {
   const [open, setOpen] = useState(false);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [search, setSearch] = useState("");
@@ -71,7 +72,9 @@ export const SharePostDialog = ({ postContent, postAuthor, children }: SharePost
       }
 
       // Build shared post message
-      const sharedMessage = `📤 Shared a post${postAuthor ? ` by ${postAuthor}` : ''}:\n\n"${postContent.length > 200 ? postContent.substring(0, 200) + '...' : postContent}"`;
+      const truncated = postContent.length > 150 ? postContent.substring(0, 150) + '...' : postContent;
+      const postLink = postId ? `${window.location.origin}/post/${postId}` : '';
+      const sharedMessage = `📤 Shared a post${postAuthor ? ` by ${postAuthor}` : ''}:\n\n"${truncated}"${postLink ? `\n\n👉 ${postLink}` : ''}`;
 
       // Update conversation timestamp
       await supabase

@@ -105,6 +105,7 @@ export const Post = ({ id, author, content, timestamp, avatar, authorId }: PostP
         likeCount={likeCount}
         postContent={content}
         postAuthor={author}
+        postId={id}
       />
 
       {showComments && (
