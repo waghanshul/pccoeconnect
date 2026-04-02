@@ -206,7 +206,8 @@ export const ConnectionsList = () => {
         <div className="text-center py-12">
           <p className="text-muted-foreground">No students found</p>
         </div>
-      )
+      )}
+
     </div>
   );
 };
