@@ -61,24 +61,7 @@ const Notifications = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-              {count > 0 && !markedRead && (
-                <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[11px] font-semibold px-1.5">
-                  {count}
-                </span>
-              )}
             </div>
-            {count > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground gap-1.5"
-                onClick={() => setMarkedRead(true)}
-                disabled={markedRead}
-              >
-                <CheckCheck className="h-3.5 w-3.5" />
-                {markedRead ? "Done" : "Mark all read"}
-              </Button>
-            )}
           </div>
 
           {isLoading ? (
