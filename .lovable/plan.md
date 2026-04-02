@@ -1,62 +1,57 @@
 
 
-# Fix Notification Badge -- Persistent Count & Flickering
+# Shareable Post Links with Preview
 
-## Root Cause Analysis
+## Overview
+Add a `/post/:postId` route that displays a single post. When sharing posts via messages, send a clickable link (`/post/{id}`) instead of pasting the full content. The link renders as a rich preview card in the chat, and clicking it navigates to the post.
 
-**Problem 1: Count never clears after viewing**
-`Navigation.tsx` → `fetchNotificationCount()` counts ALL rows in `notifications` table + ALL pending `connections_v2`. It never checks the `notification_reads` table, so even after a user views notifications, the badge stays.
+## Changes
 
-**Problem 2: "Acting weird" / flickering when switching pages**
-Three separate Supabase realtime channels listen to the same tables simultaneously:
-- `navigation-notifications` channel in `Navigation.tsx`
-- `notification-realtime` channel in `Notifications.tsx` page
-- `notification-changes` channel in `useNotifications.ts` hook
+### 1. New Page: `src/pages/PostView.tsx`
+- Route: `/post/:postId`
+- Fetches the single post from `social_posts` by ID (with author profile, likes, comments)
+- Renders using the existing `SocialPost` component inside the standard layout (Navigation + PageTransition)
+- Shows a "Post not found" state if invalid ID
+- Scrolls to top on mount
 
-When any change fires, all three trigger overlapping fetches → rapid state updates → badge flickers.
+### 2. Add Route in `App.tsx`
+- Add `<Route path="/post/:postId" element={<ProtectedRoute><PostView /></ProtectedRoute>} />`
 
-**Problem 3: "Mark all read" is purely cosmetic**
-The "Mark all read" button sets local state `markedRead` but never writes to `notification_reads` table. On page refresh or navigation, it resets.
-
-## Plan
-
-### 1. Fix `fetchNotificationCount` in `Navigation.tsx`
-- For `notifications` table: LEFT JOIN with `notification_reads` and only count rows where no read entry exists for the current user
-- For `connections_v2`: keep existing pending count (these are inherently "unread" until acted on)
-- Use a single RPC or restructured query:
-  ```sql
-  SELECT count(*) FROM notifications n
-  WHERE NOT EXISTS (
-    SELECT 1 FROM notification_reads nr
-    WHERE nr.notification_id = n.id AND nr.profile_id = auth.uid()
-  )
+### 3. Update `SharePostDialog.tsx` — Send Link Instead of Content
+- Instead of sending the full quoted text as a message, send:
   ```
-  Since we can't do this easily with the Supabase JS client's `head: true` count, we'll fetch notification IDs + the user's read IDs and compute the difference client-side, OR create a small RPC function.
+  📤 Shared a post by {author}:
+  "{truncated content}"
+  
+  👉 pccoeconnect.lovable.app/post/{postId}
+  ```
+- Pass `postId` as a new prop to `SharePostDialog` and `SocialPostActions`/`PostActions`
 
-**Preferred approach**: Create an RPC function `get_unread_notification_count` that returns the accurate unread count in one call.
+### 4. Rich Link Preview in Chat — `MessageItem.tsx`
+- Detect URLs matching `/post/{uuid}` pattern in message content
+- Render a small preview card inline: post author avatar, name, truncated content, and a "View Post" button that navigates to `/post/{id}`
+- Fetch post data on-demand when the link card mounts (lightweight query: content + author name)
 
-### 2. Auto-mark notifications as read when visiting `/notifications`
-- In `Notifications.tsx`, when page loads and notifications are fetched, insert into `notification_reads` for all unread notification IDs
-- This makes the badge clear automatically when the user visits the page
-- Remove the manual "Mark all read" button (or keep it as a fallback)
+### 5. Update OG Meta Tags for SEO Preview
+- In `index.html`, the existing static OG tags stay as fallback
+- Since this is a client-side SPA, true OG previews for external sharing (WhatsApp, etc.) would need server-side rendering — out of scope for now. The in-app link preview covers the primary use case.
 
-### 3. Deduplicate realtime channels
-- Remove the realtime channel from `Notifications.tsx` page (it's redundant -- `useNotifications.ts` hook already has one)
-- Keep Navigation's channel for badge count updates
-- Keep useNotifications hook's channel for the notification list
-
-### 4. Debounce badge updates
-- Add a simple debounce or `setTimeout` guard in `fetchNotificationCount` to prevent rapid successive calls
+### 6. Props Threading
+- Add `postId` prop to `SharePostDialog`, `SocialPostActions`, `PostActions`
+- Pass `post.id` from `SocialPost` and `Post` components down to the share dialog
 
 ## Files Modified
-- `src/components/Navigation.tsx` -- fix count query to exclude read notifications
-- `src/pages/Notifications.tsx` -- auto-mark as read on visit, remove duplicate realtime channel
-- `src/hooks/useNotifications.ts` -- no changes needed (already works correctly)
-- **New migration**: Create `get_unread_notification_count` RPC function
+- **New**: `src/pages/PostView.tsx`
+- `src/App.tsx` — add route
+- `src/components/social/SharePostDialog.tsx` — send link in message
+- `src/components/social/post/SocialPostActions.tsx` — pass postId
+- `src/components/post/PostActions.tsx` — pass postId
+- `src/components/social/SocialPost.tsx` — pass post.id to actions
+- `src/components/Post.tsx` — pass id to actions
+- `src/components/messaging/MessageItem.tsx` — render post link preview card
 
-## What does NOT change
-- Database tables structure
-- RLS policies
-- Notification fetching logic in useNotifications hook
-- UI layout/styling
+## What Stays the Same
+- Database schema (no changes needed)
+- Social feed, post creation, like/comment logic
+- Existing messaging infrastructure
 
