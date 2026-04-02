@@ -33,7 +33,7 @@ const PostLinkPreview = ({ postId }: { postId: string }) => {
         setData({
           content: post.content,
           authorName: author.full_name,
-          authorAvatar: author.avatar_url,
+          authorAvatar: 'avatar_url' in author ? (author as any).avatar_url : undefined,
         });
       }
       setLoading(false);
