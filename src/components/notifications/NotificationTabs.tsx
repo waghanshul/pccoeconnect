@@ -18,6 +18,7 @@ interface NotificationTabsProps {
   notifications: Omit<NotificationItemProps, 'onAcceptConnection' | 'onRejectConnection'>[];
   onAcceptConnection: (connectionId: string) => Promise<void>;
   onRejectConnection: (connectionId: string) => Promise<void>;
+  readNotificationIds?: Set<string>;
 }
 
 const categoryConfig = [
