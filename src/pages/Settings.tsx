@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useUserStore } from "@/services/user";
 import { BasicInfoSection } from "@/components/settings/BasicInfoSection";
@@ -7,6 +7,7 @@ import { AcademicInfoSection } from "@/components/settings/AcademicInfoSection";
 import { InterestsSection } from "@/components/settings/InterestsSection";
 import { NotificationPreferencesSection } from "@/components/settings/NotificationPreferencesSection";
 import { LoadingSpinner } from "@/components/settings/LoadingSpinner";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { UserCog, GraduationCap, Sparkles, BellRing } from "lucide-react";
 
@@ -21,13 +22,16 @@ const Settings = () => {
     phone: "",
     bio: "",
   });
+  
   const [interests, setInterests] = useState<string[]>([]);
+  
   const [academicInfo, setAcademicInfo] = useState({
     prn: "",
     branch: "",
     year: "",
     recoveryEmail: "",
   });
+  
   const [notifications, setNotifications] = useState({
     email: true,
     browser: true,
@@ -51,6 +55,7 @@ const Settings = () => {
         bio: studentProfile?.bio || "",
       });
     }
+    
     if (studentProfile) {
       setAcademicInfo({
         prn: studentProfile.prn || "",
@@ -64,41 +69,76 @@ const Settings = () => {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="py-8">
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <div className="p-4 pt-20">
           <LoadingSpinner />
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
-  const sections = [
-    { value: "basic", icon: UserCog, iconColor: "text-primary", label: "Basic Information", content: <BasicInfoSection basicInfo={basicInfo} setBasicInfo={setBasicInfo} /> },
-    { value: "academic", icon: GraduationCap, iconColor: "text-blue-400", label: "Academic Information", content: <AcademicInfoSection academicInfo={academicInfo} setAcademicInfo={setAcademicInfo} /> },
-    { value: "interests", icon: Sparkles, iconColor: "text-amber-400", label: "Interests", content: <InterestsSection interests={interests} setInterests={setInterests} /> },
-    { value: "notifications", icon: BellRing, iconColor: "text-emerald-400", label: "Notification Preferences", content: <NotificationPreferencesSection notifications={notifications} setNotifications={setNotifications} /> },
-  ];
-
   return (
-    <AppLayout maxWidth="max-w-3xl">
-      <div className="py-6">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
-        
-        <Accordion type="multiple" defaultValue={["basic", "academic", "interests", "notifications"]} className="space-y-3">
-          {sections.map(({ value, icon: Icon, iconColor, label, content }) => (
-            <AccordionItem key={value} value={value} className="bg-card rounded-xl border border-border px-5">
-              <AccordionTrigger className="hover:no-underline py-4">
-                <div className="flex items-center gap-3">
-                  <Icon className={`h-5 w-5 ${iconColor}`} />
-                  <span className="font-semibold text-sm">{label}</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>{content}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-    </AppLayout>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <PageTransition>
+        <div className="p-4 pt-16 md:pt-20 pb-24 md:pb-10">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8">Settings</h1>
+            
+            <Accordion type="multiple" defaultValue={["basic", "academic", "interests", "notifications"]} className="space-y-4">
+              <AccordionItem value="basic" className="glass-card rounded-xl border-none px-6">
+                <AccordionTrigger className="hover:no-underline py-5">
+                  <div className="flex items-center gap-3">
+                    <UserCog className="h-5 w-5 text-primary" />
+                    <span className="font-semibold">Basic Information</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <BasicInfoSection basicInfo={basicInfo} setBasicInfo={setBasicInfo} />
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="academic" className="glass-card rounded-xl border-none px-6">
+                <AccordionTrigger className="hover:no-underline py-5">
+                  <div className="flex items-center gap-3">
+                    <GraduationCap className="h-5 w-5 text-blue-400" />
+                    <span className="font-semibold">Academic Information</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <AcademicInfoSection academicInfo={academicInfo} setAcademicInfo={setAcademicInfo} />
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="interests" className="glass-card rounded-xl border-none px-6">
+                <AccordionTrigger className="hover:no-underline py-5">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="h-5 w-5 text-amber-400" />
+                    <span className="font-semibold">Interests</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <InterestsSection interests={interests} setInterests={setInterests} />
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="notifications" className="glass-card rounded-xl border-none px-6">
+                <AccordionTrigger className="hover:no-underline py-5">
+                  <div className="flex items-center gap-3">
+                    <BellRing className="h-5 w-5 text-emerald-400" />
+                    <span className="font-semibold">Notification Preferences</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <NotificationPreferencesSection notifications={notifications} setNotifications={setNotifications} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
+      </PageTransition>
+    </div>
   );
 };
 

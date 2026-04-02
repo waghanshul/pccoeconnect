@@ -1,3 +1,5 @@
+
+import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useUserStore, UserStatus } from "@/services/user";
@@ -35,7 +37,10 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
   const [isPendingRequest, setIsPendingRequest] = useState(false);
 
   useEffect(() => {
-    if (user.id) { fetchConnectionCount(); checkConnection(); }
+    if (user.id) {
+      fetchConnectionCount();
+      checkConnection();
+    }
   }, [user.id]);
 
   const fetchConnectionCount = async () => {
@@ -45,6 +50,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
         .select('sender_id, receiver_id')
         .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
         .eq('status', 'accepted');
+      
       if (error) throw error;
       setConnectionCount(data?.length || 0);
     } catch (error) {
@@ -54,12 +60,14 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
 
   const checkConnection = async () => {
     if (!authUser || authUser.id === user.id) return;
+    
     try {
       const { data: acceptedData, error: acceptedError } = await supabase
         .from('connections_v2')
         .select('*')
         .or(`and(sender_id.eq.${authUser.id},receiver_id.eq.${user.id}),and(sender_id.eq.${user.id},receiver_id.eq.${authUser.id})`)
         .eq('status', 'accepted');
+      
       if (acceptedError) throw acceptedError;
       setIsConnected(acceptedData && acceptedData.length > 0);
       
@@ -70,6 +78,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
           .eq('sender_id', authUser.id)
           .eq('receiver_id', user.id)
           .eq('status', 'pending');
+          
         if (pendingError) throw pendingError;
         setIsPendingRequest(pendingData && pendingData.length > 0);
       }
@@ -83,24 +92,47 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
     toast.success("Redirecting to messages with " + user.name);
   };
 
+  const handleAvailabilityChange = async () => {
+    if (!isOwnProfile) return;
+    const statusOptions: UserStatus[] = ['online', 'busy', 'offline'];
+    const currentIndex = statusOptions.indexOf(user.status);
+    const nextIndex = (currentIndex + 1) % statusOptions.length;
+    const newStatus = statusOptions[nextIndex];
+    await updateUserStatus(newStatus);
+    toast.success(`Status updated to ${availabilityLabels[newStatus]}`);
+  };
+
   const handleAvatarUpdate = (newAvatarUrl: string) => {
     updateUserAvatar(newAvatarUrl);
   };
 
   const handleConnect = async () => {
     if (!authUser || isOwnProfile) return;
+    
     try {
-      if (isConnected) { toast.info("Already connected"); return; }
-      else if (isPendingRequest) {
-        const { error } = await supabase.from('connections_v2').delete()
-          .eq('sender_id', authUser.id).eq('receiver_id', user.id).eq('status', 'pending');
+      if (isConnected) {
+        toast.info("Connections are permanent and cannot be removed");
+        return;
+      } else if (isPendingRequest) {
+        const { error } = await supabase
+          .from('connections_v2')
+          .delete()
+          .eq('sender_id', authUser.id)
+          .eq('receiver_id', user.id)
+          .eq('status', 'pending');
+          
         if (error) throw error;
         setIsPendingRequest(false);
-        toast.success("Connection request canceled");
+        toast.success(`Connection request canceled`);
       } else {
-        const { error } = await supabase.from('connections_v2').insert({
-          sender_id: authUser.id, receiver_id: user.id, status: 'pending'
-        });
+        const { error } = await supabase
+          .from('connections_v2')
+          .insert({
+            sender_id: authUser.id,
+            receiver_id: user.id,
+            status: 'pending'
+          });
+        
         if (error) throw error;
         setIsPendingRequest(true);
         toast.success(`Connection request sent to ${user.name}`);
@@ -112,19 +144,19 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <ProfileHeader 
-        name={user.name}
-        avatar={user.avatar}
-        role={user.role}
-        connectionCount={connectionCount}
-        isOwnProfile={isOwnProfile}
-        isConnected={isConnected}
-        onMessageClick={handleMessage}
-        onConnectClick={handleConnect}
-        onAvatarUpdate={isOwnProfile ? handleAvatarUpdate : undefined}
-      />
-      <div className="mt-6 border-t border-border pt-6">
+    <div className="pt-20 pb-8 px-4">
+      <Card className="w-full max-w-3xl mx-auto">
+        <ProfileHeader 
+          name={user.name}
+          avatar={user.avatar}
+          role={user.role}
+          connectionCount={connectionCount}
+          isOwnProfile={isOwnProfile}
+          isConnected={isConnected}
+          onMessageClick={handleMessage}
+          onConnectClick={handleConnect}
+          onAvatarUpdate={isOwnProfile ? handleAvatarUpdate : undefined}
+        />
         <ProfileDetails 
           department={user.department}
           year={user.year}
@@ -134,7 +166,7 @@ export const UserProfile = ({ user, isOwnProfile = false }: UserProfileProps) =>
           email={user.email}
           phone={user.phone}
         />
-      </div>
+      </Card>
     </div>
   );
 };

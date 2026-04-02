@@ -1,11 +1,12 @@
-import { Loader2 } from "lucide-react";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { Loader2, Bell } from "lucide-react";
+import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationTabs } from "@/components/notifications/NotificationTabs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useConnectionRequests } from "@/hooks/useConnectionRequests";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PageTransition } from "@/components/ui/PageTransition";
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -17,6 +18,7 @@ const Notifications = () => {
   const markedReadRef = useRef(false);
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
+  // Auto-mark regular notifications as read when page loads
   useEffect(() => {
     if (!user || isLoading || markedReadRef.current) return;
     
@@ -25,6 +27,7 @@ const Notifications = () => {
 
     const markAsRead = async () => {
       try {
+        // Get already-read notification IDs
         const { data: existingReads } = await supabase
           .from('notification_reads')
           .select('notification_id')
@@ -40,6 +43,7 @@ const Notifications = () => {
           }));
           await supabase.from('notification_reads').insert(inserts);
         }
+        // Mark all regular notification IDs as read locally
         const allReadIds = new Set(regularNotifications.map(n => n.id));
         setReadIds(allReadIds);
         markedReadRef.current = true;
@@ -51,25 +55,34 @@ const Notifications = () => {
     markAsRead();
   }, [user, notifications, isLoading]);
 
-  return (
-    <AppLayout>
-      <div className="py-6">
-        <h1 className="text-2xl font-bold tracking-tight mb-6">Notifications</h1>
+  const count = notifications.length;
 
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  return (
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <PageTransition>
+        <div className="container mx-auto px-4 py-8 pt-16 md:pt-20 pb-24 md:pb-10 max-w-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
+            </div>
           </div>
-        ) : (
-          <NotificationTabs
-            notifications={notifications}
-            onAcceptConnection={handleAcceptConnection}
-            onRejectConnection={handleRejectConnection}
-            readNotificationIds={readIds}
-          />
-        )}
-      </div>
-    </AppLayout>
+
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : (
+            <NotificationTabs
+              notifications={notifications}
+              onAcceptConnection={handleAcceptConnection}
+              onRejectConnection={handleRejectConnection}
+              readNotificationIds={readIds}
+            />
+          )}
+        </div>
+      </PageTransition>
+    </div>
   );
 };
 

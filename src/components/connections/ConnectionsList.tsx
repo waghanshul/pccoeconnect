@@ -181,7 +181,7 @@ export const ConnectionsList = () => {
           placeholder="Search for students..."
           value={searchQuery}
           onChange={handleSearch}
-          className="pl-9 bg-muted/50 border-border"
+          className="pl-9 glass-input"
         />
       </div>
       
@@ -190,7 +190,7 @@ export const ConnectionsList = () => {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : filteredConnections.length > 0 ? (
-        <div className="rounded-lg border border-border bg-card divide-y divide-border">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredConnections.map((connection) => (
             <ConnectionCard
               key={connection.id}
@@ -207,7 +207,6 @@ export const ConnectionsList = () => {
           <p className="text-muted-foreground">No students found</p>
         </div>
       )}
-
     </div>
   );
 };

@@ -5,7 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { SocialPost } from "@/components/social/SocialPost";
 import { SocialPost as SocialPostType } from "@/services/social";
 import { isValidProfile, createDefaultAuthor } from "@/services/social/types";
-import { AppLayout } from "@/components/layout/AppLayout";
+import { Navigation } from "@/components/Navigation";
+import { PageTransition } from "@/components/ui/PageTransition";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -32,15 +33,34 @@ const PostView = () => {
         .eq("id", postId)
         .single();
 
-      if (error || !data) { setNotFound(true); return; }
+      if (error || !data) {
+        setNotFound(true);
+        return;
+      }
 
       const author = isValidProfile(data.profiles) ? data.profiles : createDefaultAuthor();
-      const { count: likesCount } = await supabase.from("post_likes").select("*", { count: "exact", head: true }).eq("post_id", postId);
-      const { count: commentsCount } = await supabase.from("post_comments").select("*", { count: "exact", head: true }).eq("post_id", postId);
 
+      // Get likes count
+      const { count: likesCount } = await supabase
+        .from("post_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("post_id", postId);
+
+      // Get comments count
+      const { count: commentsCount } = await supabase
+        .from("post_comments")
+        .select("*", { count: "exact", head: true })
+        .eq("post_id", postId);
+
+      // Check if user liked
       let userHasLiked = false;
       if (user?.id) {
-        const { data: likeData } = await supabase.from("post_likes").select("id").eq("post_id", postId).eq("user_id", user.id).maybeSingle();
+        const { data: likeData } = await supabase
+          .from("post_likes")
+          .select("id")
+          .eq("post_id", postId)
+          .eq("user_id", user.id)
+          .maybeSingle();
         userHasLiked = !!likeData;
       }
 
@@ -68,33 +88,40 @@ const PostView = () => {
   };
 
   return (
-    <AppLayout>
-      <div className="py-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="mb-4 gap-2 text-muted-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
+    <div className="min-h-screen bg-background">
+      <Navigation />
+      <PageTransition>
+        <div className="max-w-2xl mx-auto px-4 pt-20 pb-24">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="mb-4 gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
 
-        {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          </div>
-        ) : notFound ? (
-          <div className="text-center py-20">
-            <p className="text-lg font-medium">Post not found</p>
-            <p className="text-sm text-muted-foreground mt-1">This post may have been deleted.</p>
-            <Button variant="outline" className="mt-4" onClick={() => navigate("/home")}>Go to Home</Button>
-          </div>
-        ) : post ? (
-          <SocialPost post={post} />
-        ) : null}
-      </div>
-    </AppLayout>
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : notFound ? (
+            <div className="text-center py-20">
+              <p className="text-lg font-medium">Post not found</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                This post may have been deleted or doesn't exist.
+              </p>
+              <Button variant="outline" className="mt-4" onClick={() => navigate("/home")}>
+                Go to Home
+              </Button>
+            </div>
+          ) : post ? (
+            <SocialPost post={post} />
+          ) : null}
+        </div>
+      </PageTransition>
+    </div>
   );
 };
 
