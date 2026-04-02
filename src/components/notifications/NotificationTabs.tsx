@@ -51,8 +51,8 @@ export const NotificationTabs = ({
 
   return (
     <Tabs defaultValue="all" className="w-full">
-      <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
-        <TabsList className="inline-flex w-max gap-1 mb-6 bg-muted/50 p-1 rounded-xl">
+      <div>
+        <TabsList className="flex flex-wrap gap-1 mb-6 bg-muted/50 p-1.5 rounded-xl h-auto w-full">
           {categoryConfig.map(({ key, label, icon: Icon }) => {
             const count = getCount(key);
             return (
