@@ -54,11 +54,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       
       // Handle different auth events with notifications
-      if (event === 'SIGNED_IN') {
-        toast.success("Welcome back! You've been signed in.");
-      } else if (event === 'SIGNED_OUT') {
-        toast.success("You've been signed out successfully.");
-      }
+      // Silent auth state changes - no toast notifications
       
       // If user is logged in, fetch their profile data
       if (session?.user) {
