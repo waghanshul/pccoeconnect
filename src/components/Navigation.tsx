@@ -96,7 +96,7 @@ export const Navigation = () => {
                         )}
                         <div className="relative z-10">
                           <Icon size={18} />
-                          {badge && badge > 0 && (
+                          {badge != null && badge > 0 && (
                             <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full text-[9px] w-4 h-4 flex items-center justify-center font-bold">
                               {badge > 99 ? "99+" : badge}
                             </span>
