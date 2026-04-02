@@ -23,10 +23,11 @@ interface Friend {
 interface SharePostDialogProps {
   postContent: string;
   postAuthor?: string;
+  postId?: string;
   children?: React.ReactNode;
 }
 
-export const SharePostDialog = ({ postContent, postAuthor, children }: SharePostDialogProps) => {
+export const SharePostDialog = ({ postContent, postAuthor, postId, children }: SharePostDialogProps) => {
   const [open, setOpen] = useState(false);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [search, setSearch] = useState("");
