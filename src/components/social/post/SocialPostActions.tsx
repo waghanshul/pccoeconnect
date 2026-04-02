@@ -11,6 +11,7 @@ interface SocialPostActionsProps {
   handleCommentToggle: () => void;
   postContent?: string;
   postAuthor?: string;
+  postId?: string;
 }
 
 export const SocialPostActions = ({ 
@@ -20,6 +21,7 @@ export const SocialPostActions = ({
   handleCommentToggle,
   postContent,
   postAuthor,
+  postId,
 }: SocialPostActionsProps) => {
   const [showBurst, setShowBurst] = useState(false);
 
