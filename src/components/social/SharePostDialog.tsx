@@ -72,7 +72,9 @@ export const SharePostDialog = ({ postContent, postAuthor, postId, children }: S
       }
 
       // Build shared post message
-      const sharedMessage = `📤 Shared a post${postAuthor ? ` by ${postAuthor}` : ''}:\n\n"${postContent.length > 200 ? postContent.substring(0, 200) + '...' : postContent}"`;
+      const truncated = postContent.length > 150 ? postContent.substring(0, 150) + '...' : postContent;
+      const postLink = postId ? `${window.location.origin}/post/${postId}` : '';
+      const sharedMessage = `📤 Shared a post${postAuthor ? ` by ${postAuthor}` : ''}:\n\n"${truncated}"${postLink ? `\n\n👉 ${postLink}` : ''}`;
 
       // Update conversation timestamp
       await supabase

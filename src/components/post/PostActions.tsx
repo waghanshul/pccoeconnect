@@ -31,7 +31,7 @@ export const PostActions = ({ onCommentToggle, onLike, isLiked, likeCount, postC
         <MessageCircle size={20} />
         <span>Comment</span>
       </button>
-      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor}>
+      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor} postId={postId}>
         <button className="flex items-center space-x-2 hover:text-primary transition-colors">
           <Share2 size={20} />
           <span>Share</span>

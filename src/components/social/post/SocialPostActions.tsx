@@ -72,7 +72,7 @@ export const SocialPostActions = ({
         <span className="text-xs">Comment</span>
       </Button>
       
-      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor}>
+      <SharePostDialog postContent={postContent || ''} postAuthor={postAuthor} postId={postId}>
         <Button variant="ghost" size="sm" className="flex-1 gap-2 text-muted-foreground hover:text-foreground rounded-lg">
           <Share className="h-4 w-4" />
           <span className="text-xs">Share</span>

@@ -102,6 +102,7 @@ export const SocialPost = ({ post }: SocialPostProps) => {
           handleCommentToggle={handleCommentToggle}
           postContent={post.content}
           postAuthor={post.author?.full_name}
+          postId={post.id}
         />
       </CardFooter>
       
