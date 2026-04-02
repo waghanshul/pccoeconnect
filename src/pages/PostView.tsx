@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { SocialPost } from "@/components/social/SocialPost";
 import { SocialPost as SocialPostType } from "@/services/social";
 import { isValidProfile, createDefaultAuthor } from "@/services/social/types";
-import Navigation from "@/components/Navigation";
+import { Navigation } from "@/components/Navigation";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
