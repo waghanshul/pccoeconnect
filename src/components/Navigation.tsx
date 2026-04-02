@@ -44,7 +44,7 @@ export const Navigation = () => {
         user_uuid: user.id,
       });
       if (error) throw error;
-      setNotificationCount(data?.total || 0);
+      setNotificationCount((data as any)?.total || 0);
     } catch (error) {
       console.error("Error fetching notification count:", error);
     }
