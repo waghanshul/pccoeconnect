@@ -18,6 +18,7 @@ interface NotificationTabsProps {
   notifications: Omit<NotificationItemProps, 'onAcceptConnection' | 'onRejectConnection'>[];
   onAcceptConnection: (connectionId: string) => Promise<void>;
   onRejectConnection: (connectionId: string) => Promise<void>;
+  readNotificationIds?: Set<string>;
 }
 
 const categoryConfig = [
@@ -35,6 +36,7 @@ export const NotificationTabs = ({
   notifications,
   onAcceptConnection,
   onRejectConnection,
+  readNotificationIds = new Set(),
 }: NotificationTabsProps) => {
 
   const getNotificationsByCategory = (category: string) => {
@@ -47,14 +49,17 @@ export const NotificationTabs = ({
     );
   };
 
-  const getCount = (category: string) => getNotificationsByCategory(category).length;
+  const getUnreadCount = (category: string) => {
+    const categoryNotifs = getNotificationsByCategory(category);
+    return categoryNotifs.filter(n => !readNotificationIds.has(n.id)).length;
+  };
 
   return (
     <Tabs defaultValue="all" className="w-full">
       <div>
         <TabsList className="flex flex-wrap gap-1 mb-6 bg-muted/50 p-1.5 rounded-xl h-auto w-full">
           {categoryConfig.map(({ key, label, icon: Icon }) => {
-            const count = getCount(key);
+            const count = getUnreadCount(key);
             return (
               <TabsTrigger
                 key={key}

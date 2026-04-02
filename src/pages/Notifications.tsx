@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { NotificationTabs } from "@/components/notifications/NotificationTabs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useConnectionRequests } from "@/hooks/useConnectionRequests";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageTransition } from "@/components/ui/PageTransition";
 
@@ -16,6 +16,7 @@ const Notifications = () => {
     refreshNotifications
   );
   const markedReadRef = useRef(false);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
   // Auto-mark regular notifications as read when page loads
   useEffect(() => {
@@ -32,8 +33,8 @@ const Notifications = () => {
           .select('notification_id')
           .eq('profile_id', user.id);
 
-        const readIds = new Set((existingReads || []).map(r => r.notification_id));
-        const unreadNotifs = regularNotifications.filter(n => !readIds.has(n.id));
+        const existingReadIds = new Set((existingReads || []).map(r => r.notification_id));
+        const unreadNotifs = regularNotifications.filter(n => !existingReadIds.has(n.id));
 
         if (unreadNotifs.length > 0) {
           const inserts = unreadNotifs.map(n => ({
@@ -42,6 +43,9 @@ const Notifications = () => {
           }));
           await supabase.from('notification_reads').insert(inserts);
         }
+        // Mark all regular notification IDs as read locally
+        const allReadIds = new Set(regularNotifications.map(n => n.id));
+        setReadIds(allReadIds);
         markedReadRef.current = true;
       } catch (error) {
         console.error("Error marking notifications as read:", error);
@@ -73,6 +77,7 @@ const Notifications = () => {
               notifications={notifications}
               onAcceptConnection={handleAcceptConnection}
               onRejectConnection={handleRejectConnection}
+              readNotificationIds={readIds}
             />
           )}
         </div>
