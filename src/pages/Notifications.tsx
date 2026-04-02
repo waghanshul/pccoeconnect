@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { NotificationTabs } from "@/components/notifications/NotificationTabs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useConnectionRequests } from "@/hooks/useConnectionRequests";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageTransition } from "@/components/ui/PageTransition";
 
@@ -16,6 +16,7 @@ const Notifications = () => {
     refreshNotifications
   );
   const markedReadRef = useRef(false);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
   // Auto-mark regular notifications as read when page loads
   useEffect(() => {
