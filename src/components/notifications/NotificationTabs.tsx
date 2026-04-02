@@ -49,7 +49,10 @@ export const NotificationTabs = ({
     );
   };
 
-  const getCount = (category: string) => getNotificationsByCategory(category).length;
+  const getUnreadCount = (category: string) => {
+    const categoryNotifs = getNotificationsByCategory(category);
+    return categoryNotifs.filter(n => !readNotificationIds.has(n.id)).length;
+  };
 
   return (
     <Tabs defaultValue="all" className="w-full">
