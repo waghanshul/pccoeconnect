@@ -1,13 +1,12 @@
-import { Loader2, Bell, CheckCheck } from "lucide-react";
+import { Loader2, Bell } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationTabs } from "@/components/notifications/NotificationTabs";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useConnectionRequests } from "@/hooks/useConnectionRequests";
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageTransition } from "@/components/ui/PageTransition";
-import { Button } from "@/components/ui/button";
 
 const Notifications = () => {
   const { user } = useAuth();
@@ -16,25 +15,41 @@ const Notifications = () => {
     user?.id,
     refreshNotifications
   );
-  const [markedRead, setMarkedRead] = useState(false);
+  const markedReadRef = useRef(false);
 
+  // Auto-mark regular notifications as read when page loads
   useEffect(() => {
-    if (user) {
-      const channel = supabase
-        .channel('notification-realtime')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'connections_v2' }, () => {
-          refreshNotifications();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
-          refreshNotifications();
-        })
-        .subscribe();
+    if (!user || isLoading || markedReadRef.current) return;
+    
+    const regularNotifications = notifications.filter(n => !n.isConnectionRequest);
+    if (regularNotifications.length === 0) return;
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [user, refreshNotifications]);
+    const markAsRead = async () => {
+      try {
+        // Get already-read notification IDs
+        const { data: existingReads } = await supabase
+          .from('notification_reads')
+          .select('notification_id')
+          .eq('profile_id', user.id);
+
+        const readIds = new Set((existingReads || []).map(r => r.notification_id));
+        const unreadNotifs = regularNotifications.filter(n => !readIds.has(n.id));
+
+        if (unreadNotifs.length > 0) {
+          const inserts = unreadNotifs.map(n => ({
+            notification_id: n.id,
+            profile_id: user.id,
+          }));
+          await supabase.from('notification_reads').insert(inserts);
+        }
+        markedReadRef.current = true;
+      } catch (error) {
+        console.error("Error marking notifications as read:", error);
+      }
+    };
+
+    markAsRead();
+  }, [user, notifications, isLoading]);
 
   const count = notifications.length;
 
@@ -46,24 +61,7 @@ const Notifications = () => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold tracking-tight">Notifications</h1>
-              {count > 0 && !markedRead && (
-                <span className="inline-flex items-center justify-center h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[11px] font-semibold px-1.5">
-                  {count}
-                </span>
-              )}
             </div>
-            {count > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground gap-1.5"
-                onClick={() => setMarkedRead(true)}
-                disabled={markedRead}
-              >
-                <CheckCheck className="h-3.5 w-3.5" />
-                {markedRead ? "Done" : "Mark all read"}
-              </Button>
-            )}
           </div>
 
           {isLoading ? (

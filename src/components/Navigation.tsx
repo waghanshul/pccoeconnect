@@ -26,6 +26,10 @@ export const Navigation = () => {
         event: '*', schema: 'public', table: 'notifications'
       }, () => {
         fetchNotificationCount();
+      }).on('postgres_changes', {
+        event: '*', schema: 'public', table: 'notification_reads'
+      }, () => {
+        fetchNotificationCount();
       }).subscribe();
       return () => {
         supabase.removeChannel(channel);
@@ -36,17 +40,11 @@ export const Navigation = () => {
   const fetchNotificationCount = async () => {
     if (!user) return;
     try {
-      const { count: connectionCount, error: connectionError } = await supabase
-        .from('connections_v2').select('id', { count: 'exact', head: true })
-        .eq('receiver_id', user.id).eq('status', 'pending');
-      if (connectionError) throw connectionError;
-
-      const { count: notificationsCount, error: notificationsError } = await supabase
-        .from('notifications').select('id', { count: 'exact', head: true });
-      if (notificationsError) throw notificationsError;
-
-      const totalCount = (connectionCount || 0) + (notificationsCount || 0);
-      setNotificationCount(totalCount);
+      const { data, error } = await supabase.rpc('get_unread_notification_count', {
+        user_uuid: user.id,
+      });
+      if (error) throw error;
+      setNotificationCount((data as any)?.total || 0);
     } catch (error) {
       console.error("Error fetching notification count:", error);
     }
