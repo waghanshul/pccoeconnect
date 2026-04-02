@@ -20,6 +20,7 @@ import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import AdminDashboard from "./pages/AdminDashboard";
 import Connections from "./pages/Connections";
+import PostView from "./pages/PostView";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
