@@ -59,7 +59,7 @@ export const NotificationTabs = ({
       <div>
         <TabsList className="flex flex-wrap gap-1 mb-6 bg-muted/50 p-1.5 rounded-xl h-auto w-full">
           {categoryConfig.map(({ key, label, icon: Icon }) => {
-            const count = getCount(key);
+            const count = getUnreadCount(key);
             return (
               <TabsTrigger
                 key={key}

@@ -77,6 +77,7 @@ const Notifications = () => {
               notifications={notifications}
               onAcceptConnection={handleAcceptConnection}
               onRejectConnection={handleRejectConnection}
+              readNotificationIds={readIds}
             />
           )}
         </div>
