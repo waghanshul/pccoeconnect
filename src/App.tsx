@@ -80,6 +80,7 @@ const AnimatedRoutes = () => {
         <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
+        <Route path="/post/:postId" element={<ProtectedRoute><PostView /></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
       </Routes>
     </AnimatePresence>
