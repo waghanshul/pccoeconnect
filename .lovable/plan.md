@@ -1,20 +1,22 @@
 
 
-# Fix OG Meta Tags for Link Previews
+# Update OG Preview Image
 
 ## Problem
-When sharing the site link externally (WhatsApp, Discord, etc.), the preview shows "Lovable Generated Project" because `index.html` still has default Lovable meta tags.
+The `og:image` in `index.html` currently points to `/og-image.png` which shows Lovable branding when sharing links.
+
+## Solution
+Take a screenshot of the ChatPCCOE landing page and use it as the OG image.
 
 ## Changes
 
-### `index.html`
-- Update `<meta name="description">` from "Lovable Generated Project" to a proper ChatPCCOE description
-- Update `<meta name="author">` from "Lovable" to "ChatPCCOE"
-- Update/add `<meta property="og:title">` to "ChatPCCOE"
-- Update/add `<meta property="og:description">` with a proper app description
-- Add `<meta property="og:url">` pointing to `https://chatpccoe.com`
-- Add `<meta property="og:type" content="website">`
-- Keep the existing `og:image` tag (update if you have a custom preview image)
+### 1. Generate OG image
+- Capture/create a 1200x630px image of the ChatPCCOE landing page
+- Save it as `public/og-image.png`, replacing the existing one
 
-This ensures any platform that scrapes OG tags will show your branding instead of "Lovable Generated Project."
+### 2. Update `index.html`
+- Update the `og:image` meta tag to use an absolute URL: `https://chatpccoe.lovable.app/og-image.png`
+- Add `og:image:width` (1200) and `og:image:height` (630) meta tags for better platform support
+
+This will replace the Lovable-branded preview with a screenshot of your actual landing page when sharing links.
 
