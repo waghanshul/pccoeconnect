@@ -1,21 +1,20 @@
 
 
-# Fix Notification Tabs Layout
+# Fix OG Meta Tags for Link Previews
 
 ## Problem
-The notification category tabs use a horizontal scrolling container (`overflow-x-auto`) that feels awkward. All 8 tabs are in one long row requiring scroll.
-
-## Solution
-Replace the horizontal scrolling tab bar with a **wrapping grid/flex layout** so all categories are visible at once without scrolling.
+When sharing the site link externally (WhatsApp, Discord, etc.), the preview shows "Lovable Generated Project" because `index.html` still has default Lovable meta tags.
 
 ## Changes
 
-### `src/components/notifications/NotificationTabs.tsx`
-- Remove the `overflow-x-auto scrollbar-hide` wrapper div
-- Change `TabsList` from `inline-flex w-max` to `flex flex-wrap w-full`
-- Use a responsive grid or wrapping flex so tabs flow into 2 rows naturally
-- Keep icons, labels, and count badges as-is
-- Slightly increase tap target size for better accessibility
+### `index.html`
+- Update `<meta name="description">` from "Lovable Generated Project" to a proper ChatPCCOE description
+- Update `<meta name="author">` from "Lovable" to "ChatPCCOE"
+- Update/add `<meta property="og:title">` to "ChatPCCOE"
+- Update/add `<meta property="og:description">` with a proper app description
+- Add `<meta property="og:url">` pointing to `https://chatpccoe.com`
+- Add `<meta property="og:type" content="website">`
+- Keep the existing `og:image` tag (update if you have a custom preview image)
 
-The result: all 8 category tabs visible in a compact 2-row wrapped layout, no horizontal scrolling needed.
+This ensures any platform that scrapes OG tags will show your branding instead of "Lovable Generated Project."
 
