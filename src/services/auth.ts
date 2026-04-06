@@ -19,8 +19,12 @@ export async function checkExistingUser(prn: string) {
 
 export async function registerUser(values: FormData) {
   try {
-    // Register with Supabase Auth
-    // Pass all user metadata to be used by the database trigger
+    // Auto-detect role based on email pattern
+    // Professor emails have no digits in local part (e.g. rucha.shinde@pccoepune.org)
+    // Student emails contain digits (e.g. mangal.singhal22@pccoepune.org)
+    const localPart = values.email.split('@')[0];
+    const detectedRole = /\d/.test(localPart) ? 'student' : 'admin';
+
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: values.email,
       password: values.password,
@@ -31,7 +35,7 @@ export async function registerUser(values: FormData) {
           branch: values.branch,
           year: values.year,
           recoveryEmail: values.recoveryEmail,
-          role: 'student'
+          role: detectedRole
         }
       }
     });

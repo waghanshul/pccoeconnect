@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { AdminRegisterForm } from "./AdminRegisterForm";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { validatePCCOEEmail, checkRateLimit, logSecurityEvent } from "@/services/security";
+import { validatePCCOEEmail, isProfessorEmail, checkRateLimit, logSecurityEvent } from "@/services/security";
 
 export const AdminLoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
