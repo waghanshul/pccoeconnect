@@ -25,6 +25,24 @@ export const StudentLoginForm = () => {
         return;
       }
       
+      // Check profile role to redirect professors to admin dashboard
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser) {
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", authUser.id)
+          .single();
+        
+        if (profileData?.role === 'admin') {
+          toast.success("Signed in as Faculty!");
+          navigate("/admin/dashboard");
+          return;
+        }
+      }
+      
       toast.success("Signed in!");
       navigate("/home");
     } catch (error) {

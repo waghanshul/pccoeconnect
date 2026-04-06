@@ -60,7 +60,7 @@ const Landing = () => {
                 
                 <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.35 }} className="text-center space-y-4">
                   <h2 className="text-3xl font-semibold">
-                    Sign in as <span className="gradient-text">{role?.charAt(0).toUpperCase() + role?.slice(1)}</span>
+                    Sign in as <span className="gradient-text">{role === "student" ? "Student / Professor" : "Admin"}</span>
                   </h2>
                   <p className="text-muted-foreground">
                     Enter your credentials to continue

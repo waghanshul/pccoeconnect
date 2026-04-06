@@ -19,9 +19,16 @@ import { useAuth } from "@/context/AuthContext";
 
 const adminFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email().refine((email) => email.endsWith("@pccoepune.org"), {
-    message: "Must be a valid PCCOE email address",
-  }),
+  email: z.string().email()
+    .refine((email) => email.endsWith("@pccoepune.org"), {
+      message: "Must be a valid PCCOE email address",
+    })
+    .refine((email) => {
+      const localPart = email.split('@')[0];
+      return !/\d/.test(localPart);
+    }, {
+      message: "Admin access is restricted to faculty accounts. Student emails (containing numbers) cannot be used for admin registration.",
+    }),
   prn: z.string().min(7, "PRN must be at least 7 characters").max(20, "PRN is too long"),
   branch: z.string().min(2, "Branch is required"),
   birthDate: z.string().min(1, "Birth date is required"),

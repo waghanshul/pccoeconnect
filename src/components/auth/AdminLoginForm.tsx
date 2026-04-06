@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { AdminRegisterForm } from "./AdminRegisterForm";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { validatePCCOEEmail, checkRateLimit, logSecurityEvent } from "@/services/security";
+import { validatePCCOEEmail, isProfessorEmail, checkRateLimit, logSecurityEvent } from "@/services/security";
 
 export const AdminLoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
@@ -32,6 +32,12 @@ export const AdminLoginForm = () => {
       if (!validatePCCOEEmail(credentials.email)) {
         toast.error("Please use your PCCOE email address");
         await logSecurityEvent('invalid_email_attempt', { email: credentials.email });
+        return;
+      }
+
+      if (!isProfessorEmail(credentials.email)) {
+        toast.error("Admin access is restricted to faculty accounts. Student emails cannot be used here.");
+        await logSecurityEvent('student_admin_attempt', { email: credentials.email });
         return;
       }
       

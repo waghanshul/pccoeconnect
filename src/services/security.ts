@@ -10,6 +10,12 @@ export const validatePCCOEEmail = (email: string): boolean => {
   return email.endsWith('@pccoepune.org');
 };
 
+export const isProfessorEmail = (email: string): boolean => {
+  if (!validatePCCOEEmail(email)) return false;
+  const localPart = email.split('@')[0];
+  return !/\d/.test(localPart);
+};
+
 export const sanitizeInput = (input: string): string => {
   return input
     .trim()

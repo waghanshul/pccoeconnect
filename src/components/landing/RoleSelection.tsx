@@ -43,9 +43,9 @@ export const RoleSelection = ({ role, setRole, setStep }: RoleSelectionProps) =>
           {
             roleKey: "student" as const,
             icon: GraduationCap,
-            title: "Student",
-            desc: "Access study materials and connect with peers",
-            features: ["Access to academic resources", "Connect with classmates", "Join study groups", "Track academic events"],
+            title: "Student / Professor",
+            desc: "Access study materials, connect with peers and faculty",
+            features: ["Access to academic resources", "Connect with classmates & faculty", "Join study groups", "Track academic events"],
           },
           {
             roleKey: "admin" as const,
