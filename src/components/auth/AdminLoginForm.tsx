@@ -34,6 +34,12 @@ export const AdminLoginForm = () => {
         await logSecurityEvent('invalid_email_attempt', { email: credentials.email });
         return;
       }
+
+      if (!isProfessorEmail(credentials.email)) {
+        toast.error("Admin access is restricted to faculty accounts. Student emails cannot be used here.");
+        await logSecurityEvent('student_admin_attempt', { email: credentials.email });
+        return;
+      }
       
       if (credentials.password.length < 6) {
         toast.error("Password must be at least 6 characters");
