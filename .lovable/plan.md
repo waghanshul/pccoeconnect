@@ -1,26 +1,43 @@
 
 
-# Add "Resend Verification Email" Button to Login Forms
+# Fix: Cannot Delete Users from Supabase
 
-## What This Does
-Adds a "Resend verification email" button that appears on both login forms (Student/Professor and Admin) when a user tries to log in but their email isn't verified yet. Uses Supabase's `supabase.auth.resend()` method.
+## Problem
+Four foreign key constraints on `connections_notifications` and `connections_v2` tables use `NO ACTION` on delete, which blocks Supabase from deleting users. When you try to delete a user, Postgres refuses because rows in these tables still reference the user.
 
-## Changes
+## Root Cause
+These constraints lack `ON DELETE CASCADE`:
+- `connections_notifications.user_id` → `auth.users`
+- `connections_notifications.from_user_id` → `auth.users`
+- `connections_v2.sender_id` → `auth.users`
+- `connections_v2.receiver_id` → `auth.users`
 
-### 1. `src/components/auth/StudentLoginForm.tsx`
-- Add `showResendButton` state (boolean, default false)
-- When the unconfirmed email check triggers (line 32-36), set `showResendButton = true` instead of just showing a toast
-- Add a `handleResendVerification` function that calls `supabase.auth.resend({ type: 'signup', email: credentials.email })` with a success/error toast and a cooldown to prevent spam
-- Render the resend button below the Sign In button, conditionally visible when `showResendButton` is true
+All other public tables (`profiles`, `social_posts`, `post_likes`, `post_comments`, `poll_votes`) already have `ON DELETE CASCADE` and are fine.
 
-### 2. `src/components/auth/AdminLoginForm.tsx`
-- Same pattern: add `showResendButton` state
-- When unconfirmed email is detected (line 65-69), set `showResendButton = true`
-- Add the same `handleResendVerification` function
-- Render the resend button below the Sign In button (before the "Create Admin Account" section)
+## Fix
+One SQL migration that drops the four constraints and re-creates them with `ON DELETE CASCADE`:
 
-### Button Design
-- Uses `variant="link"` styling with a mail icon
-- Shows "Resending..." state while in progress
-- After sending, shows a success toast with "Verification email sent! Check your inbox." and disables the button for 60 seconds to prevent spam
+```sql
+ALTER TABLE connections_notifications
+  DROP CONSTRAINT connections_notifications_user_id_fkey,
+  ADD CONSTRAINT connections_notifications_user_id_fkey
+    FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE connections_notifications
+  DROP CONSTRAINT connections_notifications_from_user_id_fkey,
+  ADD CONSTRAINT connections_notifications_from_user_id_fkey
+    FOREIGN KEY (from_user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE connections_v2
+  DROP CONSTRAINT connections_v2_sender_id_fkey,
+  ADD CONSTRAINT connections_v2_sender_id_fkey
+    FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+ALTER TABLE connections_v2
+  DROP CONSTRAINT connections_v2_receiver_id_fkey,
+  ADD CONSTRAINT connections_v2_receiver_id_fkey
+    FOREIGN KEY (receiver_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+```
+
+No frontend code changes needed. After this migration, deleting a user from the Supabase dashboard will automatically clean up their connections and notifications.
 
