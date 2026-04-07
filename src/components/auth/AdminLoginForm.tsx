@@ -14,6 +14,9 @@ export const AdminLoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(false);
   const navigate = useNavigate();
   const { signIn, userRole } = useAuth();
 

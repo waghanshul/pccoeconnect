@@ -5,14 +5,37 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Mail } from "lucide-react";
 
 export const StudentLoginForm = () => {
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showResendButton, setShowResendButton] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(false);
   const navigate = useNavigate();
   const { signIn } = useAuth();
+
+  const handleResendVerification = async () => {
+    if (resendCooldown || isResending) return;
+    setIsResending(true);
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.auth.resend({ type: 'signup', email: credentials.email });
+      if (error) {
+        toast.error("Failed to resend verification email. Please try again.");
+      } else {
+        toast.success("Verification email sent! Check your inbox.");
+        setResendCooldown(true);
+        setTimeout(() => setResendCooldown(false), 60000);
+      }
+    } catch {
+      toast.error("Failed to resend verification email.");
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,12 +48,12 @@ export const StudentLoginForm = () => {
         return;
       }
       
-      // Check if email is confirmed
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       if (currentUser && !currentUser.email_confirmed_at) {
         toast.error("Please verify your email before signing in. Check your inbox for a confirmation link.", { duration: 6000 });
+        setShowResendButton(true);
         await supabase.auth.signOut();
         return;
       }
@@ -101,9 +124,9 @@ export const StudentLoginForm = () => {
             disabled={isLoading}
           >
             {showPassword ? (
-              <EyeOff className="h-4 w-4 text-gray-500" />
+              <EyeOff className="h-4 w-4 text-muted-foreground" />
             ) : (
-              <Eye className="h-4 w-4 text-gray-500" />
+              <Eye className="h-4 w-4 text-muted-foreground" />
             )}
           </Button>
         </div>
@@ -111,6 +134,18 @@ export const StudentLoginForm = () => {
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Signing in..." : "Sign In"}
       </Button>
+      {showResendButton && (
+        <Button
+          type="button"
+          variant="link"
+          className="w-full gap-2"
+          onClick={handleResendVerification}
+          disabled={isResending || resendCooldown}
+        >
+          <Mail className="h-4 w-4" />
+          {isResending ? "Resending..." : resendCooldown ? "Email sent — check your inbox" : "Resend verification email"}
+        </Button>
+      )}
     </form>
   );
 };
