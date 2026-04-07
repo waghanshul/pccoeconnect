@@ -58,9 +58,15 @@ export const AdminLoginForm = () => {
         return;
       }
 
-      // Verify the user actually has admin role in the database
+      // Verify email is confirmed and user has admin role
       const { supabase } = await import("@/integrations/supabase/client");
       const { data: { user: authUser } } = await supabase.auth.getUser();
+      
+      if (authUser && !authUser.email_confirmed_at) {
+        toast.error("Please verify your email before signing in. Check your inbox for a confirmation link.", { duration: 6000 });
+        await supabase.auth.signOut();
+        return;
+      }
       
       if (authUser) {
         const { data: profileData } = await supabase

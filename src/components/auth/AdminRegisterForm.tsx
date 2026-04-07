@@ -84,8 +84,8 @@ export function AdminRegisterForm() {
         return;
       }
       
-      toast.success("Admin registration successful! Please check your email to confirm your account.", {
-        duration: 6000,
+      toast.success("Admin registration successful! You MUST verify your email before you can sign in. Check your inbox for a confirmation link.", {
+        duration: 8000,
       });
       form.reset();
     } catch (error) {

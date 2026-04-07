@@ -19,14 +19,21 @@ export const StudentLoginForm = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await signIn(credentials.email, credentials.password);
+      const { error, data } = await signIn(credentials.email, credentials.password);
       if (error) {
         toast.error("Invalid email or password");
         return;
       }
       
-      // Check profile role to redirect professors to admin dashboard
+      // Check if email is confirmed
       const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (currentUser && !currentUser.email_confirmed_at) {
+        toast.error("Please verify your email before signing in. Check your inbox for a confirmation link.", { duration: 6000 });
+        await supabase.auth.signOut();
+        return;
+      }
       const { data: { user: authUser } } = await supabase.auth.getUser();
       
       if (authUser) {

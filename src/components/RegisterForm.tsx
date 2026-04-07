@@ -59,8 +59,8 @@ export function RegisterForm() {
         return;
       }
       
-      toast.success("Registration successful! Please check your email to confirm your account.", {
-        duration: 6000,
+      toast.success("Registration successful! You MUST verify your email before you can sign in. Check your inbox for a confirmation link from ChatPCCOE.", {
+        duration: 8000,
       });
       form.reset();
     } catch (error) {
