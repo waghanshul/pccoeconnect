@@ -1,27 +1,26 @@
 
 
-# Enable Email Verification for Registration
+# Add "Resend Verification Email" Button to Login Forms
 
 ## What This Does
-Users who register must confirm their email before they can log in. This prevents fake `@pccoepune.org` accounts from accessing the platform.
+Adds a "Resend verification email" button that appears on both login forms (Student/Professor and Admin) when a user tries to log in but their email isn't verified yet. Uses Supabase's `supabase.auth.resend()` method.
 
-## How It Works
-Supabase already sends confirmation emails on signup — but currently the app doesn't check if the email is confirmed before granting access. We need to:
+## Changes
 
-1. **Enable email confirmation in Supabase config** (`supabase/config.toml`) — set `enable_confirmations = true` under `[auth]`
+### 1. `src/components/auth/StudentLoginForm.tsx`
+- Add `showResendButton` state (boolean, default false)
+- When the unconfirmed email check triggers (line 32-36), set `showResendButton = true` instead of just showing a toast
+- Add a `handleResendVerification` function that calls `supabase.auth.resend({ type: 'signup', email: credentials.email })` with a success/error toast and a cooldown to prevent spam
+- Render the resend button below the Sign In button, conditionally visible when `showResendButton` is true
 
-2. **Handle unconfirmed users on login** — After `signIn`, check if the user's email is confirmed. If not, show a message like "Please check your inbox and verify your email before signing in" and sign them out.
+### 2. `src/components/auth/AdminLoginForm.tsx`
+- Same pattern: add `showResendButton` state
+- When unconfirmed email is detected (line 65-69), set `showResendButton = true`
+- Add the same `handleResendVerification` function
+- Render the resend button below the Sign In button (before the "Create Admin Account" section)
 
-3. **Update the registration success message** — Make it clearer that they MUST click the confirmation link before they can log in.
-
-## Files Modified
-
-1. **`supabase/config.toml`** — Add `[auth]` section with `enable_confirmations = true`
-2. **`src/components/auth/StudentLoginForm.tsx`** — After successful `signIn`, check `user.email_confirmed_at`. If null, show toast and sign out.
-3. **`src/components/auth/AdminLoginForm.tsx`** — Same unconfirmed email check after login.
-4. **`src/components/RegisterForm.tsx`** — Update success toast to emphasize email verification requirement.
-5. **`src/components/auth/AdminRegisterForm.tsx`** — Same registration success message update.
-
-## Important Note
-Email confirmation must also be enabled in the **Supabase Dashboard** (Authentication > Settings > Enable email confirmations). The `config.toml` change applies to local dev; the dashboard setting controls production. I'll flag this as a manual step.
+### Button Design
+- Uses `variant="link"` styling with a mail icon
+- Shows "Resending..." state while in progress
+- After sending, shows a success toast with "Verification email sent! Check your inbox." and disables the button for 60 seconds to prevent spam
 
