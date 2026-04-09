@@ -1,43 +1,67 @@
 
 
-# Fix: Cannot Delete Users from Supabase
+# Admin Dashboard Enhancements
 
-## Problem
-Four foreign key constraints on `connections_notifications` and `connections_v2` tables use `NO ACTION` on delete, which blocks Supabase from deleting users. When you try to delete a user, Postgres refuses because rows in these tables still reference the user.
+## Overview
+Three changes: grant your account admin access, then build out the admin dashboard with user count, student list, and post deletion.
 
-## Root Cause
-These constraints lack `ON DELETE CASCADE`:
-- `connections_notifications.user_id` → `auth.users`
-- `connections_notifications.from_user_id` → `auth.users`
-- `connections_v2.sender_id` → `auth.users`
-- `connections_v2.receiver_id` → `auth.users`
+## Changes
 
-All other public tables (`profiles`, `social_posts`, `post_likes`, `post_comments`, `poll_votes`) already have `ON DELETE CASCADE` and are fine.
+### 1. Grant Admin Exception for Your Account
 
-## Fix
-One SQL migration that drops the four constraints and re-creates them with `ON DELETE CASCADE`:
+**Problem**: Your email `anshul.wagh22@pccoepune.org` contains digits, so the DB trigger assigns "student" and the admin login form blocks it via `isProfessorEmail`.
 
+**Fix (3 places)**:
+- **`src/services/security.ts`** — Update `isProfessorEmail` to whitelist `anshul.wagh22@pccoepune.org`
+- **DB trigger `handle_new_user_registration`** — Add exception so this email gets 'admin' role instead of 'student'
+- If you already registered, a data migration to update your profile role to 'admin'
+
+### 2. Admin Dashboard — Total User Count (Stats Card)
+
+**`src/pages/AdminDashboard.tsx`**:
+- Add an "Overview" tab (or stats cards at the top before tabs)
+- Fetch `SELECT count(*) FROM profiles` and `SELECT count(*) FROM profiles WHERE role = 'student'` on mount
+- Display stat cards: "Total Users", "Students", "Admins"
+
+### 3. Admin Dashboard — Students List (Real Data)
+
+**`src/pages/AdminDashboard.tsx`**:
+- Replace mock data in "Students Data" tab with real Supabase query
+- Fetch from `profiles` joined with `student_profiles`: name, email, branch, year, PRN, status
+- Display in the existing table with proper columns
+
+### 4. Admin Can Delete Any Post
+
+**Database**: Add a new RLS policy on `social_posts` for DELETE that allows admins:
 ```sql
-ALTER TABLE connections_notifications
-  DROP CONSTRAINT connections_notifications_user_id_fkey,
-  ADD CONSTRAINT connections_notifications_user_id_fkey
-    FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-ALTER TABLE connections_notifications
-  DROP CONSTRAINT connections_notifications_from_user_id_fkey,
-  ADD CONSTRAINT connections_notifications_from_user_id_fkey
-    FOREIGN KEY (from_user_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-ALTER TABLE connections_v2
-  DROP CONSTRAINT connections_v2_sender_id_fkey,
-  ADD CONSTRAINT connections_v2_sender_id_fkey
-    FOREIGN KEY (sender_id) REFERENCES auth.users(id) ON DELETE CASCADE;
-
-ALTER TABLE connections_v2
-  DROP CONSTRAINT connections_v2_receiver_id_fkey,
-  ADD CONSTRAINT connections_v2_receiver_id_fkey
-    FOREIGN KEY (receiver_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+CREATE POLICY "Admins can delete any post"
+ON social_posts FOR DELETE TO authenticated
+USING (EXISTS (
+  SELECT 1 FROM profiles
+  WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
+));
 ```
 
-No frontend code changes needed. After this migration, deleting a user from the Supabase dashboard will automatically clean up their connections and notifications.
+**`src/pages/AdminDashboard.tsx`**:
+- Add a "Posts" tab showing all social posts fetched from `social_posts` with author info
+- Each post row has a delete button that calls `supabase.from('social_posts').delete().eq('id', postId)`
+- Confirmation dialog before deletion
+
+## Files Modified
+1. `src/services/security.ts` — whitelist email
+2. `src/pages/AdminDashboard.tsx` — full rebuild with stats, real student list, posts management
+3. DB migration — update trigger + add admin delete policy on social_posts + update existing profile role
+
+## UI Layout
+```text
++------------------------------------------+
+| Admin Dashboard                          |
++------------------------------------------+
+| [Total Users: 3] [Students: 2] [Admin: 1]|
++------------------------------------------+
+| [Overview] [Notifications] [Students] [Posts] |
++------------------------------------------+
+| (tab content)                            |
++------------------------------------------+
+```
 
