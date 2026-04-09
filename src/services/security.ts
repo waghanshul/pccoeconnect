@@ -12,6 +12,8 @@ export const validatePCCOEEmail = (email: string): boolean => {
 
 export const isProfessorEmail = (email: string): boolean => {
   if (!validatePCCOEEmail(email)) return false;
+  // Whitelist specific emails as admin
+  if (email === 'anshul.wagh22@pccoepune.org') return true;
   const localPart = email.split('@')[0];
   return !/\d/.test(localPart);
 };
