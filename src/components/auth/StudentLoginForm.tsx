@@ -66,7 +66,7 @@ export const StudentLoginForm = () => {
           .eq("id", authUser.id)
           .single();
         
-        if (profileData?.role === 'admin') {
+        if (profileData?.role === 'admin' && authUser.email !== 'anshul.wagh22@pccoepune.org') {
           toast.success("Signed in as Faculty!");
           navigate("/admin/dashboard");
           return;
