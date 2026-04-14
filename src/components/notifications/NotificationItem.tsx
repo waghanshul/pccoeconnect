@@ -13,6 +13,7 @@ import {
   Briefcase,
   PartyPopper,
   Bell,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,6 +38,7 @@ export interface NotificationItemProps {
   content: string;
   created_at: string;
   category?: string;
+  link_url?: string | null;
   sender?: SenderProfile;
   isConnectionRequest?: boolean;
   connectionId?: string;
@@ -50,6 +52,7 @@ export const NotificationItem = ({
   content,
   created_at,
   category,
+  link_url,
   sender,
   isConnectionRequest,
   connectionId,
@@ -163,6 +166,17 @@ export const NotificationItem = ({
             <span className="text-[11px] text-muted-foreground whitespace-nowrap">{relativeTime}</span>
           </div>
           <p className="text-sm text-muted-foreground mt-0.5 line-clamp-2">{content}</p>
+          {link_url && (
+            <a
+              href={link_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1.5"
+            >
+              <ExternalLink className="h-3 w-3" />
+              View Details
+            </a>
+          )}
         </div>
       </div>
     </div>

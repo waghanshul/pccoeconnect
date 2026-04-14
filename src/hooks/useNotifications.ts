@@ -10,6 +10,7 @@ export interface Notification {
   category: string;
   created_at: string;
   sender_id?: string;
+  link_url?: string | null;
   sender?: {
     avatar_url?: string;
     full_name: string;
