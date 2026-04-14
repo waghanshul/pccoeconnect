@@ -256,7 +256,7 @@ const AdminDashboard = () => {
     }
     setIsSending(true);
     try {
-      const insertData: Record<string, unknown> = {
+      const insertData: { title: string; content: string; category: string; sender_id: string; link_url?: string } = {
         title: notificationTitle.trim(),
         content: notificationText.trim(),
         category: selectedCategory,
