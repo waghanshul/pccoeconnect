@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, Trash2, Users, GraduationCap, ShieldCheck, Link as LinkIcon } from "lucide-react";
+import { Loader2, Send, Trash2, Users, GraduationCap, ShieldCheck, Link as LinkIcon, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
@@ -71,6 +72,12 @@ interface PostRow {
 const AdminDashboard = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   // Notifications state
   const [notificationTitle, setNotificationTitle] = useState("");
@@ -310,7 +317,13 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background p-6 pt-8">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Button variant="outline" onClick={handleLogout} className="gap-2">
+          <LogOut className="h-4 w-4" />
+          Logout
+        </Button>
+      </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4 mb-8">
