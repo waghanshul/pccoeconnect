@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, Trash2, Users, GraduationCap, ShieldCheck } from "lucide-react";
+import { Loader2, Send, Trash2, Users, GraduationCap, ShieldCheck, Link as LinkIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
@@ -34,6 +34,7 @@ interface SentNotification {
   content: string;
   category: string;
   created_at: string;
+  link_url: string | null;
 }
 
 interface StudentRow {
@@ -45,6 +46,16 @@ interface StudentRow {
   branch?: string;
   year?: string;
   prn?: string;
+}
+
+interface AdminRow {
+  id: string;
+  full_name: string;
+  email: string;
+  status: string | null;
+  designation?: string;
+  department?: string;
+  employee_id?: string;
 }
 
 interface PostRow {
@@ -64,10 +75,12 @@ const AdminDashboard = () => {
   // Notifications state
   const [notificationTitle, setNotificationTitle] = useState("");
   const [notificationText, setNotificationText] = useState("");
+  const [notificationLinkUrl, setNotificationLinkUrl] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Sports");
   const [isSending, setIsSending] = useState(false);
   const [sentNotifications, setSentNotifications] = useState<SentNotification[]>([]);
   const [isLoadingSent, setIsLoadingSent] = useState(false);
+  const [deletingNotifId, setDeletingNotifId] = useState<string | null>(null);
 
   // Stats state
   const [totalUsers, setTotalUsers] = useState(0);
@@ -77,6 +90,10 @@ const AdminDashboard = () => {
   // Students state
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
+
+  // Admins state
+  const [admins, setAdmins] = useState<AdminRow[]>([]);
+  const [isLoadingAdmins, setIsLoadingAdmins] = useState(false);
 
   // Posts state
   const [posts, setPosts] = useState<PostRow[]>([]);
@@ -95,22 +112,20 @@ const AdminDashboard = () => {
   }, []);
 
   const fetchSentNotifications = useCallback(async () => {
-    if (!user) return;
     setIsLoadingSent(true);
     try {
       const { data, error } = await supabase
         .from("notifications")
-        .select("id, title, content, category, created_at")
-        .eq("sender_id", user.id)
+        .select("id, title, content, category, created_at, link_url")
         .order("created_at", { ascending: false });
       if (error) throw error;
       setSentNotifications(data || []);
     } catch (error) {
-      console.error("Error fetching sent notifications:", error);
+      console.error("Error fetching notifications:", error);
     } finally {
       setIsLoadingSent(false);
     }
-  }, [user]);
+  }, []);
 
   const fetchStudents = useCallback(async () => {
     setIsLoadingStudents(true);
@@ -146,6 +161,43 @@ const AdminDashboard = () => {
       console.error("Error fetching students:", error);
     } finally {
       setIsLoadingStudents(false);
+    }
+  }, []);
+
+  const fetchAdmins = useCallback(async () => {
+    setIsLoadingAdmins(true);
+    try {
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, status")
+        .eq("role", "admin")
+        .order("full_name");
+      if (profilesError) throw profilesError;
+
+      const ids = (profilesData || []).map((p) => p.id);
+      let adminMap: Record<string, { designation: string; department: string; employee_id: string }> = {};
+      if (ids.length > 0) {
+        const { data: apData } = await supabase
+          .from("admin_profiles")
+          .select("id, designation, department, employee_id")
+          .in("id", ids);
+        (apData || []).forEach((ap) => {
+          adminMap[ap.id] = { designation: ap.designation, department: ap.department, employee_id: ap.employee_id };
+        });
+      }
+
+      setAdmins(
+        (profilesData || []).map((p) => ({
+          ...p,
+          designation: adminMap[p.id]?.designation,
+          department: adminMap[p.id]?.department,
+          employee_id: adminMap[p.id]?.employee_id,
+        }))
+      );
+    } catch (error) {
+      console.error("Error fetching admins:", error);
+    } finally {
+      setIsLoadingAdmins(false);
     }
   }, []);
 
@@ -189,8 +241,9 @@ const AdminDashboard = () => {
     fetchStats();
     fetchSentNotifications();
     fetchStudents();
+    fetchAdmins();
     fetchPosts();
-  }, [fetchStats, fetchSentNotifications, fetchStudents, fetchPosts]);
+  }, [fetchStats, fetchSentNotifications, fetchStudents, fetchAdmins, fetchPosts]);
 
   const handleSendNotification = async () => {
     if (!notificationTitle.trim() || !notificationText.trim()) {
@@ -203,21 +256,40 @@ const AdminDashboard = () => {
     }
     setIsSending(true);
     try {
-      const { error } = await supabase.from("notifications").insert({
+      const insertData: { title: string; content: string; category: string; sender_id: string; link_url?: string } = {
         title: notificationTitle.trim(),
         content: notificationText.trim(),
         category: selectedCategory,
         sender_id: user.id,
-      });
+      };
+      if (notificationLinkUrl.trim()) {
+        insertData.link_url = notificationLinkUrl.trim();
+      }
+      const { error } = await supabase.from("notifications").insert(insertData);
       if (error) throw error;
       toast({ title: "Success", description: `Notification sent to ${selectedCategory} category` });
       setNotificationTitle("");
       setNotificationText("");
+      setNotificationLinkUrl("");
       fetchSentNotifications();
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to send notification", variant: "destructive" });
     } finally {
       setIsSending(false);
+    }
+  };
+
+  const handleDeleteNotification = async (notifId: string) => {
+    setDeletingNotifId(notifId);
+    try {
+      const { error } = await supabase.from("notifications").delete().eq("id", notifId);
+      if (error) throw error;
+      toast({ title: "Deleted", description: "Notification has been removed" });
+      setSentNotifications((prev) => prev.filter((n) => n.id !== notifId));
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete notification", variant: "destructive" });
+    } finally {
+      setDeletingNotifId(null);
     }
   };
 
@@ -275,6 +347,7 @@ const AdminDashboard = () => {
         <TabsList className="w-full justify-start mb-8 bg-muted/50 p-1 rounded-xl">
           <TabsTrigger value="notifications" className="rounded-lg">Notifications</TabsTrigger>
           <TabsTrigger value="students" className="rounded-lg">Students</TabsTrigger>
+          <TabsTrigger value="admins" className="rounded-lg">Admins</TabsTrigger>
           <TabsTrigger value="posts" className="rounded-lg">Posts</TabsTrigger>
         </TabsList>
 
@@ -300,6 +373,10 @@ const AdminDashboard = () => {
                 <Input value={notificationTitle} onChange={(e) => setNotificationTitle(e.target.value)} placeholder="e.g. Exam Schedule Released" className="glass-input" />
               </div>
               <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Link URL (optional)</label>
+                <Input value={notificationLinkUrl} onChange={(e) => setNotificationLinkUrl(e.target.value)} placeholder="https://example.com/details" className="glass-input" />
+              </div>
+              <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1.5">Notification Text</label>
                 <Textarea value={notificationText} onChange={(e) => setNotificationText(e.target.value)} placeholder="Enter notification message..." className="min-h-[100px] glass-input" />
               </div>
@@ -311,11 +388,11 @@ const AdminDashboard = () => {
           </div>
 
           <div className="glass-card p-6 rounded-xl">
-            <h2 className="text-lg font-semibold mb-4">Sent Notifications</h2>
+            <h2 className="text-lg font-semibold mb-4">All Notifications ({sentNotifications.length})</h2>
             {isLoadingSent ? (
               <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : sentNotifications.length === 0 ? (
-              <p className="text-muted-foreground text-center text-sm py-8">No notifications sent yet.</p>
+              <p className="text-muted-foreground text-center text-sm py-8">No notifications yet.</p>
             ) : (
               <div className="space-y-3">
                 {sentNotifications.map((notif) => (
@@ -327,7 +404,37 @@ const AdminDashboard = () => {
                       </div>
                       <h4 className="font-medium text-sm">{notif.title}</h4>
                       <p className="text-xs text-muted-foreground truncate">{notif.content}</p>
+                      {notif.link_url && (
+                        <a href={notif.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-1">
+                          <LinkIcon className="h-3 w-3" />
+                          {notif.link_url}
+                        </a>
+                      )}
                     </div>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive shrink-0">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Notification</AlertDialogTitle>
+                          <AlertDialogDescription>This will permanently remove this notification for all users. This action cannot be undone.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteNotification(notif.id)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deletingNotifId === notif.id}
+                          >
+                            {deletingNotifId === notif.id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 ))}
               </div>
@@ -367,6 +474,49 @@ const AdminDashboard = () => {
                         <TableCell>
                           <Badge variant={s.status === "online" ? "default" : "secondary"} className="text-[10px]">
                             {s.status || "offline"}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* ── Admins Tab ── */}
+        <TabsContent value="admins" className="space-y-6">
+          <div className="glass-card p-6 rounded-xl">
+            <h2 className="text-lg font-semibold mb-4">Registered Admins ({admins.length})</h2>
+            {isLoadingAdmins ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+            ) : admins.length === 0 ? (
+              <p className="text-muted-foreground text-center text-sm py-8">No admins registered yet.</p>
+            ) : (
+              <div className="relative overflow-x-auto rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border/30">
+                      <TableHead className="text-xs">Name</TableHead>
+                      <TableHead className="text-xs">Email</TableHead>
+                      <TableHead className="text-xs">Designation</TableHead>
+                      <TableHead className="text-xs">Department</TableHead>
+                      <TableHead className="text-xs">Employee ID</TableHead>
+                      <TableHead className="text-xs">Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {admins.map((a) => (
+                      <TableRow key={a.id} className="border-border/30">
+                        <TableCell className="font-medium text-sm">{a.full_name}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{a.email}</TableCell>
+                        <TableCell className="text-sm">{a.designation || "—"}</TableCell>
+                        <TableCell className="text-sm">{a.department || "—"}</TableCell>
+                        <TableCell className="text-sm">{a.employee_id || "—"}</TableCell>
+                        <TableCell>
+                          <Badge variant={a.status === "online" ? "default" : "secondary"} className="text-[10px]">
+                            {a.status || "offline"}
                           </Badge>
                         </TableCell>
                       </TableRow>
