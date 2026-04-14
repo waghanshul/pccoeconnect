@@ -1,26 +1,37 @@
 
 
-# Allow Dual Access for Whitelisted Account
+# Admin Dashboard Enhancements
 
-## Problem
-Your account (`anshul.wagh22@pccoepune.org`) has role `admin` in the database. When you log in via the student form, it detects the admin role and redirects you to `/admin/dashboard` — you can never reach `/home` (the student view).
+## Changes
 
-## Solution
-Two small changes:
+### 1. Admin Can Delete Notifications
+- **Database migration**: Add RLS policy on `notifications` table allowing admins to DELETE any notification
+- **`AdminDashboard.tsx`**: Add a delete button (with confirmation dialog) next to each sent notification in the "Sent Notifications" list. Also fetch ALL notifications (not just sender's) so admin can manage everything.
 
-### 1. `src/components/auth/StudentLoginForm.tsx`
-- Remove the auto-redirect to admin dashboard for your whitelisted email
-- When your email logs in via the student form, treat it as a student login and navigate to `/home` regardless of role
-- Other admin/faculty accounts logging in via student form will still redirect to admin dashboard
+### 2. Hyperlinks in Notifications
+- **Database migration**: Add a `link_url` column (nullable text) to the `notifications` table
+- **`AdminDashboard.tsx`**: Add an optional "Link URL" input field in the send notification form; store it when inserting
+- **`NotificationItem.tsx`**: If a notification has a `link_url`, render it as a clickable link (e.g., "View Details" button or make the notification card clickable, opening the URL in a new tab)
 
-### 2. `src/pages/AdminDashboard.tsx` (or Navigation)
-- No changes needed — your account already has admin role so the admin dashboard route will still work when you navigate there directly or log in via the admin form
+### 3. Admins List Tab
+- **`AdminDashboard.tsx`**: Add an "Admins" tab alongside Students/Posts. Fetch profiles where `role = 'admin'` joined with `admin_profiles` (designation, department, employee_id). Display in a table with columns: Name, Email, Designation, Department, Employee ID, Status.
 
-### Result
-- Login via **Admin form** → goes to `/admin/dashboard`
-- Login via **Student form** → goes to `/home`
-- Both routes are accessible since your profile role is `admin` and the `ProtectedRoute` for admin checks `userRole === 'admin'`
+## Files Modified
+1. `src/pages/AdminDashboard.tsx` — add delete notification handler, link_url input, admins tab
+2. `src/components/notifications/NotificationItem.tsx` — render link_url as clickable link
+3. DB migration — add `link_url` column to notifications, add admin DELETE policy on notifications
 
-### Files Modified
-1. `src/components/auth/StudentLoginForm.tsx` — skip admin redirect for `anshul.wagh22@pccoepune.org`
+## UI Layout
+```text
+Tabs: [Notifications] [Students] [Admins] [Posts]
+
+Send Notification form:
+  Category | Title | Link URL (optional) | Text | [Send]
+
+Sent Notifications list:
+  Each row now has a [Delete] button with confirmation
+
+Admins tab:
+  Table: Name | Email | Designation | Department | Employee ID | Status
+```
 
