@@ -1,37 +1,29 @@
 
 
-# Admin Dashboard Enhancements
+# Admin Notification Management + Admins List
 
 ## Changes
 
-### 1. Admin Can Delete Notifications
-- **Database migration**: Add RLS policy on `notifications` table allowing admins to DELETE any notification
-- **`AdminDashboard.tsx`**: Add a delete button (with confirmation dialog) next to each sent notification in the "Sent Notifications" list. Also fetch ALL notifications (not just sender's) so admin can manage everything.
+### 1. Database Migration
+- Add `link_url` (nullable text) column to `notifications` table
+- Add RLS policy allowing admins to DELETE from `notifications`
 
-### 2. Hyperlinks in Notifications
-- **Database migration**: Add a `link_url` column (nullable text) to the `notifications` table
-- **`AdminDashboard.tsx`**: Add an optional "Link URL" input field in the send notification form; store it when inserting
-- **`NotificationItem.tsx`**: If a notification has a `link_url`, render it as a clickable link (e.g., "View Details" button or make the notification card clickable, opening the URL in a new tab)
+### 2. Admin Dashboard (`AdminDashboard.tsx`)
+- **Send Notification form**: Add optional "Link URL" input field; include `link_url` in the insert
+- **Sent Notifications list**: Show all notifications (not just sender's), add delete button with confirmation dialog per notification, show link_url if present
+- **New "Admins" tab**: Fetch `profiles` where `role = 'admin'` joined with `admin_profiles`; display table with Name, Email, Designation, Department, Employee ID, Status
 
-### 3. Admins List Tab
-- **`AdminDashboard.tsx`**: Add an "Admins" tab alongside Students/Posts. Fetch profiles where `role = 'admin'` joined with `admin_profiles` (designation, department, employee_id). Display in a table with columns: Name, Email, Designation, Department, Employee ID, Status.
+### 3. Student-facing Notification (`NotificationItem.tsx`)
+- Accept optional `link_url` prop
+- If present, render a clickable "View Details" link (opens in new tab) below the notification content
+
+### 4. Notification Hook (`useNotifications.ts`)
+- Pass through `link_url` from the fetched notification data to the component
 
 ## Files Modified
-1. `src/pages/AdminDashboard.tsx` — add delete notification handler, link_url input, admins tab
-2. `src/components/notifications/NotificationItem.tsx` — render link_url as clickable link
-3. DB migration — add `link_url` column to notifications, add admin DELETE policy on notifications
-
-## UI Layout
-```text
-Tabs: [Notifications] [Students] [Admins] [Posts]
-
-Send Notification form:
-  Category | Title | Link URL (optional) | Text | [Send]
-
-Sent Notifications list:
-  Each row now has a [Delete] button with confirmation
-
-Admins tab:
-  Table: Name | Email | Designation | Department | Employee ID | Status
-```
+1. DB migration — `ALTER TABLE notifications ADD COLUMN link_url text`; admin DELETE policy
+2. `src/pages/AdminDashboard.tsx` — link_url input, delete notifications, admins tab
+3. `src/components/notifications/NotificationItem.tsx` — render link_url
+4. `src/hooks/useNotifications.ts` — include link_url in Notification type
+5. `src/components/notifications/NotificationList.tsx` — pass link_url through
 
