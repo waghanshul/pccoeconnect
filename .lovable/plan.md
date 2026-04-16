@@ -1,29 +1,30 @@
 
 
-# Admin Notification Management + Admins List
+# Adding Users to the Platform
 
-## Changes
+## The Constraint
+Supabase Auth users (`auth.users`) cannot be created via SQL migrations or direct inserts — they must go through the Auth signup API. The `profiles` and `student_profiles` tables are auto-populated by your existing database trigger on signup.
 
-### 1. Database Migration
-- Add `link_url` (nullable text) column to `notifications` table
-- Add RLS policy allowing admins to DELETE from `notifications`
+## Options
 
-### 2. Admin Dashboard (`AdminDashboard.tsx`)
-- **Send Notification form**: Add optional "Link URL" input field; include `link_url` in the insert
-- **Sent Notifications list**: Show all notifications (not just sender's), add delete button with confirmation dialog per notification, show link_url if present
-- **New "Admins" tab**: Fetch `profiles` where `role = 'admin'` joined with `admin_profiles`; display table with Name, Email, Designation, Department, Employee ID, Status
+### Option A: Bulk Registration via Edge Function (Recommended)
+Create a Supabase Edge Function that uses the **Admin Auth API** (service role key) to create users programmatically. You'd provide a list of users, and the function would:
+1. Call `supabase.auth.admin.createUser()` for each user (with `email_confirm: true` to skip verification)
+2. The existing `handle_new_user_registration` trigger auto-populates `profiles` and `student_profiles`
 
-### 3. Student-facing Notification (`NotificationItem.tsx`)
-- Accept optional `link_url` prop
-- If present, render a clickable "View Details" link (opens in new tab) below the notification content
+You could then invoke it from the Admin Dashboard or via curl with a JSON payload of users.
 
-### 4. Notification Hook (`useNotifications.ts`)
-- Pass through `link_url` from the fetched notification data to the component
+### Option B: Manual Registration via Supabase Dashboard
+Go to the Supabase Auth dashboard and use "Add User" to create them one by one:
+https://supabase.com/dashboard/project/fkocqxfvrzkrguhbulam/auth/users
 
-## Files Modified
-1. DB migration — `ALTER TABLE notifications ADD COLUMN link_url text`; admin DELETE policy
-2. `src/pages/AdminDashboard.tsx` — link_url input, delete notifications, admins tab
-3. `src/components/notifications/NotificationItem.tsx` — render link_url
-4. `src/hooks/useNotifications.ts` — include link_url in Notification type
-5. `src/components/notifications/NotificationList.tsx` — pass link_url through
+### Option C: Admin Dashboard "Add User" Feature
+Add an "Add User" form to your Admin Dashboard that calls an Edge Function to create users via the Admin API.
+
+## Recommendation
+**Option C** is the most sustainable — it gives admins a UI to add users anytime. Option A is good for a one-time bulk import. Option B works for a handful of users.
+
+## What I Need From You
+1. Which option do you prefer?
+2. If A or C: provide the list of users (name, email, PRN, branch, year, password) you want added.
 
