@@ -46,8 +46,7 @@ export const formSchema = z.object({
     if (data.role === "student") return hasDigit;
     return !hasDigit;
   }, {
-    message:
-      "Email format does not match the selected role. Students: name.surname[year]@pccoepune.org. Professors: name.surname@pccoepune.org (no digits).",
+    message: "Invalid email",
     path: ["email"],
   })
   .refine((data) => {

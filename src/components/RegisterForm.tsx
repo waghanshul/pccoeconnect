@@ -95,11 +95,6 @@ export function RegisterForm() {
                 </SelectContent>
               </Select>
               <FormMessage />
-              <p className="text-xs text-muted-foreground">
-                {isStudent
-                  ? "Student email format: name.surname[joiningYear]@pccoepune.org (e.g. anshul.wagh22@pccoepune.org)"
-                  : "Professor email format: name.surname@pccoepune.org (no digits, e.g. rucha.shinde@pccoepune.org)"}
-              </p>
             </FormItem>
           )}
         />
