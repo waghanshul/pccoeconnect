@@ -137,7 +137,7 @@ const UserProfile = () => {
       setUserData({
         id: typedProfileData.id,
         name: typedProfileData.full_name || 'Guest User',
-        avatar: typedProfileData.avatar_url || "https://images.unsplash.com/photo-1531891437562-4301cf35b7e4?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=256&h=256&q=80",
+        avatar: typedProfileData.avatar_url || "",
         role: typedProfileData.role,
         department: extendedData.department || '',
         year: extendedData.year || '',
