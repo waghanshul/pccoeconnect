@@ -47,12 +47,13 @@ export function RegisterForm() {
   async function onSubmit(values: FormData) {
     setIsLoading(true);
     try {
-      // First check if user with this PRN already exists
-      const { existingUser, checkError } = await checkExistingUser(values.prn);
-      
-      if (existingUser) {
-        toast.error("A user with this PRN already exists");
-        return;
+      if (values.role === "student") {
+        // Check if a student with this PRN already exists
+        const { existingUser } = await checkExistingUser(values.prn);
+        if (existingUser) {
+          toast.error("A user with this PRN already exists");
+          return;
+        }
       }
       
       // Register the user
