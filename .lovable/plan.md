@@ -1,29 +1,38 @@
+# Remove Email Verification
 
-
-# Admin Notification Management + Admins List
+Users will be able to sign up and immediately sign in without confirming their email. The PCCOE domain restriction (`@pccoepune.org`) still gates who can register, and role logic still derives from email format — so security stays intact.
 
 ## Changes
 
-### 1. Database Migration
-- Add `link_url` (nullable text) column to `notifications` table
-- Add RLS policy allowing admins to DELETE from `notifications`
+### 1. Disable Supabase email confirmations
+**`supabase/config.toml`**
+- Change `enable_confirmations = true` → `enable_confirmations = false`
 
-### 2. Admin Dashboard (`AdminDashboard.tsx`)
-- **Send Notification form**: Add optional "Link URL" input field; include `link_url` in the insert
-- **Sent Notifications list**: Show all notifications (not just sender's), add delete button with confirmation dialog per notification, show link_url if present
-- **New "Admins" tab**: Fetch `profiles` where `role = 'admin'` joined with `admin_profiles`; display table with Name, Email, Designation, Department, Employee ID, Status
+This stops Supabase from requiring email verification on signup, which also eliminates the rate-limit error you were hitting.
 
-### 3. Student-facing Notification (`NotificationItem.tsx`)
-- Accept optional `link_url` prop
-- If present, render a clickable "View Details" link (opens in new tab) below the notification content
+### 2. Database migration — auto-confirm existing & new users
+- Run a one-time `UPDATE auth.users SET email_confirmed_at = now() WHERE email_confirmed_at IS NULL` so users who registered earlier but never verified can now sign in.
 
-### 4. Notification Hook (`useNotifications.ts`)
-- Pass through `link_url` from the fetched notification data to the component
+(New signups will be auto-confirmed by Supabase once `enable_confirmations = false`.)
 
-## Files Modified
-1. DB migration — `ALTER TABLE notifications ADD COLUMN link_url text`; admin DELETE policy
-2. `src/pages/AdminDashboard.tsx` — link_url input, delete notifications, admins tab
-3. `src/components/notifications/NotificationItem.tsx` — render link_url
-4. `src/hooks/useNotifications.ts` — include link_url in Notification type
-5. `src/components/notifications/NotificationList.tsx` — pass link_url through
+### 3. Frontend cleanup
+**`src/components/auth/StudentLoginForm.tsx`**
+- Remove the "please verify your email" check (`!currentUser.email_confirmed_at` block)
+- Remove `showResendButton`, `isResending`, `resendCooldown` state
+- Remove the `handleResendVerification` function and the "Resend verification email" button
+- Remove the `Mail` icon import
 
+**`src/components/RegisterForm.tsx`** (verify and clean up)
+- Remove any "check your email to confirm" toast/messaging shown after successful signup
+- After successful registration, sign the user in directly (or navigate to `/home` since they're auto-confirmed)
+
+### 4. What stays (security still intact)
+- `@pccoepune.org` domain enforcement at the form-validation level
+- Role derivation from email format (digits = student, no digits = professor/admin) in the `handle_new_user_registration` trigger
+- RLS policies and `has_role()` server-side checks
+- Password strength rules
+
+## Technical Notes
+- No edge function changes needed
+- No changes to RLS or role logic
+- `auth-email-hook` and email templates are not in use here, so nothing to disable on that front
