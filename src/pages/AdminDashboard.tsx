@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/context/AuthContext";
 import { format } from "date-fns";
+import { SUPERADMIN_SESSION_KEY } from "@/config/superadmin";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -75,7 +76,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    sessionStorage.removeItem(SUPERADMIN_SESSION_KEY);
     navigate("/");
   };
 
