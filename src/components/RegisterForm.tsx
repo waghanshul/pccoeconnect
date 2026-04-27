@@ -23,13 +23,17 @@ import { PasswordStrengthIndicator } from "@/components/ui/password-strength-ind
 import { useState } from "react";
 import { registerUser, checkExistingUser } from "@/services/auth";
 
-export function RegisterForm() {
+interface RegisterFormProps {
+  defaultRole?: "student" | "professor";
+}
+
+export function RegisterForm({ defaultRole = "student" }: RegisterFormProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      role: "student",
+      role: defaultRole,
       name: "",
       email: "",
       recoveryEmail: "",
