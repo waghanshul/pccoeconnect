@@ -64,7 +64,7 @@ export function RegisterForm() {
         return;
       }
       
-      toast.success("Account created! You can now sign in.", { duration: 5000 });
+      toast.success("Account created! You can now sign in.", { duration: 4000 });
       form.reset();
     } catch (error) {
       console.error("Registration error:", error);
