@@ -5,11 +5,10 @@ import { useUserStore } from "@/services/user";
 import { BasicInfoSection } from "@/components/settings/BasicInfoSection";
 import { AcademicInfoSection } from "@/components/settings/AcademicInfoSection";
 import { InterestsSection } from "@/components/settings/InterestsSection";
-import { NotificationPreferencesSection } from "@/components/settings/NotificationPreferencesSection";
 import { LoadingSpinner } from "@/components/settings/LoadingSpinner";
 import { PageTransition } from "@/components/ui/PageTransition";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { UserCog, GraduationCap, Sparkles, BellRing } from "lucide-react";
+import { UserCog, GraduationCap, Sparkles } from "lucide-react";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -32,12 +31,6 @@ const Settings = () => {
     recoveryEmail: "",
   });
   
-  const [notifications, setNotifications] = useState({
-    email: true,
-    browser: true,
-    app: true,
-  });
-
   useEffect(() => {
     if (user) {
       fetchUserProfile(user.id)
@@ -86,7 +79,7 @@ const Settings = () => {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-3xl font-bold mb-8">Settings</h1>
             
-            <Accordion type="multiple" defaultValue={["basic", "academic", "interests", "notifications"]} className="space-y-4">
+            <Accordion type="multiple" defaultValue={["basic", "academic", "interests"]} className="space-y-4">
               <AccordionItem value="basic" className="glass-card rounded-xl border-none px-6">
                 <AccordionTrigger className="hover:no-underline py-5">
                   <div className="flex items-center gap-3">
@@ -120,18 +113,6 @@ const Settings = () => {
                 </AccordionTrigger>
                 <AccordionContent>
                   <InterestsSection interests={interests} setInterests={setInterests} />
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="notifications" className="glass-card rounded-xl border-none px-6">
-                <AccordionTrigger className="hover:no-underline py-5">
-                  <div className="flex items-center gap-3">
-                    <BellRing className="h-5 w-5 text-emerald-400" />
-                    <span className="font-semibold">Notification Preferences</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent>
-                  <NotificationPreferencesSection notifications={notifications} setNotifications={setNotifications} />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
