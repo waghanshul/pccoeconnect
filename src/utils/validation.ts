@@ -26,17 +26,43 @@ export const recoveryEmailSchema = z
   );
 
 export const formSchema = z.object({
+  role: z.enum(["student", "professor"]),
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: emailSchema,
-  recoveryEmail: recoveryEmailSchema,
+  recoveryEmail: z.string().optional(),
   prn: z.string().min(7, "PRN must be at least 7 characters").max(20, "PRN is too long"),
   branch: z.string().min(2, "Branch is required"),
-  year: z.string(),
+  year: z.string().optional(),
   password: passwordSchema,
   confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+})
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => {
+    const localPart = data.email.split("@")[0] ?? "";
+    const hasDigit = /\d/.test(localPart);
+    if (data.role === "student") return hasDigit;
+    return !hasDigit;
+  }, {
+    message:
+      "Email format does not match the selected role. Students: name.surname[year]@pccoepune.org. Professors: name.surname@pccoepune.org (no digits).",
+    path: ["email"],
+  })
+  .refine((data) => {
+    if (data.role !== "student") return true;
+    return !!data.year && data.year.length > 0;
+  }, { message: "Year is required for students", path: ["year"] })
+  .refine((data) => {
+    if (data.role !== "student") return true;
+    if (!data.recoveryEmail) return false;
+    const parsed = recoveryEmailSchema.safeParse(data.recoveryEmail);
+    return parsed.success;
+  }, {
+    message:
+      "Recovery email is required and must be different from your college email",
+    path: ["recoveryEmail"],
+  });
 
 export type FormData = z.infer<typeof formSchema>;
