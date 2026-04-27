@@ -5,7 +5,7 @@ import { Features } from "./Features";
 import { motion } from "framer-motion";
 
 interface HeroProps {
-  setStep: (step: "auth") => void;
+  setStep: () => void;
 }
 
 export const Hero = ({ setStep }: HeroProps) => {
@@ -44,7 +44,7 @@ export const Hero = ({ setStep }: HeroProps) => {
             <Button
               size="lg"
               className="mt-8 text-base px-8 py-6 rounded-full"
-              onClick={() => setStep("auth")}
+              onClick={() => setStep()}
             >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />

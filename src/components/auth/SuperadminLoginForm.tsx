@@ -1,55 +1,53 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff } from "lucide-react";
+import {
+  SUPERADMIN_PASSWORD,
+  SUPERADMIN_SESSION_KEY,
+  SUPERADMIN_USERNAME,
+} from "@/config/superadmin";
 
-export const StudentLoginForm = () => {
-  const [credentials, setCredentials] = useState({ email: "", password: "" });
-  const [isLoading, setIsLoading] = useState(false);
+export const SuperadminLoginForm = () => {
+  const [credentials, setCredentials] = useState({ username: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      const { error, data } = await signIn(credentials.email, credentials.password);
-      if (error) {
-        toast.error("Invalid email or password");
-        return;
-      }
+    // Tiny artificial delay so the UI doesn't feel jarring.
+    await new Promise((r) => setTimeout(r, 200));
 
-      // Students and professors share the same experience.
-      navigate("/home");
-    } catch (error) {
-      console.error("Login error:", error);
-      toast.error("Invalid email or password");
-    } finally {
-      setIsLoading(false);
+    if (
+      credentials.username === SUPERADMIN_USERNAME &&
+      credentials.password === SUPERADMIN_PASSWORD
+    ) {
+      sessionStorage.setItem(SUPERADMIN_SESSION_KEY, "true");
+      navigate("/admin/dashboard");
+    } else {
+      toast.error("Invalid superadmin credentials");
     }
+    setIsLoading(false);
   };
 
   return (
     <form onSubmit={handleLogin} className="space-y-6">
       <div className="space-y-2">
-        <label className="text-sm font-medium">PCCOE Email</label>
+        <label className="text-sm font-medium">Username</label>
         <Input
-          type="email"
-          placeholder="Enter your college email (e.g., student@pccoepune.org)"
-          value={credentials.email}
+          type="text"
+          placeholder="Enter superadmin username"
+          value={credentials.username}
           onChange={(e) =>
-            setCredentials({ ...credentials, email: e.target.value })
+            setCredentials({ ...credentials, username: e.target.value })
           }
           required
-          pattern="^[a-zA-Z0-9._%+-]+@pccoepune\.org$"
-          title="Please enter a valid PCCOE email address (ending with @pccoepune.org)"
-          className=""
+          autoComplete="off"
           disabled={isLoading}
         />
       </div>
@@ -58,7 +56,7 @@ export const StudentLoginForm = () => {
         <div className="relative">
           <Input
             type={showPassword ? "text" : "password"}
-            placeholder="Enter Password"
+            placeholder="Enter password"
             value={credentials.password}
             onChange={(e) =>
               setCredentials({ ...credentials, password: e.target.value })
@@ -84,8 +82,11 @@ export const StudentLoginForm = () => {
         </div>
       </div>
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Signing in..." : "Sign In"}
+        {isLoading ? "Signing in..." : "Sign in as Superadmin"}
       </Button>
+      <p className="text-xs text-muted-foreground text-center">
+        Superadmin accounts cannot be created. Contact the platform owner for access.
+      </p>
     </form>
   );
 };
