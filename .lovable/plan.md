@@ -1,82 +1,94 @@
-# Fix "Database error creating new user" when adding users manually in Supabase
+# Plan: Unified Student/Professor App + Separate Superadmin Login
 
-## Root Cause
+## Goal
 
-The auth logs show:
-```
-null value in column "full_name" of relation "profiles" violates not-null constraint
-```
+1. Students and professors get the **exact same app experience** (no admin dashboard for professors). They're only "tagged" differently in their profile.
+2. Move the admin dashboard behind a **separate Superadmin login** with **hardcoded credentials in code** (no signup possible).
+3. New landing flow: **Get Started → Choose role (Student / Professor / Superadmin) → enter credentials → log in**.
 
-When you create a user from the Supabase dashboard, no `raw_user_meta_data` is sent. The `handle_new_user_registration` trigger then runs:
+---
 
-```sql
-INSERT INTO public.profiles (id, email, full_name, role)
-VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name', detected_role);
-```
+## User Flow
 
-`NEW.raw_user_meta_data->>'name'` is `NULL`, but `profiles.full_name` is `NOT NULL` → insert fails → user creation aborts with a 500.
-
-## Fix (one migration)
-
-Update the `handle_new_user_registration` trigger function to fall back to a sensible default when `name` is missing, so dashboard-created users (and any future signup that omits name) don't break:
-
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user_registration()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  detected_role text;
-  local_part text;
-  resolved_name text;
-BEGIN
-  local_part := split_part(NEW.email, '@', 1);
-
-  IF NEW.email = 'anshul.wagh22@pccoepune.org' THEN
-    detected_role := 'admin';
-  ELSIF local_part ~ '[0-9]' THEN
-    detected_role := 'student';
-  ELSE
-    detected_role := 'admin';
-  END IF;
-
-  -- Fall back to email local-part if no name was supplied (e.g. manual dashboard create)
-  resolved_name := COALESCE(
-    NULLIF(NEW.raw_user_meta_data->>'name', ''),
-    local_part
-  );
-
-  INSERT INTO public.profiles (id, email, full_name, role)
-  VALUES (NEW.id, NEW.email, resolved_name, detected_role);
-
-  IF detected_role = 'student' THEN
-    INSERT INTO public.student_profiles (id, prn, branch, year, recovery_email)
-    VALUES (
-      NEW.id,
-      COALESCE(NEW.raw_user_meta_data->>'prn', 'PENDING-' || substr(NEW.id::text, 1, 8)),
-      COALESCE(NEW.raw_user_meta_data->>'branch', 'Unassigned'),
-      COALESCE(NEW.raw_user_meta_data->>'year', '1st'),
-      NEW.raw_user_meta_data->>'recoveryEmail'
-    );
-  END IF;
-
-  RETURN NEW;
-END;
-$$;
+```text
+Landing ("Get Started")
+        │
+        ▼
+ Role Selector
+ ┌──────────────┬──────────────┬──────────────┐
+ │   Student    │  Professor   │  Superadmin  │
+ └──────┬───────┴──────┬───────┴──────┬───────┘
+        │              │              │
+        ▼              ▼              ▼
+   Login form     Login form     Login form
+   (Supabase)     (Supabase)     (hardcoded)
+        │              │              │
+        ▼              ▼              ▼
+      /home          /home       /admin/dashboard
 ```
 
-Notes:
-- `full_name` defaults to the email local part (e.g. `john.doe22`) when missing — user can edit later in Settings.
-- `student_profiles.prn` / `branch` / `year` also get safe defaults so a manually-created student email doesn't fail the second insert. The PRN placeholder is unique per user (uses the uuid) to avoid the unique-PRN constraint colliding.
-- Behavior for normal app signups is unchanged because they always send `name`, `prn`, `branch`, `year` in metadata.
+- Student & Professor: same Supabase auth, same `/home` feed, same features. Profile just shows their tag (student/professor).
+- Superadmin: completely separate login screen, credentials checked against a hardcoded value in the frontend, no Supabase auth involved. On success, sets a sessionStorage flag and routes to `/admin/dashboard`.
+- Registration (signup) only available for Student and Professor — never for Superadmin.
 
-## What this does NOT change
+---
 
-- No frontend changes.
-- No RLS changes.
-- Role-derivation logic (digits = student, none = admin, plus the `anshul.wagh22` whitelist) is preserved exactly.
-- Email-confirmation setting (`enable_confirmations = false`) is left as-is per your earlier decision.
+## Changes
 
-After approval, retry creating the user from the Supabase dashboard — it should succeed, and a profile row will be created with the email local-part as the name.
+### 1. Landing page flow (`src/pages/Landing.tsx`)
+Replace the current 2-step flow with 3 steps:
+- `initial` → Hero with "Get Started"
+- `roleSelect` → 3 cards: Student, Professor, Superadmin
+- `auth` → Shows the right login form based on selected role
+
+Add a "Back" button on each step.
+
+### 2. Role selector UI (new component `src/components/auth/RoleSelector.tsx`)
+Three clickable cards (Student / Professor / Superadmin) with icons. Selecting one advances to the auth step with that role context.
+
+### 3. Login form behavior (`src/components/auth/StudentLoginForm.tsx`)
+Rename conceptually to a generic `UserLoginForm` (or keep file, just change behavior):
+- Used for both Student and Professor logins (same Supabase auth).
+- After successful sign-in, **always navigate to `/home`** — remove the current logic that redirects faculty/admin to `/admin/dashboard`.
+- Show "Create an account" only for student/professor flows.
+
+### 4. New Superadmin login form (`src/components/auth/SuperadminLoginForm.tsx`)
+- Username + password fields.
+- On submit, compare against hardcoded constants (e.g., `SUPERADMIN_USERNAME` / `SUPERADMIN_PASSWORD` in `src/config/superadmin.ts`).
+- On match: `sessionStorage.setItem("superadmin", "true")` and `navigate("/admin/dashboard")`.
+- On mismatch: toast "Invalid superadmin credentials".
+- No "Create account" option.
+
+### 5. Registration form (`src/components/RegisterForm.tsx`)
+- Keep Student / Professor only in role dropdown (already the case — no Superadmin option added).
+- Professor signup continues to use Supabase auth and stores role as `admin` in the `profiles` table (so the tag is preserved), but **professors will no longer be routed to the admin dashboard** — they go to `/home` like students.
+
+### 6. Route protection (`src/App.tsx`)
+- `/home` and all current student routes: accessible to any authenticated Supabase user (student OR professor — no role restriction).
+- `/admin/dashboard`: protected by a new `SuperadminRoute` wrapper that checks `sessionStorage.getItem("superadmin") === "true"` instead of Supabase auth/role. If not set, redirect to `/`.
+- Remove the `allowedRoles={["admin"]}` Supabase role check on `/admin/dashboard`.
+
+### 7. Admin dashboard logout (`src/pages/AdminDashboard.tsx`)
+- Replace `supabase.auth.signOut()` with `sessionStorage.removeItem("superadmin")` then navigate to `/`.
+
+### 8. Profile "tag" display
+- Where the profile shows the user role, ensure both `student` and `admin` (professor) values render as friendly labels: "Student" / "Professor". No feature gating based on this anywhere outside the superadmin route.
+
+---
+
+## Technical Notes
+
+- **Hardcoded credentials**: Stored as plain constants in `src/config/superadmin.ts`. The user explicitly requested this. Note: anything in frontend code is visible to anyone who inspects the JS bundle — these credentials are effectively public to anyone who downloads the site. This is acceptable per the request, but worth noting.
+- **No Supabase changes needed**. Schema, RLS, and the existing `profiles.role` column stay as-is. The `admin` role value simply becomes a cosmetic tag for professors, no longer a gate to the dashboard.
+- **Existing professor accounts** that were being auto-routed to `/admin/dashboard` after login will now land on `/home` like everyone else. The dashboard becomes reachable only via the Superadmin login.
+- **Session persistence for superadmin**: using `sessionStorage` means the superadmin session ends when the tab closes. If you'd prefer it to persist across tabs/restarts, swap to `localStorage` — let me know.
+
+---
+
+## Open Question (please confirm before I build)
+
+What hardcoded **superadmin username and password** should I use? For example:
+- username: `superadmin`
+- password: `<something you choose>`
+
+If you don't specify, I'll use placeholders (`superadmin` / `changeme123`) that you can edit in `src/config/superadmin.ts` afterwards.
