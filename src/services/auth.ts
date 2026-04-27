@@ -19,11 +19,9 @@ export async function checkExistingUser(prn: string) {
 
 export async function registerUser(values: FormData) {
   try {
-    // Auto-detect role based on email pattern
-    // Professor emails have no digits in local part (e.g. rucha.shinde@pccoepune.org)
-    // Student emails contain digits (e.g. mangal.singhal22@pccoepune.org)
-    const localPart = values.email.split('@')[0];
-    const detectedRole = /\d/.test(localPart) ? 'student' : 'admin';
+    // Role is selected by user; backend trigger also derives from email format.
+    // 'professor' is stored as 'admin' role in profiles table.
+    const detectedRole = values.role === "professor" ? "admin" : "student";
 
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: values.email,
@@ -33,8 +31,8 @@ export async function registerUser(values: FormData) {
           name: values.name,
           prn: values.prn,
           branch: values.branch,
-          year: values.year,
-          recoveryEmail: values.recoveryEmail,
+          year: values.year ?? null,
+          recoveryEmail: values.recoveryEmail ?? null,
           role: detectedRole
         }
       }

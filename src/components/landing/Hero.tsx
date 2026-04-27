@@ -5,11 +5,10 @@ import { Features } from "./Features";
 import { motion } from "framer-motion";
 
 interface HeroProps {
-  setStep: (step: "role") => void;
-  resetRole: () => void;
+  setStep: (step: "auth") => void;
 }
 
-export const Hero = ({ setStep, resetRole }: HeroProps) => {
+export const Hero = ({ setStep }: HeroProps) => {
   return (
     <div className="container mx-auto px-4 py-16 flex flex-col lg:flex-row items-center justify-between min-h-screen gap-16">
       <div className="w-full lg:w-1/2 space-y-8 relative z-10">
@@ -45,10 +44,7 @@ export const Hero = ({ setStep, resetRole }: HeroProps) => {
             <Button
               size="lg"
               className="mt-8 text-base px-8 py-6 rounded-full"
-              onClick={() => {
-                resetRole();
-                setStep("role");
-              }}
+              onClick={() => setStep("auth")}
             >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />

@@ -29,6 +29,7 @@ export function RegisterForm() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      role: "student",
       name: "",
       email: "",
       recoveryEmail: "",
@@ -40,15 +41,19 @@ export function RegisterForm() {
     },
   });
 
+  const selectedRole = form.watch("role");
+  const isStudent = selectedRole === "student";
+
   async function onSubmit(values: FormData) {
     setIsLoading(true);
     try {
-      // First check if user with this PRN already exists
-      const { existingUser, checkError } = await checkExistingUser(values.prn);
-      
-      if (existingUser) {
-        toast.error("A user with this PRN already exists");
-        return;
+      if (values.role === "student") {
+        // Check if a student with this PRN already exists
+        const { existingUser } = await checkExistingUser(values.prn);
+        if (existingUser) {
+          toast.error("A user with this PRN already exists");
+          return;
+        }
       }
       
       // Register the user
@@ -76,6 +81,33 @@ export function RegisterForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>I am a</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="student">Student</SelectItem>
+                  <SelectItem value="professor">Professor</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+              <p className="text-xs text-muted-foreground">
+                {isStudent
+                  ? "Student email format: name.surname[joiningYear]@pccoepune.org (e.g. anshul.wagh22@pccoepune.org)"
+                  : "Professor email format: name.surname@pccoepune.org (no digits, e.g. rucha.shinde@pccoepune.org)"}
+              </p>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
@@ -97,7 +129,7 @@ export function RegisterForm() {
               <FormControl>
                 <Input 
                   type="email" 
-                  placeholder="student@pccoepune.org" 
+                  placeholder={isStudent ? "anshul.wagh22@pccoepune.org" : "rucha.shinde@pccoepune.org"}
                   {...field} 
                   disabled={isLoading}
                 />
@@ -107,37 +139,39 @@ export function RegisterForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="recoveryEmail"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Recovery Email</FormLabel>
-              <FormControl>
-                <Input 
-                  type="email" 
-                  placeholder="your-personal-email@example.com" 
-                  {...field} 
-                  disabled={isLoading}
-                />
-              </FormControl>
-              <FormMessage />
-              <p className="text-xs text-muted-foreground">
-                This email will be used to recover your account after graduation when you no longer have access to your PCCOE email.
-              </p>
-            </FormItem>
-          )}
-        />
+        {isStudent && (
+          <FormField
+            control={form.control}
+            name="recoveryEmail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recovery Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="your-personal-email@example.com"
+                    {...field}
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormMessage />
+                <p className="text-xs text-muted-foreground">
+                  This email will be used to recover your account after graduation when you no longer have access to your PCCOE email.
+                </p>
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
           name="prn"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>PRN (Permanent Registration Number)</FormLabel>
+              <FormLabel>{isStudent ? "PRN (Permanent Registration Number)" : "Employee ID"}</FormLabel>
               <FormControl>
                 <Input 
-                  placeholder="e.g., 12345678900" 
+                  placeholder={isStudent ? "e.g., 12345678900" : "e.g., EMP-1024"}
                   {...field} 
                   disabled={isLoading}
                 />
@@ -152,7 +186,7 @@ export function RegisterForm() {
           name="branch"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Branch</FormLabel>
+              <FormLabel>{isStudent ? "Branch" : "Department"}</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., Computer Engineering" {...field} disabled={isLoading} />
               </FormControl>
@@ -161,29 +195,31 @@ export function RegisterForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="year"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Year</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your year" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1st">1st Year</SelectItem>
-                  <SelectItem value="2nd">2nd Year</SelectItem>
-                  <SelectItem value="3rd">3rd Year</SelectItem>
-                  <SelectItem value="4th">4th Year</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {isStudent && (
+          <FormField
+            control={form.control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your year" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="1st">1st Year</SelectItem>
+                    <SelectItem value="2nd">2nd Year</SelectItem>
+                    <SelectItem value="3rd">3rd Year</SelectItem>
+                    <SelectItem value="4th">4th Year</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
