@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
-import { GraduationCap, BookOpen, ShieldCheck, ArrowRight } from "lucide-react";
+import { Users, ShieldCheck, ArrowRight } from "lucide-react";
 
-export type AuthRole = "student" | "professor" | "superadmin";
+export type AuthRole = "user" | "superadmin";
 
 interface RoleSelectorProps {
   onSelect: (role: AuthRole) => void;
@@ -14,16 +14,10 @@ const roles: {
   Icon: React.ComponentType<{ className?: string }>;
 }[] = [
   {
-    key: "student",
-    title: "Student",
-    description: "Sign in with your PCCOE email to connect with peers.",
-    Icon: GraduationCap,
-  },
-  {
-    key: "professor",
-    title: "Professor",
-    description: "Sign in with your PCCOE email to engage with students.",
-    Icon: BookOpen,
+    key: "user",
+    title: "Student / Professor",
+    description: "Sign in with your PCCOE email to access ChatPCCOE.",
+    Icon: Users,
   },
   {
     key: "superadmin",

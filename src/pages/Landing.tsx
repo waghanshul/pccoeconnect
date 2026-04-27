@@ -19,12 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 type Step = "initial" | "roleSelect" | "auth";
 
 const roleCopy: Record<AuthRole, { title: string; subtitle: string }> = {
-  student: {
-    title: "Student sign in",
-    subtitle: "Use your PCCOE email to access ChatPCCOE.",
-  },
-  professor: {
-    title: "Professor sign in",
+  user: {
+    title: "Sign in to ChatPCCOE",
     subtitle: "Use your PCCOE email to access ChatPCCOE.",
   },
   superadmin: {
@@ -131,7 +127,7 @@ const Landing = () => {
                               </SheetDescription>
                             </SheetHeader>
                             <div className="mt-6">
-                              <RegisterForm defaultRole={role} />
+                              <RegisterForm />
                             </div>
                           </SheetContent>
                         </Sheet>
