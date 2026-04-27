@@ -17,32 +17,15 @@ export const StudentLoginForm = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const { error, data } = await signIn(credentials.email, credentials.password);
       if (error) {
         toast.error("Invalid email or password");
         return;
       }
-      
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      
-      if (authUser) {
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", authUser.id)
-          .single();
-        
-        if (profileData?.role === 'admin' && authUser.email !== 'anshul.wagh22@pccoepune.org') {
-          toast.success("Signed in as Faculty!");
-          navigate("/admin/dashboard");
-          return;
-        }
-      }
-      
-      toast.success("Signed in!");
+
+      // Students and professors share the same experience.
       navigate("/home");
     } catch (error) {
       console.error("Login error:", error);
