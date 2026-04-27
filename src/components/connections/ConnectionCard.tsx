@@ -29,26 +29,32 @@ export const ConnectionCard = ({
     navigate(`/messages?user=${connectionId}`);
   };
 
+  const goToProfile = () => navigate(`/user/${connection.id}`);
+
   return (
     <Card className="overflow-hidden hover:border-primary/20 transition-colors duration-200 group">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-11 w-11">
+          <button
+            type="button"
+            onClick={goToProfile}
+            className="flex items-center gap-3 text-left hover:opacity-90 transition-opacity"
+          >
+            <Avatar className="h-11 w-11 cursor-pointer">
               <AvatarImage src={connection.avatar_url} />
               <AvatarFallback>
                 {connection.full_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-medium">{connection.full_name}</h3>
+              <h3 className="font-medium hover:text-primary transition-colors">{connection.full_name}</h3>
               {connection.role && (
                 <Badge variant="outline" className="text-[10px] font-normal mt-0.5">
                   {connection.role}
                 </Badge>
               )}
             </div>
-          </div>
+          </button>
         </div>
       </CardHeader>
       
