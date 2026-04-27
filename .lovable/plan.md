@@ -1,38 +1,82 @@
-# Remove Email Verification
+# Fix "Database error creating new user" when adding users manually in Supabase
 
-Users will be able to sign up and immediately sign in without confirming their email. The PCCOE domain restriction (`@pccoepune.org`) still gates who can register, and role logic still derives from email format — so security stays intact.
+## Root Cause
 
-## Changes
+The auth logs show:
+```
+null value in column "full_name" of relation "profiles" violates not-null constraint
+```
 
-### 1. Disable Supabase email confirmations
-**`supabase/config.toml`**
-- Change `enable_confirmations = true` → `enable_confirmations = false`
+When you create a user from the Supabase dashboard, no `raw_user_meta_data` is sent. The `handle_new_user_registration` trigger then runs:
 
-This stops Supabase from requiring email verification on signup, which also eliminates the rate-limit error you were hitting.
+```sql
+INSERT INTO public.profiles (id, email, full_name, role)
+VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'name', detected_role);
+```
 
-### 2. Database migration — auto-confirm existing & new users
-- Run a one-time `UPDATE auth.users SET email_confirmed_at = now() WHERE email_confirmed_at IS NULL` so users who registered earlier but never verified can now sign in.
+`NEW.raw_user_meta_data->>'name'` is `NULL`, but `profiles.full_name` is `NOT NULL` → insert fails → user creation aborts with a 500.
 
-(New signups will be auto-confirmed by Supabase once `enable_confirmations = false`.)
+## Fix (one migration)
 
-### 3. Frontend cleanup
-**`src/components/auth/StudentLoginForm.tsx`**
-- Remove the "please verify your email" check (`!currentUser.email_confirmed_at` block)
-- Remove `showResendButton`, `isResending`, `resendCooldown` state
-- Remove the `handleResendVerification` function and the "Resend verification email" button
-- Remove the `Mail` icon import
+Update the `handle_new_user_registration` trigger function to fall back to a sensible default when `name` is missing, so dashboard-created users (and any future signup that omits name) don't break:
 
-**`src/components/RegisterForm.tsx`** (verify and clean up)
-- Remove any "check your email to confirm" toast/messaging shown after successful signup
-- After successful registration, sign the user in directly (or navigate to `/home` since they're auto-confirmed)
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user_registration()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  detected_role text;
+  local_part text;
+  resolved_name text;
+BEGIN
+  local_part := split_part(NEW.email, '@', 1);
 
-### 4. What stays (security still intact)
-- `@pccoepune.org` domain enforcement at the form-validation level
-- Role derivation from email format (digits = student, no digits = professor/admin) in the `handle_new_user_registration` trigger
-- RLS policies and `has_role()` server-side checks
-- Password strength rules
+  IF NEW.email = 'anshul.wagh22@pccoepune.org' THEN
+    detected_role := 'admin';
+  ELSIF local_part ~ '[0-9]' THEN
+    detected_role := 'student';
+  ELSE
+    detected_role := 'admin';
+  END IF;
 
-## Technical Notes
-- No edge function changes needed
-- No changes to RLS or role logic
-- `auth-email-hook` and email templates are not in use here, so nothing to disable on that front
+  -- Fall back to email local-part if no name was supplied (e.g. manual dashboard create)
+  resolved_name := COALESCE(
+    NULLIF(NEW.raw_user_meta_data->>'name', ''),
+    local_part
+  );
+
+  INSERT INTO public.profiles (id, email, full_name, role)
+  VALUES (NEW.id, NEW.email, resolved_name, detected_role);
+
+  IF detected_role = 'student' THEN
+    INSERT INTO public.student_profiles (id, prn, branch, year, recovery_email)
+    VALUES (
+      NEW.id,
+      COALESCE(NEW.raw_user_meta_data->>'prn', 'PENDING-' || substr(NEW.id::text, 1, 8)),
+      COALESCE(NEW.raw_user_meta_data->>'branch', 'Unassigned'),
+      COALESCE(NEW.raw_user_meta_data->>'year', '1st'),
+      NEW.raw_user_meta_data->>'recoveryEmail'
+    );
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+```
+
+Notes:
+- `full_name` defaults to the email local part (e.g. `john.doe22`) when missing — user can edit later in Settings.
+- `student_profiles.prn` / `branch` / `year` also get safe defaults so a manually-created student email doesn't fail the second insert. The PRN placeholder is unique per user (uses the uuid) to avoid the unique-PRN constraint colliding.
+- Behavior for normal app signups is unchanged because they always send `name`, `prn`, `branch`, `year` in metadata.
+
+## What this does NOT change
+
+- No frontend changes.
+- No RLS changes.
+- Role-derivation logic (digits = student, none = admin, plus the `anshul.wagh22` whitelist) is preserved exactly.
+- Email-confirmation setting (`enable_confirmations = false`) is left as-is per your earlier decision.
+
+After approval, retry creating the user from the Supabase dashboard — it should succeed, and a profile row will be created with the email local-part as the name.
