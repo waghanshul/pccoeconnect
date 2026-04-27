@@ -1,7 +1,7 @@
 project_id = "fkocqxfvrzkrguhbulam"
 
 [auth]
-enable_confirmations = true
+enable_confirmations = false
 
 [functions.upload-avatar]
 verify_jwt = true
