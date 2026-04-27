@@ -21,6 +21,7 @@ import Messages from "./pages/Messages";
 import AdminDashboard from "./pages/AdminDashboard";
 import Connections from "./pages/Connections";
 import PostView from "./pages/PostView";
+import { isSuperadmin } from "./config/superadmin";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -65,6 +66,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   return <>{children}</>;
 };
 
+const SuperadminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  if (!isSuperadmin()) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
@@ -81,7 +89,7 @@ const AnimatedRoutes = () => {
         <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         <Route path="/connections" element={<ProtectedRoute><Connections /></ProtectedRoute>} />
         <Route path="/post/:postId" element={<ProtectedRoute><PostView /></ProtectedRoute>} />
-        <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={["admin"]}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/dashboard" element={<SuperadminRoute><AdminDashboard /></SuperadminRoute>} />
       </Routes>
     </AnimatePresence>
   );
